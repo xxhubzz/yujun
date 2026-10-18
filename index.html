@@ -38,28 +38,29 @@
     .interactive {
       pointer-events: auto;
     }
+    /* 조이스틱 및 스킬 컨트롤러 위치 적당히 아래로 조정 */
     .controls-layer {
-      bottom: max(env(safe-area-inset-bottom, 20px) + 95px, 105px);
+      bottom: max(env(safe-area-inset-bottom, 15px) + 40px, 50px);
       left: 0;
       right: 0;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      padding: 0 20px;
+      padding: 0 16px;
     }
     .joystick-base {
-      width: 120px;
-      height: 120px;
+      width: 115px;
+      height: 115px;
       background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, rgba(200,200,200,0.5) 100%);
       border: 3px solid rgba(255,255,255,0.85);
       border-radius: 50%;
       position: relative;
       touch-action: none;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
     .joystick-thumb {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       background: radial-gradient(circle, #fde047 0%, #eab308 100%);
       border-radius: 50%;
       position: absolute;
@@ -127,15 +128,19 @@
             <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">Lv.1</span>
           </div>
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-1 border border-slate-200 flex">
+          
+          <!-- 체력 & 경험치 텍스트를 게이지 바 위로 올림 -->
+          <div class="flex justify-between items-center text-[9px] font-bold text-slate-500 mt-1 mb-0.5 leading-none">
+            <span id="hp-text" class="text-rose-600">HP 150/150</span>
+            <span id="exp-text" class="text-amber-600">EXP 0%</span>
+          </div>
+
+          <!-- 체력 & 경험치 게이지 바 -->
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200 flex">
             <div id="hp-bar" class="bg-rose-500 h-full transition-all duration-150" style="width: 100%;"></div>
           </div>
           <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-0.5 border border-slate-200 flex">
             <div id="exp-bar" class="bg-amber-400 h-full transition-all duration-150" style="width: 0%;"></div>
-          </div>
-          <div class="flex justify-between items-center text-[9px] font-semibold text-slate-400 mt-0.5">
-            <span id="hp-text">150/150</span>
-            <span id="exp-text" class="text-amber-600 font-bold">EXP 0% (0/100)</span>
           </div>
         </div>
       </div>
@@ -182,34 +187,42 @@
     <div id="tt-type" class="text-[9px] text-slate-400 mt-0.5"></div>
   </div>
 
-  <!-- 하단 컨트롤 레이어 -->
+  <!-- 하단 컨트롤 레이어 (실시간 스킬 공격력 표시 추가) -->
   <div class="controls-layer z-20">
     <div class="interactive joystick-base" id="joystick-base">
       <div class="joystick-thumb" id="joystick-thumb"></div>
     </div>
 
-    <div class="interactive grid grid-cols-2 gap-2.5">
-      <button id="btn-skill-poop" class="skill-btn bg-amber-800/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-amber-600 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span id="icon-skill-poop" class="text-2xl">💩</span>
-        <span id="name-skill-poop" class="text-[9px] font-black mt-0.5">똥폭탄</span>
+    <div class="interactive grid grid-cols-2 gap-2">
+      <!-- 똥폭탄 계열 -->
+      <button id="btn-skill-poop" class="skill-btn bg-amber-800/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-amber-600 flex flex-col items-center justify-center w-16 h-16 relative">
+        <span id="icon-skill-poop" class="text-xl">💩</span>
+        <span id="name-skill-poop" class="text-[8px] font-black mt-0.5 leading-none">똥폭탄</span>
+        <span id="dmg-skill-poop" class="text-[7px] text-amber-300 font-bold leading-none mt-0.5">ATK 0</span>
         <div id="cool-poop" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <button id="btn-skill-fart" class="skill-btn bg-emerald-600/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-emerald-400 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span id="icon-skill-fart" class="text-2xl">💨</span>
-        <span id="name-skill-fart" class="text-[9px] font-black mt-0.5">방귀</span>
+      <!-- 방귀 계열 -->
+      <button id="btn-skill-fart" class="skill-btn bg-emerald-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-emerald-400 flex flex-col items-center justify-center w-16 h-16 relative">
+        <span id="icon-skill-fart" class="text-xl">💨</span>
+        <span id="name-skill-fart" class="text-[8px] font-black mt-0.5 leading-none">방귀</span>
+        <span id="dmg-skill-fart" class="text-[7px] text-emerald-200 font-bold leading-none mt-0.5">ATK 0</span>
         <div id="cool-fart" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <button id="btn-skill-cry" class="skill-btn bg-blue-600/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-blue-400 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span id="icon-skill-cry" class="text-2xl">😭</span>
-        <span id="name-skill-cry" class="text-[9px] font-black mt-0.5">울음</span>
+      <!-- 울음 계열 -->
+      <button id="btn-skill-cry" class="skill-btn bg-blue-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-blue-400 flex flex-col items-center justify-center w-16 h-16 relative">
+        <span id="icon-skill-cry" class="text-xl">😭</span>
+        <span id="name-skill-cry" class="text-[8px] font-black mt-0.5 leading-none">울음</span>
+        <span id="dmg-skill-cry" class="text-[7px] text-blue-200 font-bold leading-none mt-0.5">ATK 0</span>
         <div id="cool-cry" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <button id="btn-attack" class="skill-btn bg-gradient-to-tr from-pink-500 to-rose-400 text-white p-2.5 rounded-2xl shadow-xl border-2 border-white flex flex-col items-center justify-center w-16 h-16">
-        <span id="atk-btn-icon" class="text-2xl">🍼</span>
-        <span id="atk-btn-text" class="text-[9px] font-black mt-0.5">분유던지기</span>
+      <!-- 기본 공격 -->
+      <button id="btn-attack" class="skill-btn bg-gradient-to-tr from-pink-500 to-rose-400 text-white p-1.5 rounded-2xl shadow-xl border-2 border-white flex flex-col items-center justify-center w-16 h-16">
+        <span id="atk-btn-icon" class="text-xl">🍼</span>
+        <span id="atk-btn-text" class="text-[8px] font-black mt-0.5 leading-none">분유던지기</span>
+        <span id="dmg-atk-btn" class="text-[7px] text-pink-200 font-bold leading-none mt-0.5">ATK 0</span>
       </button>
     </div>
   </div>
@@ -245,7 +258,7 @@
     </div>
   </div>
 
-  <!-- 첫 화면 모달: 닉네임 입력 & 실시간 Top 5 (이전 닉네임 자동 보존) -->
+  <!-- 첫 화면 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">👶</div>
@@ -342,25 +355,25 @@
             osc.start(t); osc.stop(t + 0.08);
           } else if (type === 'fart') {
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(110, t);
-            osc.frequency.exponentialRampToValueAtTime(45, t + 0.28);
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.28);
-            osc.start(t); osc.stop(t + 0.28);
+            osc.frequency.setValueAtTime(120, t);
+            osc.frequency.exponentialRampToValueAtTime(35, t + 0.35);
+            gain.gain.setValueAtTime(0.4, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.35);
+            osc.start(t); osc.stop(t + 0.35);
           } else if (type === 'poop') {
             osc.type = 'square';
-            osc.frequency.setValueAtTime(220, t);
-            osc.frequency.exponentialRampToValueAtTime(80, t + 0.25);
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.25);
-            osc.start(t); osc.stop(t + 0.25);
+            osc.frequency.setValueAtTime(260, t);
+            osc.frequency.exponentialRampToValueAtTime(70, t + 0.32);
+            gain.gain.setValueAtTime(0.4, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.32);
+            osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.linearRampToValueAtTime(900, t + 0.2);
-            osc.frequency.linearRampToValueAtTime(500, t + 0.4);
-            gain.gain.setValueAtTime(0.35, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
-            osc.start(t); osc.stop(t + 0.4);
+            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
+            osc.frequency.linearRampToValueAtTime(450, t + 0.5);
+            gain.gain.setValueAtTime(0.4, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
+            osc.start(t); osc.stop(t + 0.5);
           } else if (type === 'coin') {
             osc.frequency.setValueAtTime(950, t);
             osc.frequency.setValueAtTime(1300, t + 0.08);
@@ -372,7 +385,7 @@
             osc.frequency.setValueAtTime(550, t);
             osc.frequency.linearRampToValueAtTime(850, t + 0.2);
             osc.frequency.linearRampToValueAtTime(450, t + 0.4);
-            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.setValueAtTime(0.35, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
             osc.start(t); osc.stop(t + 0.4);
           } else if (type === 'boss_shoot') {
@@ -384,11 +397,11 @@
             osc.start(t); osc.stop(t + 0.2);
           } else if (type === 'meteor') {
             osc.type = 'square';
-            osc.frequency.setValueAtTime(100, t);
-            osc.frequency.linearRampToValueAtTime(40, t + 0.4);
-            gain.gain.setValueAtTime(0.4, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
-            osc.start(t); osc.stop(t + 0.4);
+            osc.frequency.setValueAtTime(120, t);
+            osc.frequency.linearRampToValueAtTime(40, t + 0.45);
+            gain.gain.setValueAtTime(0.45, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.45);
+            osc.start(t); osc.stop(t + 0.45);
           } else if (type === 'levelup') {
             [440, 554, 659, 880].forEach((freq, idx) => {
               const o = this.ctx.createOscillator();
@@ -404,9 +417,6 @@
       }
     };
 
-    /* ========================================================
-       초대형 오픈월드 맵 크기 설정 (2400 x 2400)
-       ======================================================== */
     const WORLD_WIDTH = 2400;
     const WORLD_HEIGHT = 2400;
 
@@ -447,7 +457,6 @@
       unlockedSkills: []
     };
 
-    // 플레이어 스탯: 난이도 하향 (기본 HP 150, 기본 속도 195로 상향)
     const player = {
       x: WORLD_WIDTH / 2,
       y: WORLD_HEIGHT / 2,
@@ -463,7 +472,6 @@
       meteorTimer: 0
     };
 
-    // 카메라 뷰포트
     const camera = {
       x: player.x,
       y: player.y
@@ -503,7 +511,7 @@
         dmgReduction: Math.min(0.75, getL('swaddle') * 0.035),
         critRate: Math.min(0.85, 0.08 + getL('clothes') * 0.035),
         critDmg: 1.6 + getL('clothes') * 0.18,
-        atk: 32 + (player.level - 1) * 6 + getL('bottle') * 15, // 공격력 상향
+        atk: 32 + (player.level - 1) * 6 + getL('bottle') * 15,
         projSpeed: 480 + getL('bottle') * 20,
         speedBonus: getL('stroller') * 18,
         coolReduce: Math.min(0.70, getL('toy') * 0.05),
@@ -535,17 +543,17 @@
 
     function getSkillEvolutions() {
       const lv = player.level;
-      let fart = { tier: 1, name: "방귀", icon: "💨", rad: 95, pwr: 2.0 };
-      if (lv >= 20) fart = { tier: 3, name: "토네이도방귀", icon: "🌀", rad: 210, pwr: 4.2 };
-      else if (lv >= 10) fart = { tier: 2, name: "슈퍼방귀", icon: "🌪️", rad: 145, pwr: 2.8 };
+      let fart = { tier: 1, name: "방귀", icon: "💨", rad: 100, pwr: 2.0 };
+      if (lv >= 20) fart = { tier: 3, name: "토네이도방귀", icon: "🌀", rad: 220, pwr: 4.5 };
+      else if (lv >= 10) fart = { tier: 2, name: "슈퍼방귀", icon: "🌪️", rad: 155, pwr: 3.0 };
 
-      let poop = { tier: 1, name: "똥폭탄", icon: "💩", rad: 120, pwr: 3.5 };
-      if (lv >= 20) poop = { tier: 3, name: "똥의노래", icon: "🎶", rad: 240, pwr: 6.8 };
-      else if (lv >= 10) poop = { tier: 2, name: "설사폭탄", icon: "💥", rad: 175, pwr: 4.8 };
+      let poop = { tier: 1, name: "똥폭탄", icon: "💩", rad: 125, pwr: 3.6 };
+      if (lv >= 20) poop = { tier: 3, name: "똥의노래", icon: "🎶", rad: 250, pwr: 7.2 };
+      else if (lv >= 10) poop = { tier: 2, name: "설사폭탄", icon: "💥", rad: 180, pwr: 5.2 };
 
-      let cry = { tier: 1, name: "울음", icon: "😭", stun: 1.8, pwr: 3.8 };
-      if (lv >= 20) cry = { tier: 3, name: "대성통곡", icon: "⚡😭", stun: 3.2, pwr: 7.5 };
-      else if (lv >= 10) cry = { tier: 2, name: "강성울음", icon: "🌊", stun: 2.5, pwr: 5.5 };
+      let cry = { tier: 1, name: "울음", icon: "😭", stun: 1.8, pwr: 4.0 };
+      if (lv >= 20) cry = { tier: 3, name: "대성통곡", icon: "⚡😭", stun: 3.2, pwr: 8.0 };
+      else if (lv >= 10) cry = { tier: 2, name: "강성울음", icon: "🌊", stun: 2.5, pwr: 5.8 };
 
       return { fart, poop, cry };
     }
@@ -721,9 +729,10 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackTimer = 0.20; // 연사 쾌적화
+      player.attackTimer = 0.20;
     }
 
+    // 강렬한 이펙트의 똥폭탄 (사방 파편 폭발)
     function triggerPoop() {
       if (state.isPaused || state.isGameOver || cooldowns.poop > 0) return;
       const stats = calcStats();
@@ -731,6 +740,8 @@
       Sound.play('poop');
       
       const rad = poop.rad * stats.bombRadius;
+      
+      // 메인 폭발
       particles.push({ 
         type: 'poop-blast', 
         x: player.x, y: player.y, 
@@ -740,6 +751,21 @@
         icon: poop.icon 
       });
 
+      // 강렬한 똥 파편들이 사방으로 흩날리는 역동적 연출 추가
+      for (let i = 0; i < (poop.tier === 3 ? 16 : 10); i++) {
+        const pang = Math.random() * Math.PI * 2;
+        const pspd = 120 + Math.random() * 240;
+        particles.push({
+          type: 'poop-debris',
+          x: player.x, y: player.y,
+          vx: Math.cos(pang) * pspd,
+          vy: Math.sin(pang) * pspd,
+          size: 6 + Math.random() * 8,
+          alpha: 1,
+          life: 0.6 + Math.random() * 0.4
+        });
+      }
+
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d <= rad) applyDamage(en, stats.atk * poop.pwr * (1 + stats.dmgAmp), false, poop.icon);
@@ -748,6 +774,7 @@
       cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
 
+    // 강렬한 가스 구름과 기류의 방귀
     function triggerFart() {
       if (state.isPaused || state.isGameOver || cooldowns.fart > 0) return;
       const stats = calcStats();
@@ -763,21 +790,37 @@
         icon: fart.icon 
       });
 
+      // 방귀 맹독 가스 연기 파티클
+      for (let i = 0; i < 14; i++) {
+        const fang = Math.atan2(-player.dirY, -player.dirX) + (Math.random() - 0.5) * 1.5;
+        const fspd = 80 + Math.random() * 180;
+        particles.push({
+          type: 'fart-gas',
+          x: player.x, y: player.y,
+          vx: Math.cos(fang) * fspd,
+          vy: Math.sin(fang) * fspd,
+          radius: 12 + Math.random() * 16,
+          alpha: 0.8,
+          life: 0.7
+        });
+      }
+
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d < fart.rad + 40) {
-          const pushDist = fart.tier === 3 ? 180 : (fart.tier === 2 ? 140 : 95);
+          const pushDist = fart.tier === 3 ? 200 : (fart.tier === 2 ? 150 : 100);
           en.x += player.dirX * pushDist;
           en.y += player.dirY * pushDist;
           applyDamage(en, stats.atk * fart.pwr * (1 + stats.dmgAmp), false, fart.icon);
         }
       });
 
-      player.x += player.dirX * (fart.tier >= 2 ? 60 : 45);
-      player.y += player.dirY * (fart.tier >= 2 ? 60 : 45);
+      player.x += player.dirX * (fart.tier >= 2 ? 65 : 45);
+      player.y += player.dirY * (fart.tier >= 2 ? 65 : 45);
       cooldowns.fart = 4.0 * (1 - stats.coolReduce);
     }
 
+    // 울음
     function triggerCry() {
       if (state.isPaused || state.isGameOver || cooldowns.cry > 0) return;
       const stats = calcStats();
@@ -865,7 +908,7 @@
       while (player.exp >= player.maxExp) {
         player.exp -= player.maxExp;
         player.level++;
-        player.maxExp = Math.round(player.maxExp * 1.30); // 레벨업 주기 최적화
+        player.maxExp = Math.round(player.maxExp * 1.30);
         leveledUp = true;
         checkSkillUnlocks(player.level);
       }
@@ -914,7 +957,6 @@
       state.isPaused = false;
     });
 
-    // 보스 출현 경고 배너 띄우기
     let bossWarningTimeout = null;
     function triggerBossWarning(name) {
       Sound.play('boss_warning');
@@ -930,19 +972,19 @@
     }
 
     /* ========================================================
-       몬스터 스폰 (난이도 완화 적용)
+       점진적 난이도 상승 몬스터 스폰 (레벨 비례 강화)
        ======================================================== */
     let spawnTimer = 0;
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", minLv: 1, baseHp: 50, spd: 80, dmg: 8, expVal: 45, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", minLv: 3, baseHp: 105, spd: 68, dmg: 14, expVal: 85, coinVal: 15, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", minLv: 5, baseHp: 210, spd: 92, dmg: 20, expVal: 160, coinVal: 30, scoreVal: 180, size: 32 },
-      { name: "유령 바이러스", emoji: "👻", minLv: 10, baseHp: 320, spd: 120, dmg: 26, expVal: 260, coinVal: 45, scoreVal: 260, size: 26 },
-      { name: "골렘 충치", emoji: "🗿", minLv: 15, baseHp: 800, spd: 45, dmg: 36, expVal: 480, coinVal: 80, scoreVal: 450, size: 38 },
-      { name: "박쥐 병균", emoji: "🦇", minLv: 20, baseHp: 650, spd: 135, dmg: 40, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
-      { name: "맹독 변종균", emoji: "☣️", minLv: 25, baseHp: 1350, spd: 72, dmg: 55, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
-      { name: "지옥 드래곤", emoji: "🐉", minLv: 30, baseHp: 2600, spd: 80, dmg: 75, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true },
-      { name: "충치대마왕(보스)", emoji: "👺", minLv: 7, baseHp: 3600, spd: 58, dmg: 60, expVal: 3800, coinVal: 600, scoreVal: 5000, size: 56, boss: true }
+      { name: "세균몬", emoji: "🦠", minLv: 1, baseHp: 55, spd: 80, dmg: 10, expVal: 45, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", minLv: 3, baseHp: 120, spd: 68, dmg: 16, expVal: 85, coinVal: 15, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", minLv: 5, baseHp: 240, spd: 92, dmg: 24, expVal: 160, coinVal: 30, scoreVal: 180, size: 32 },
+      { name: "유령 바이러스", emoji: "👻", minLv: 10, baseHp: 380, spd: 125, dmg: 32, expVal: 260, coinVal: 45, scoreVal: 260, size: 26 },
+      { name: "골렘 충치", emoji: "🗿", minLv: 15, baseHp: 950, spd: 45, dmg: 44, expVal: 480, coinVal: 80, scoreVal: 450, size: 38 },
+      { name: "박쥐 병균", emoji: "🦇", minLv: 20, baseHp: 800, spd: 140, dmg: 50, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
+      { name: "맹독 변종균", emoji: "☣️", minLv: 25, baseHp: 1650, spd: 75, dmg: 68, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
+      { name: "지옥 드래곤", emoji: "🐉", minLv: 30, baseHp: 3200, spd: 85, dmg: 95, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true },
+      { name: "충치대마왕(보스)", emoji: "👺", minLv: 7, baseHp: 4800, spd: 60, dmg: 75, expVal: 3800, coinVal: 600, scoreVal: 5000, size: 56, boss: true }
     ];
 
     function spawnEnemies(dt) {
@@ -952,7 +994,7 @@
       if (aliveEnemies >= 24) return;
 
       spawnTimer += dt;
-      const spawnInterval = Math.max(1.4, 2.8 - player.level * 0.04);
+      const spawnInterval = Math.max(1.3, 2.7 - player.level * 0.04);
 
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
@@ -969,20 +1011,18 @@
           def = pool[Math.floor(Math.random() * pool.length)];
         }
 
-        // 유준이 주변 400~650px 반경에서 스폰 (오픈월드 좌표)
         const spawnAng = Math.random() * Math.PI * 2;
         const spawnDist = 450 + Math.random() * 200;
         let ex = player.x + Math.cos(spawnAng) * spawnDist;
         let ey = player.y + Math.sin(spawnAng) * spawnDist;
 
-        // 월드 경계 내부로 제한
         ex = Math.max(80, Math.min(WORLD_WIDTH - 80, ex));
         ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, ey));
 
-        // 난이도 하향된 완화 스케일링
-        const hpScale = Math.pow(1.10, player.level - 1) + (player.level - 1) * 0.25;
-        const dmgScale = 1 + (player.level - 1) * 0.16;
-        const spdScale = Math.min(1.35, 1 + (player.level - 1) * 0.01);
+        // 레벨 상승에 따른 점진적 강화 공식 (서서히 단단해짐)
+        const hpScale = Math.pow(1.11, player.level - 1) + (player.level - 1) * 0.35;
+        const dmgScale = 1 + (player.level - 1) * 0.20;
+        const spdScale = Math.min(1.4, 1 + (player.level - 1) * 0.015);
 
         enemies.push({
           ...def,
@@ -1075,7 +1115,6 @@
         }
       }
 
-      // 플레이어 이동 (오픈월드 2400x2400 경계 내)
       let moveX = joyVector.x;
       let moveY = joyVector.y;
       if (keys['w'] || keys['arrowup']) moveY -= 1;
@@ -1093,14 +1132,12 @@
         player.dirX = moveX / moveLen;
         player.dirY = moveY / moveLen;
 
-        // 월드 경계 제한 (테두리 밖으로 못 나감)
         player.x = Math.max(35, Math.min(WORLD_WIDTH - 35, player.x));
         player.y = Math.max(35, Math.min(WORLD_HEIGHT - 35, player.y));
       } else {
         player.isMoving = false;
       }
 
-      // 카메라 뷰포트 유준이 중심 부드러운 추적
       camera.x = player.x - width / 2;
       camera.y = player.y - height / 2;
 
@@ -1150,7 +1187,7 @@
 
         if (Math.hypot(player.x - bp.x, player.y - bp.y) < bp.radius + 14) {
           let incomingDmg = bp.damage * (1 - stats.dmgReduction) - stats.def;
-          incomingDmg = Math.max(5, incomingDmg);
+          incomingDmg = Math.max(6, incomingDmg);
           player.hp -= incomingDmg;
           damageTexts.push({ text: `-${Math.round(incomingDmg)}`, x: player.x, y: player.y - 20, color: "#ef4444", scale: 1.2, alpha: 1, life: 0.8 });
           Sound.play('hit');
@@ -1215,8 +1252,8 @@
 
         if (d < en.size + 18) {
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
-          incomingDmg = Math.max(4, incomingDmg); // 근접 데미지 하향
-          player.hp -= incomingDmg * dt * 2.2;
+          incomingDmg = Math.max(4, incomingDmg);
+          player.hp -= incomingDmg * dt * 2.4;
 
           if (player.hp <= 0) gameOver();
         }
@@ -1232,9 +1269,17 @@
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
-        pt.radius += (pt.maxRadius - pt.radius) * 10 * dt;
-        pt.alpha -= 2.0 * dt;
-        if (pt.alpha <= 0) particles.splice(i, 1);
+        if (pt.type === 'poop-debris' || pt.type === 'fart-gas') {
+          pt.x += (pt.vx || 0) * dt;
+          pt.y += (pt.vy || 0) * dt;
+          pt.life -= dt;
+          pt.alpha -= 1.2 * dt;
+          if (pt.life <= 0 || pt.alpha <= 0) particles.splice(i, 1);
+        } else {
+          pt.radius += (pt.maxRadius - pt.radius) * 10 * dt;
+          pt.alpha -= 2.0 * dt;
+          if (pt.alpha <= 0) particles.splice(i, 1);
+        }
       }
 
       spawnEnemies(dt);
@@ -1252,16 +1297,15 @@
     }
 
     /* ========================================================
-       오픈월드 카메라 변환 & 테두리 경계선 렌더링
+       오픈월드 렌더링 & 강렬한 비주얼 이펙트
        ======================================================== */
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
       ctx.save();
-      // 카메라 위치만큼 캔버스 원점 이동 (스크롤)
       ctx.translate(-camera.x, -camera.y);
 
-      // 1. 월드 바닥 격자 도트
+      // 월드 도트
       ctx.fillStyle = "#fef08a";
       const startX = Math.max(0, Math.floor(camera.x / 40) * 40);
       const endX = Math.min(WORLD_WIDTH, startX + width + 80);
@@ -1276,8 +1320,8 @@
         }
       }
 
-      // 2. 맵 경계선 (월드 끝부분 테두리 강조 표시)
-      ctx.strokeStyle = "rgba(239, 68, 68, 0.85)"; // 붉은 경고 테두리
+      // 맵 테두리
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
       ctx.lineWidth = 14;
       ctx.strokeRect(7, 7, WORLD_WIDTH - 14, WORLD_HEIGHT - 14);
 
@@ -1288,53 +1332,65 @@
       const stats = calcStats();
       const current = getCurrentStage().stage;
 
-      // 파티클
+      // 화려한 스킬 및 파편 이펙트
       particles.forEach(pt => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
 
         if (pt.type === 'poop-blast') {
           if (pt.tier === 3) {
-            ctx.fillStyle = "rgba(234, 179, 8, 0.55)";
+            ctx.fillStyle = "rgba(234, 179, 8, 0.65)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-            ctx.font = `${Math.min(36, pt.radius * 0.4)}px sans-serif`;
-            ctx.fillText("🎵", pt.x - 20, pt.y - 15);
-            ctx.fillText("💩", pt.x + 10, pt.y + 15);
+            ctx.font = `${Math.min(42, pt.radius * 0.45)}px sans-serif`;
+            ctx.fillText("🎵", pt.x - 25, pt.y - 20);
+            ctx.fillText("💩", pt.x + 15, pt.y + 20);
           } else if (pt.tier === 2) {
-            ctx.fillStyle = "rgba(161, 98, 7, 0.5)";
+            ctx.fillStyle = "rgba(161, 98, 7, 0.6)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           } else {
-            ctx.fillStyle = "rgba(180, 83, 9, 0.45)";
+            ctx.fillStyle = "rgba(180, 83, 9, 0.55)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           }
+        } else if (pt.type === 'poop-debris') {
+          // 사방으로 튀는 똥 파편
+          ctx.fillStyle = "#78350f";
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (pt.type === 'fart-gas') {
+          // 뿜어져 나오는 방귀 가스 구름
+          ctx.fillStyle = "rgba(16, 185, 129, 0.45)";
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+          ctx.fill();
         } else if (pt.type === 'fart-cloud') {
           if (pt.tier === 3) {
-            ctx.strokeStyle = "rgba(16, 185, 129, 0.85)";
-            ctx.lineWidth = 8;
+            ctx.strokeStyle = "rgba(16, 185, 129, 0.95)";
+            ctx.lineWidth = 10;
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = "rgba(52, 211, 153, 0.45)";
+            ctx.fillStyle = "rgba(52, 211, 153, 0.5)";
             ctx.fill();
           } else if (pt.tier === 2) {
-            ctx.fillStyle = "rgba(5, 150, 105, 0.55)";
+            ctx.fillStyle = "rgba(5, 150, 105, 0.6)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           } else {
-            ctx.fillStyle = "rgba(52, 211, 153, 0.5)";
+            ctx.fillStyle = "rgba(52, 211, 153, 0.55)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           }
         } else if (pt.type === 'cry-wave') {
           if (pt.tier === 3) {
-            ctx.strokeStyle = "rgba(14, 165, 233, 0.9)";
-            ctx.lineWidth = 10;
+            ctx.strokeStyle = "rgba(14, 165, 233, 0.95)";
+            ctx.lineWidth = 12;
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+            ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
             ctx.fill();
           } else if (pt.tier === 2) {
-            ctx.strokeStyle = "rgba(59, 130, 246, 0.8)";
-            ctx.lineWidth = 7;
+            ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
+            ctx.lineWidth = 8;
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
           } else {
-            ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.8)";
+            ctx.lineWidth = 6;
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
           }
         }
@@ -1397,7 +1453,6 @@
         ctx.restore();
       });
 
-      // 유준이 본체 렌더링
       ctx.save();
       ctx.translate(player.x, player.y);
 
@@ -1461,11 +1516,11 @@
         ctx.restore();
       });
 
-      ctx.restore(); // 카메라 변환 복원
+      ctx.restore();
     }
 
     /* ========================================================
-       HUD & 상점
+       HUD & 상점 (스킬 공격력 실시간 갱신)
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -1479,15 +1534,16 @@
       const currentHp = Math.max(0, isNaN(player.hp) ? stats.maxHp : player.hp);
       const hpPct = Math.max(0, Math.min(100, (currentHp / stats.maxHp) * 100));
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
-      document.getElementById('hp-text').innerText = `${Math.ceil(currentHp)}/${stats.maxHp}`;
+      document.getElementById('hp-text').innerText = `HP ${Math.ceil(currentHp)}/${stats.maxHp}`;
 
+      // 경험치 숫자 없이 퍼센트로만 표시
       const currentExp = player.exp || 0;
       const targetExp = player.maxExp || 100;
       const expPct = Math.max(0, Math.min(100, (currentExp / targetExp) * 100));
       
       const expBar = document.getElementById('exp-bar');
       if (expBar) expBar.style.width = `${expPct}%`;
-      document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}% (${currentExp}/${targetExp})`;
+      document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}%`;
 
       document.getElementById('coin-count').innerText = state.coins;
       document.getElementById('modal-coin').innerText = state.coins;
@@ -1495,14 +1551,21 @@
       document.getElementById('atk-btn-icon').innerText = stage.atkIcon;
       document.getElementById('atk-btn-text').innerText = stage.atkName;
 
+      // 실시간 공격력 계산
+      const baseAtk = Math.round(stats.atk * (1 + stats.dmgAmp));
+      document.getElementById('dmg-atk-btn').innerText = `ATK ${baseAtk}`;
+
       document.getElementById('name-skill-poop').innerText = poop.name;
       document.getElementById('icon-skill-poop').innerText = poop.icon;
+      document.getElementById('dmg-skill-poop').innerText = `ATK ${Math.round(baseAtk * poop.pwr)}`;
 
       document.getElementById('name-skill-fart').innerText = fart.name;
       document.getElementById('icon-skill-fart').innerText = fart.icon;
+      document.getElementById('dmg-skill-fart').innerText = `ATK ${Math.round(baseAtk * fart.pwr)}`;
 
       document.getElementById('name-skill-cry').innerText = cry.name;
       document.getElementById('icon-skill-cry').innerText = cry.icon;
+      document.getElementById('dmg-skill-cry').innerText = `ATK ${Math.round(baseAtk * cry.pwr)}`;
 
       const skillBar = document.getElementById('passive-skills-bar');
       skillBar.innerHTML = "";
@@ -1647,7 +1710,7 @@
     });
 
     /* ========================================================
-       실시간 점수 연동 시스템
+       실시간 점수 연동
        ======================================================== */
     function getLocalRankings() {
       const data = localStorage.getItem('yujun_clean_rankings');
@@ -1664,6 +1727,7 @@
         const sharedScore = parseInt(params.get('score'));
         const sharedName = params.get('name');
         const sharedStage = params.get('stage') || '신생아';
+        const sharedLv = parseInt(params.get('lv')) || 1;
 
         if (!isNaN(sharedScore) && sharedScore > 0 && sharedName) {
           const list = getLocalRankings();
@@ -1674,7 +1738,7 @@
             list.push({
               name: sharedName,
               score: sharedScore,
-              level: parseInt(params.get('lv')) || 1,
+              level: sharedLv,
               stage: sharedStage,
               date: dateStr
             });
@@ -1685,17 +1749,16 @@
       } catch (e) {}
     }
 
-    function recordCurrentScore(newScore) {
+    function recordCurrentScore(newScore, finalLv, finalStage) {
       const list = getLocalRankings();
       const now = new Date();
       const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-      const { stage } = getCurrentStage();
 
       list.push({
         name: state.playerName,
         score: newScore,
-        level: player.level,
-        stage: stage.name,
+        level: finalLv,
+        stage: finalStage,
         date: dateStr
       });
 
@@ -1725,7 +1788,7 @@
           <div class="flex items-center gap-1.5 min-w-0 pr-1">
             <span class="font-black text-xs shrink-0 w-4 text-center">${medal}</span>
             <span class="font-bold text-slate-700 truncate max-w-[85px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
+            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage} (Lv.${r.level})</span>
           </div>
           <span class="font-black text-amber-600 shrink-0">${r.score.toLocaleString()} P</span>
         `;
@@ -1768,27 +1831,35 @@
     }
 
     /* ========================================================
-       게임 오버 & 닉네임 기억 재사용
+       게임 오버 (성장 단계 및 레벨 완벽 보존 후 초기화)
        ======================================================== */
     function gameOver() {
       state.isGameOver = true;
       state.isPaused = true;
-      recordCurrentScore(state.score);
 
+      // 1. 도달한 최종 레벨과 성장 단계를 먼저 온전히 백업 (신생아 고정 버그 완벽 수정)
+      const finalLevel = player.level;
       const { stage } = getCurrentStage();
-      document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${stage.name} Lv.${player.level}]까지 도달했습니다!`;
-      document.getElementById('final-score').innerText = `${state.score.toLocaleString()} P`;
+      const finalStageName = stage.name;
+      const finalScore = state.score;
+
+      recordCurrentScore(finalScore, finalLevel, finalStageName);
+
+      document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${finalStageName} Lv.${finalLevel}]까지 도달했습니다!`;
+      document.getElementById('final-score').innerText = `${finalScore.toLocaleString()} P`;
       document.getElementById('final-stats').innerText = `처치한 악당: ${state.kills}마리 | 모은 코인: ${state.coins}개`;
 
-      window.lastShareUrl = `https://xxhubzz.github.io/yujun/?score=${state.score}&name=${encodeURIComponent(state.playerName)}&stage=${encodeURIComponent(stage.name)}&lv=${player.level}`;
+      // 공유 URL에 올바른 최고 레벨과 최종 진화 단계가 정확히 인코딩되도록 구성
+      window.lastShareUrl = `https://xxhubzz.github.io/yujun/?score=${finalScore}&name=${encodeURIComponent(state.playerName)}&stage=${encodeURIComponent(finalStageName)}&lv=${finalLevel}`;
 
-      // 이전 닉네임 영구 기억
       localStorage.setItem('yujun_remembered_name', state.playerName);
 
-      // 사망 시 레벨, 코인, 장비 초기화
+      // 2. 기록 완료 후 다음 도전을 위해 플레이어 상태 초기화
       player.level = 1;
       player.exp = 0;
       player.maxExp = 100;
+      player.x = WORLD_WIDTH / 2;
+      player.y = WORLD_HEIGHT / 2;
       state.coins = 0;
       state.itemLevels = {};
       state.unlockedSkills = [];
@@ -1832,7 +1903,6 @@
       resize();
     });
 
-    // 이전에 입력했던 닉네임 자동 불러오기
     function initNickname() {
       const savedName = localStorage.getItem('yujun_remembered_name');
       if (savedName) {
@@ -1840,7 +1910,7 @@
       }
     }
 
-    // 진입점
+    // 초기화
     initNickname();
     parseSharedScoreFromURL();
     renderStartRankPreview();
