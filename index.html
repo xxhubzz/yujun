@@ -116,9 +116,12 @@
           <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-1 border border-slate-200 flex">
             <div id="hp-bar" class="bg-rose-500 h-full transition-all duration-150" style="width: 100%;"></div>
           </div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-0.5 border border-slate-200 flex">
+            <div id="exp-bar" class="bg-amber-400 h-full transition-all duration-150" style="width: 0%;"></div>
+          </div>
           <div class="flex justify-between items-center text-[9px] font-semibold text-slate-400 mt-0.5">
             <span id="hp-text">120/120</span>
-            <span id="exp-text">EXP 0%</span>
+            <span id="exp-text" class="text-amber-600 font-bold">EXP 0%</span>
           </div>
         </div>
       </div>
@@ -227,7 +230,7 @@
     </div>
   </div>
 
-  <!-- 시작 모달 -->
+  <!-- 시작 전 닉네임 입력 & 랭킹 확인 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">👶</div>
@@ -266,7 +269,7 @@
     </div>
   </div>
 
-  <!-- 게임 오버 모달 -->
+  <!-- 게임 오버 모달 & 카톡 공유 -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center">
       <div class="text-5xl mb-2">😢</div>
@@ -490,7 +493,6 @@
     let width = 360;
     let height = 640;
 
-    // 삼성 브라우저 크기 방어 로직
     function resize() {
       width = Math.max(300, window.innerWidth || document.documentElement.clientWidth || 360);
       height = Math.max(400, window.innerHeight || document.documentElement.clientHeight || 640);
@@ -800,7 +802,7 @@
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
         const earnedCoin = Math.max(1, Math.round(enemy.coinVal * (1 + stats.coinBonus)));
-        const earnedExp = Math.round(enemy.expVal * (1 + stats.expBonus));
+        const earnedExp = Math.max(15, Math.round(enemy.expVal * (1 + stats.expBonus)));
 
         for (let i = 0; i < Math.min(earnedCoin, 4); i++) {
           worldCoins.push({
@@ -815,22 +817,59 @@
       }
     }
 
+    // 경험치 획득 및 레벨업 핵심 로직 (완전 복구)
     function gainExp(amount) {
-      if (isNaN(amount) || amount <= 0) return;
-      player.exp = (isNaN(player.exp) ? 0 : player.exp) + amount;
-      if (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) {
+      if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return;
+      
+      // 경험치 수치 안전 초기화
+      if (typeof player.exp !== 'number' || isNaN(player.exp) || player.exp < 0) {
+        player.exp = 0;
+      }
+      if (typeof player.maxExp !== 'number' || isNaN(player.maxExp) || player.maxExp <= 0) {
         player.maxExp = 100;
       }
+      if (typeof player.level !== 'number' || isNaN(player.level) || player.level < 1) {
+        player.level = 1;
+      }
 
+      player.exp += amount;
+
+      // 시각적 피드백 (+EXP 텍스트)
+      damageTexts.push({
+        text: `+${amount} EXP`,
+        x: player.x + (Math.random() - 0.5) * 30,
+        y: player.y - 25,
+        color: "#fbbf24",
+        scale: 1.1,
+        alpha: 1,
+        life: 0.8
+      });
+
+      // 레벨업 체크
+      let leveledUp = false;
       while (player.exp >= player.maxExp) {
         player.exp -= player.maxExp;
         player.level++;
         player.maxExp = Math.round(player.maxExp * 1.35);
-        Sound.play('levelup');
+        leveledUp = true;
+      }
 
+      if (leveledUp) {
+        Sound.play('levelup');
         player.hp = calcStats().maxHp;
+        damageTexts.push({
+          text: `🎉 LEVEL UP! Lv.${player.level}`,
+          x: player.x,
+          y: player.y - 45,
+          color: "#38bdf8",
+          scale: 1.6,
+          alpha: 1,
+          life: 1.5
+        });
         checkGrowthEvolution();
       }
+
+      saveGame();
       updateHUD();
     }
 
@@ -853,10 +892,10 @@
 
     let spawnTimer = 0;
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 20, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, exp: 35, coinVal: 12, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, exp: 65, coinVal: 24, scoreVal: 180, size: 32 },
-      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, exp: 250, coinVal: 80, scoreVal: 600, size: 48, boss: true }
+      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 25, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, exp: 45, coinVal: 12, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, exp: 80, coinVal: 24, scoreVal: 180, size: 32 },
+      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, exp: 300, coinVal: 80, scoreVal: 600, size: 48, boss: true }
     ];
 
     function spawnEnemies(dt) {
@@ -1048,7 +1087,6 @@
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
-      // 격자 도트
       ctx.fillStyle = "#fef08a";
       for (let x = 20; x < width; x += 40) {
         for (let y = 20; y < height; y += 40) {
@@ -1118,7 +1156,6 @@
         ctx.restore();
       });
 
-      // 유준이 본체 렌더링 (좌표 방어 포함)
       const renderPx = isNaN(player.x) ? width / 2 : player.x;
       const renderPy = isNaN(player.y) ? height / 2 : player.y;
 
@@ -1201,10 +1238,14 @@
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
       document.getElementById('hp-text').innerText = `${Math.ceil(currentHp)}/${stats.maxHp}`;
 
-      const currentExp = isNaN(player.exp) ? 0 : player.exp;
-      const targetExp = (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) ? 100 : player.maxExp;
+      // 경험치 바 연동 및 수치 렌더링
+      const currentExp = (typeof player.exp === 'number' && !isNaN(player.exp)) ? player.exp : 0;
+      const targetExp = (typeof player.maxExp === 'number' && !isNaN(player.maxExp) && player.maxExp > 0) ? player.maxExp : 100;
       const expPct = Math.max(0, Math.min(100, (currentExp / targetExp) * 100));
-      document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}%`;
+      
+      const expBar = document.getElementById('exp-bar');
+      if (expBar) expBar.style.width = `${expPct}%`;
+      document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}% (${currentExp}/${targetExp})`;
 
       document.getElementById('coin-count').innerText = state.coins;
       document.getElementById('modal-coin').innerText = state.coins;
@@ -1478,32 +1519,38 @@
       location.reload();
     });
 
+    // 세이브 및 자동 복구 로직
     function saveGame() {
-      localStorage.setItem('yujun_save_v1', JSON.stringify({
-        coins: state.coins,
-        items: state.items,
-        level: player.level,
-        exp: isNaN(player.exp) ? 0 : player.exp,
-        maxExp: (!player.maxExp || isNaN(player.maxExp)) ? 100 : player.maxExp,
-        playerName: state.playerName
-      }));
+      try {
+        localStorage.setItem('yujun_save_v1', JSON.stringify({
+          coins: state.coins,
+          items: state.items,
+          level: (typeof player.level === 'number' && !isNaN(player.level)) ? player.level : 1,
+          exp: (typeof player.exp === 'number' && !isNaN(player.exp)) ? player.exp : 0,
+          maxExp: (typeof player.maxExp === 'number' && !isNaN(player.maxExp) && player.maxExp > 0) ? player.maxExp : 100,
+          playerName: state.playerName
+        }));
+      } catch(e) {}
     }
 
     function loadGame() {
-      const raw = localStorage.getItem('yujun_save_v1');
-      if (raw) {
-        try {
+      try {
+        const raw = localStorage.getItem('yujun_save_v1');
+        if (raw) {
           const d = JSON.parse(raw);
-          if (d.coins !== undefined && !isNaN(d.coins)) state.coins = d.coins;
-          if (d.items) state.items = d.items;
-          if (d.level && !isNaN(d.level)) player.level = d.level;
-          if (d.exp !== undefined && !isNaN(d.exp)) player.exp = d.exp;
-          if (d.maxExp && !isNaN(d.maxExp) && d.maxExp > 0) player.maxExp = d.maxExp;
+          if (d.coins !== undefined && typeof d.coins === 'number' && !isNaN(d.coins)) state.coins = d.coins;
+          if (d.items && typeof d.items === 'object') state.items = d.items;
+          if (d.level !== undefined && typeof d.level === 'number' && !isNaN(d.level) && d.level >= 1) player.level = d.level;
+          if (d.exp !== undefined && typeof d.exp === 'number' && !isNaN(d.exp) && d.exp >= 0) player.exp = d.exp;
+          if (d.maxExp !== undefined && typeof d.maxExp === 'number' && !isNaN(d.maxExp) && d.maxExp > 0) player.maxExp = d.maxExp;
           if (d.playerName) state.playerName = d.playerName;
-        } catch(e) {}
-      }
-      if (isNaN(player.exp)) player.exp = 0;
-      if (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
+        }
+      } catch(e) {}
+
+      // 손상된 데이터 완전 복구 보장
+      if (typeof player.level !== 'number' || isNaN(player.level) || player.level < 1) player.level = 1;
+      if (typeof player.exp !== 'number' || isNaN(player.exp) || player.exp < 0) player.exp = 0;
+      if (typeof player.maxExp !== 'number' || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
     }
 
     document.getElementById('btn-start-game').addEventListener('click', () => {
@@ -1516,7 +1563,7 @@
       state.isPaused = false;
       saveGame();
       updateHUD();
-      resize(); // 시작 직후 화면 크기 재계산 보장
+      resize();
     });
 
     loadGame();
