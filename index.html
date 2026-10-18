@@ -226,21 +226,33 @@
     </div>
   </div>
 
-  <!-- 시작 전 닉네임 입력 모달 -->
+  <!-- 시작 전 닉네임 입력 & 랭킹 확인 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center">
-      <div class="text-5xl mb-2">👶</div>
-      <h1 class="text-xl font-black text-slate-800">유준이 키우기</h1>
-      <p class="text-xs text-slate-500 mt-1">사나운 세균과 악당을 물리치고<br>유준이를 씩씩한 어른으로 키워주세요!</p>
+    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
+      <div class="text-4xl mb-1">👶</div>
+      <h1 class="text-lg font-black text-slate-800 leading-tight">유준이 키우기</h1>
+      <p class="text-[11px] text-slate-500 mt-0.5">사나운 악당을 물리치고 유준이를 키워주세요!</p>
       
-      <div class="mt-4 text-left">
+      <div class="mt-3 text-left">
         <label class="text-[11px] font-bold text-slate-600 block mb-1">플레이어 / 보호자 닉네임</label>
-        <input type="text" id="player-nickname-input" maxlength="8" placeholder="예: 유준아빠, 수호천사" class="w-full px-3 py-2 border-2 border-amber-300 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-amber-500" value="유준이보호자">
+        <!-- 닉네임 기본값을 비워두고 placeholder로 유도 -->
+        <input type="text" id="player-nickname-input" maxlength="8" placeholder="닉네임을 입력하세요" class="w-full px-3 py-2 border-2 border-amber-300 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-amber-500" value="">
       </div>
 
-      <button id="btn-start-game" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-3 rounded-2xl shadow-lg active:scale-95 transition-transform text-sm">
+      <button id="btn-start-game" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs">
         🍼 모험 시작하기!
       </button>
+
+      <!-- 첫 화면에 바로 노출되는 실시간 명예의 전당 -->
+      <div class="mt-3 pt-3 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
+        <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1.5">
+          <span class="flex items-center gap-1">🏆 명예의 전당 Top 5</span>
+          <span class="text-[9px] text-slate-400 font-normal">최고 득점 순위</span>
+        </div>
+        <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[140px]">
+          <!-- 첫 화면 랭킹 목록이 들어옵니다 -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -270,6 +282,7 @@
         <div id="final-stats" class="text-[10px] text-slate-500 mt-1"></div>
       </div>
 
+      <!-- 링크 1개만 깔끔하게 나가는 공유 버튼 -->
       <button id="btn-kakao-share" class="w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-2">
         <span class="text-sm">💬</span> 결과 & 게임 링크 카톡 공유하기
       </button>
@@ -282,7 +295,7 @@
 
   <script>
     /* ========================================================
-       1. 오디오 합성 사운드 엔진
+       1. 사운드 엔진
        ======================================================== */
     const Sound = {
       ctx: null,
@@ -358,7 +371,7 @@
     };
 
     /* ========================================================
-       2. 요청 10종 아이템 & 3단계 데이터베이스
+       2. 아이템 10종 데이터
        ======================================================== */
     const ITEMS_DATA = [
       {
@@ -443,9 +456,6 @@
       }
     ];
 
-    /* ========================================================
-       3. 4단계 성장 진화 정의
-       ======================================================== */
     const GROW_STAGES = [
       { minLv: 1, name: "신생아", icon: "👶", title: "호기심 많은 신생아", atkName: "분유던지기", atkIcon: "🍼", desc: "분유를 힘차게 던져 악당을 물리칩니다." },
       { minLv: 10, name: "어린이", icon: "🧒", title: "씩씩한 유치원생", atkName: "주스발사", atkIcon: "🧃", desc: "키가 쑥 자라고 주스 팩을 발사해 공격합니다!" },
@@ -454,10 +464,10 @@
     ];
 
     /* ========================================================
-       4. 게임 상태 객체
+       3. 상태 객체
        ======================================================== */
     const state = {
-      playerName: "유준이보호자",
+      playerName: "익명의 수호자",
       coins: 0,
       score: 0,
       items: {},
@@ -481,21 +491,13 @@
       attackCooldown: 0
     };
 
-    const cooldowns = {
-      poop: 0,
-      fart: 0,
-      cry: 0
-    };
-
+    const cooldowns = { poop: 0, fart: 0, cry: 0 };
     let enemies = [];
     let projectiles = [];
     let particles = [];
     let damageTexts = [];
-    let worldCoins = []; // 날아오는 자석 코인 리스트
+    let worldCoins = [];
 
-    /* ========================================================
-       5. 캔버스 및 초기화
-       ======================================================== */
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     let width = window.innerWidth;
@@ -514,30 +516,15 @@
     player.y = height / 2;
 
     /* ========================================================
-       6. 능력치 계산기
+       4. 스탯 계산 및 단계 판정
        ======================================================== */
     function calcStats() {
       let stats = {
-        maxHp: 120,
-        hpRegen: 0,
-        def: 0,
-        dmgReduction: 0,
-        critRate: 0.05,
-        critDmg: 1.5,
-        atk: 25,
-        projSpeed: 8.5,
-        doubleShot: false,
-        speedBonus: 0,
-        coolReduce: 0,
-        bombRadius: 1,
-        lifeSteal: 0,
-        coinBonus: 0,
-        expBonus: 0,
-        dmgAmp: 0,
-        pierce: 0,
-        strollerLevel: 0,
-        aura: false,
-        clothColor: "#fde047"
+        maxHp: 120, hpRegen: 0, def: 0, dmgReduction: 0,
+        critRate: 0.05, critDmg: 1.5, atk: 25, projSpeed: 8.5,
+        doubleShot: false, speedBonus: 0, coolReduce: 0, bombRadius: 1,
+        lifeSteal: 0, coinBonus: 0, expBonus: 0, dmgAmp: 0, pierce: 0,
+        strollerLevel: 0, aura: false, clothColor: "#fde047"
       };
 
       stats.maxHp += (player.level - 1) * 20;
@@ -569,7 +556,6 @@
         if (tier.aura) stats.aura = true;
         if (tier.color) stats.clothColor = tier.color;
       }
-
       return stats;
     }
 
@@ -585,7 +571,7 @@
     }
 
     /* ========================================================
-       7. 조이스틱 및 독립 멀티터치 제어
+       5. 컨트롤 & 자동 조준 발사
        ======================================================== */
     const joyBase = document.getElementById('joystick-base');
     const joyThumb = document.getElementById('joystick-thumb');
@@ -593,8 +579,7 @@
     let joyVector = { x: 0, y: 0 };
 
     joyBase.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      Sound.init();
+      e.preventDefault(); Sound.init();
       if (joyTouchId !== null) return;
       const touch = e.changedTouches[0];
       joyTouchId = touch.identifier;
@@ -628,22 +613,10 @@
       }
     });
 
-    window.addEventListener('touchcancel', (e) => {
-      if (joyTouchId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) {
-          resetJoystick();
-          break;
-        }
-      }
-    });
-
     function updateJoystick(clientX, clientY) {
       const rect = joyBase.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
+      const dx = clientX - (rect.left + rect.width / 2);
+      const dy = clientY - (rect.top + rect.height / 2);
       const dist = Math.hypot(dx, dy);
       const maxR = rect.width / 2 - 10;
 
@@ -679,14 +652,9 @@
       if (e.code === 'Space') player.isAttacking = false;
     });
 
-    /* ========================================================
-       8. 공격 및 자동 조준(오토 타겟팅) 시스템
-       ======================================================== */
     const atkBtn = document.getElementById('btn-attack');
-    
     atkBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      Sound.init();
+      e.preventDefault(); Sound.init();
       player.isAttacking = true;
       tryShoot();
     }, { passive: false });
@@ -695,37 +663,26 @@
       let stillAtk = false;
       for (let i = 0; i < e.touches.length; i++) {
         if (e.touches[i].target === atkBtn || atkBtn.contains(e.touches[i].target)) {
-          stillAtk = true;
-          break;
+          stillAtk = true; break;
         }
       }
       if (!stillAtk) player.isAttacking = false;
     });
 
     atkBtn.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      Sound.init();
+      e.preventDefault(); Sound.init();
       player.isAttacking = true;
       tryShoot();
     });
     window.addEventListener('mouseup', () => { player.isAttacking = false; });
 
-    document.getElementById('btn-skill-poop').addEventListener('touchstart', (e) => {
-      e.preventDefault(); Sound.init(); triggerPoop();
-    }, { passive: false });
+    document.getElementById('btn-skill-poop').addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerPoop(); }, { passive: false });
     document.getElementById('btn-skill-poop').addEventListener('click', triggerPoop);
-
-    document.getElementById('btn-skill-fart').addEventListener('touchstart', (e) => {
-      e.preventDefault(); Sound.init(); triggerFart();
-    }, { passive: false });
+    document.getElementById('btn-skill-fart').addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerFart(); }, { passive: false });
     document.getElementById('btn-skill-fart').addEventListener('click', triggerFart);
-
-    document.getElementById('btn-skill-cry').addEventListener('touchstart', (e) => {
-      e.preventDefault(); Sound.init(); triggerCry();
-    }, { passive: false });
+    document.getElementById('btn-skill-cry').addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerCry(); }, { passive: false });
     document.getElementById('btn-skill-cry').addEventListener('click', triggerCry);
 
-    // 가장 가까운 몬스터 찾기 함수
     function getNearestEnemy() {
       let nearest = null;
       let minDist = Infinity;
@@ -745,7 +702,6 @@
       const stats = calcStats();
       const current = getCurrentStage().stage;
 
-      // 몬스터가 있으면 가장 가까운 몬스터에게 자동 조준, 없으면 보고 있는 방향으로 발사
       const target = getNearestEnemy();
       let angle;
       if (target) {
@@ -779,7 +735,7 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackCooldown = 14; // 연사 쿨타임
+      player.attackCooldown = 14;
     }
 
     function triggerPoop() {
@@ -788,18 +744,11 @@
       Sound.play('poop');
       
       const rad = 110 * stats.bombRadius;
-      particles.push({
-        type: 'poop-blast',
-        x: player.x, y: player.y,
-        radius: 10, maxRadius: rad,
-        alpha: 1
-      });
+      particles.push({ type: 'poop-blast', x: player.x, y: player.y, radius: 10, maxRadius: rad, alpha: 1 });
 
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
-        if (d <= rad) {
-          applyDamage(en, stats.atk * 2.8 * (1 + stats.dmgAmp), false, "💩");
-        }
+        if (d <= rad) applyDamage(en, stats.atk * 2.8 * (1 + stats.dmgAmp), false, "💩");
       });
 
       cooldowns.poop = Math.round(300 * (1 - stats.coolReduce));
@@ -810,16 +759,7 @@
       const stats = calcStats();
       Sound.play('fart');
 
-      const pushDirX = -player.dirX;
-      const pushDirY = -player.dirY;
-
-      particles.push({
-        type: 'fart-cloud',
-        x: player.x + pushDirX * 25,
-        y: player.y + pushDirY * 25,
-        radius: 15, maxRadius: 90,
-        alpha: 0.9
-      });
+      particles.push({ type: 'fart-cloud', x: player.x - player.dirX * 25, y: player.y - player.dirY * 25, radius: 15, maxRadius: 90, alpha: 0.9 });
 
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
@@ -832,7 +772,6 @@
 
       player.x += player.dirX * 35;
       player.y += player.dirY * 35;
-
       cooldowns.fart = Math.round(240 * (1 - stats.coolReduce));
     }
 
@@ -841,12 +780,7 @@
       const stats = calcStats();
       Sound.play('cry');
 
-      particles.push({
-        type: 'cry-wave',
-        x: player.x, y: player.y,
-        radius: 20, maxRadius: width * 0.75,
-        alpha: 1
-      });
+      particles.push({ type: 'cry-wave', x: player.x, y: player.y, radius: 20, maxRadius: width * 0.75, alpha: 1 });
 
       enemies.forEach(en => {
         applyDamage(en, stats.atk * 3.5 * (1 + stats.dmgAmp), true, "😭");
@@ -857,7 +791,7 @@
     }
 
     /* ========================================================
-       9. 전투 및 피격 판정 & 코인 자석 획득
+       6. 피해 처리 & 자석 코인
        ======================================================== */
     function applyDamage(enemy, baseDmg, isCry, icon) {
       if (enemy.dead) return;
@@ -883,14 +817,11 @@
         state.kills++;
         state.score += enemy.scoreVal;
 
-        if (stats.lifeSteal > 0) {
-          player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
-        }
+        if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
         const earnedCoin = Math.max(1, Math.round(enemy.coinVal * (1 + stats.coinBonus)));
         const earnedExp = Math.round(enemy.expVal * (1 + stats.expBonus));
 
-        // 코인이 플레이어에게 자석처럼 날아가며 흡수되는 연출
         for (let i = 0; i < Math.min(earnedCoin, 4); i++) {
           worldCoins.push({
             x: enemy.x + (Math.random() - 0.5) * 25,
@@ -912,8 +843,7 @@
         player.maxExp = Math.round(player.maxExp * 1.35);
         Sound.play('levelup');
 
-        const stats = calcStats();
-        player.hp = stats.maxHp;
+        player.hp = calcStats().maxHp;
         checkGrowthEvolution();
       }
       updateHUD();
@@ -937,7 +867,7 @@
     });
 
     /* ========================================================
-       10. 몬스터 스폰 시스템
+       7. 몬스터 스폰
        ======================================================== */
     let spawnCounter = 0;
     const ENEMY_TYPES = [
@@ -961,7 +891,6 @@
         else if (player.level >= 3 && r < 0.6) typeIdx = 1;
 
         const def = ENEMY_TYPES[typeIdx];
-        
         let ex, ey;
         if (Math.random() < 0.5) {
           ex = Math.random() < 0.5 ? -40 : width + 40;
@@ -984,7 +913,7 @@
     }
 
     /* ========================================================
-       11. 게임 루프 & 렌더링
+       8. 게임 루프 & 렌더링
        ======================================================== */
     let lastTime = performance.now();
 
@@ -992,10 +921,7 @@
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (!state.isPaused && !state.isGameOver) {
-        updateGame(dt);
-      }
-
+      if (!state.isPaused && !state.isGameOver) updateGame(dt);
       renderGame();
       requestAnimationFrame(gameLoop);
     }
@@ -1012,18 +938,11 @@
       updateCoolText('cool-fart', cooldowns.fart);
       updateCoolText('cool-cry', cooldowns.cry);
 
-      if (player.isAttacking) {
-        tryShoot();
-      }
+      if (player.isAttacking) tryShoot();
+      if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      if (stats.hpRegen > 0) {
-        player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
-      }
-
-      // 조이스틱 이동
       let moveX = joyVector.x;
       let moveY = joyVector.y;
-
       if (keys['w'] || keys['arrowup']) moveY -= 1;
       if (keys['s'] || keys['arrowdown']) moveY += 1;
       if (keys['a'] || keys['arrowleft']) moveX -= 1;
@@ -1045,7 +964,7 @@
         player.isMoving = false;
       }
 
-      // 코인 자석 연출 및 실시간 획득 누적
+      // 코인 자석 흡수
       for (let i = worldCoins.length - 1; i >= 0; i--) {
         const c = worldCoins[i];
         const cdx = player.x - c.x;
@@ -1061,11 +980,11 @@
         } else {
           c.x += (cdx / cdist) * c.spd;
           c.y += (cdy / cdist) * c.spd;
-          c.spd += 0.4; // 점점 가속
+          c.spd += 0.4;
         }
       }
 
-      // 투사체 이동 & 피격 판정
+      // 발사체 이동
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         p.x += p.vx;
@@ -1075,15 +994,9 @@
         for (let j = 0; j < enemies.length; j++) {
           const en = enemies[j];
           if (en.dead) continue;
-          const dist = Math.hypot(en.x - p.x, en.y - p.y);
-          if (dist < en.size + p.radius) {
+          if (Math.hypot(en.x - p.x, en.y - p.y) < en.size + p.radius) {
             applyDamage(en, p.damage, false, null);
-            if (p.pierce <= 0) {
-              p.life = 0;
-              break;
-            } else {
-              p.pierce--;
-            }
+            if (p.pierce <= 0) { p.life = 0; break; } else { p.pierce--; }
           }
         }
 
@@ -1092,18 +1005,11 @@
         }
       }
 
-      // 몬스터 추적 및 유준이 공격
+      // 몬스터 추적
       for (let i = enemies.length - 1; i >= 0; i--) {
         const en = enemies[i];
-        if (en.dead) {
-          enemies.splice(i, 1);
-          continue;
-        }
-
-        if (en.stunTimer > 0) {
-          en.stunTimer--;
-          continue;
-        }
+        if (en.dead) { enemies.splice(i, 1); continue; }
+        if (en.stunTimer > 0) { en.stunTimer--; continue; }
 
         const dx = player.x - en.x;
         const dy = player.y - en.y;
@@ -1117,7 +1023,6 @@
         if (d < en.size + 18) {
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
           incomingDmg = Math.max(2, incomingDmg * dt * 4);
-
           player.hp -= incomingDmg;
 
           if (player.hp <= 0) {
@@ -1133,23 +1038,17 @@
         }
       }
 
-      // 대미지 텍스트
       for (let i = damageTexts.length - 1; i >= 0; i--) {
         const dt = damageTexts[i];
-        dt.y -= 0.8;
-        dt.alpha -= 0.025;
-        dt.life--;
+        dt.y -= 0.8; dt.alpha -= 0.025; dt.life--;
         if (dt.life <= 0 || dt.alpha <= 0) damageTexts.splice(i, 1);
       }
 
-      // 스킬 파티클
       for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
-        if (pt.type === 'poop-blast' || pt.type === 'fart-cloud' || pt.type === 'cry-wave') {
-          pt.radius += (pt.maxRadius - pt.radius) * 0.2;
-          pt.alpha -= 0.04;
-          if (pt.alpha <= 0) particles.splice(i, 1);
-        }
+        pt.radius += (pt.maxRadius - pt.radius) * 0.2;
+        pt.alpha -= 0.04;
+        if (pt.alpha <= 0) particles.splice(i, 1);
       }
 
       spawnEnemies();
@@ -1166,13 +1065,9 @@
       }
     }
 
-    /* ========================================================
-       12. 그래픽 렌더링
-       ======================================================== */
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
-      // 바닥 패턴
       ctx.fillStyle = "#fef08a";
       for (let x = 20; x < width; x += 40) {
         for (let y = 20; y < height; y += 40) {
@@ -1185,31 +1080,23 @@
       const stats = calcStats();
       const current = getCurrentStage().stage;
 
-      // 스킬 이펙트
       particles.forEach(pt => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
         if (pt.type === 'poop-blast') {
           ctx.fillStyle = "rgba(180, 83, 9, 0.45)";
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'fart-cloud') {
           ctx.fillStyle = "rgba(52, 211, 153, 0.5)";
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'cry-wave') {
           ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
           ctx.lineWidth = 6;
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
         }
         ctx.restore();
       });
 
-      // 날아가는 코인 렌더링
       worldCoins.forEach(c => {
         ctx.save();
         ctx.font = "16px sans-serif";
@@ -1219,7 +1106,6 @@
         ctx.restore();
       });
 
-      // 발사체 렌더링
       projectiles.forEach(p => {
         ctx.save();
         ctx.font = `${p.radius * 2}px sans-serif`;
@@ -1229,7 +1115,6 @@
         ctx.restore();
       });
 
-      // 몬스터 렌더링
       enemies.forEach(en => {
         ctx.save();
         if (en.hp < en.maxHp) {
@@ -1239,14 +1124,12 @@
           ctx.fillStyle = "#ef4444";
           ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (en.hp / en.maxHp), 4);
         }
-
         if (en.boss) {
           ctx.beginPath();
           ctx.arc(en.x, en.y, en.size + 10, 0, Math.PI * 2);
           ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
           ctx.fill();
         }
-
         ctx.font = `${en.size * 1.5}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -1254,75 +1137,50 @@
         ctx.restore();
       });
 
-      // 유준이 본체 렌더링
       ctx.save();
       ctx.translate(player.x, player.y);
 
       if (stats.aura) {
-        ctx.beginPath();
-        ctx.arc(0, 0, 34, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(250, 204, 21, 0.35)";
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(250, 204, 21, 0.35)"; ctx.fill();
       }
 
       if (stats.strollerLevel > 0) {
-        ctx.fillStyle = "#64748b";
-        ctx.fillRect(-18, 12, 36, 6);
-        ctx.beginPath();
-        ctx.arc(-14, 18, 5, 0, Math.PI*2);
-        ctx.arc(14, 18, 5, 0, Math.PI*2);
-        ctx.fillStyle = "#1e293b";
-        ctx.fill();
+        ctx.fillStyle = "#64748b"; ctx.fillRect(-18, 12, 36, 6);
+        ctx.beginPath(); ctx.arc(-14, 18, 5, 0, Math.PI*2); ctx.arc(14, 18, 5, 0, Math.PI*2);
+        ctx.fillStyle = "#1e293b"; ctx.fill();
       }
 
       const walkBob = Math.sin(player.walkCycle) * 3;
       const stageIdx = getCurrentStage().idx;
       const scale = 1 + stageIdx * 0.22;
-
       ctx.scale(scale, scale);
 
       ctx.fillStyle = stats.clothColor;
-      ctx.beginPath();
-      ctx.arc(0, 2 + walkBob, 15, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 2 + walkBob, 15, 0, Math.PI * 2); ctx.fill();
 
       ctx.fillStyle = "#ffedd5";
-      ctx.beginPath();
-      ctx.arc(0, -10 + walkBob, 13, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(0, -10 + walkBob, 13, 0, Math.PI * 2); ctx.fill();
 
       ctx.fillStyle = "#0f172a";
-      ctx.beginPath();
-      ctx.arc(-4, -11 + walkBob, 2, 0, Math.PI * 2);
-      ctx.arc(4, -11 + walkBob, 2, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(-4, -11 + walkBob, 2, 0, Math.PI * 2); ctx.arc(4, -11 + walkBob, 2, 0, Math.PI * 2); ctx.fill();
 
       if (stageIdx === 0) {
         ctx.fillStyle = "#fdba74";
-        ctx.beginPath();
-        ctx.arc(0, -16 + walkBob, 14, Math.PI, Math.PI * 2);
-        ctx.fill();
-
+        ctx.beginPath(); ctx.arc(0, -16 + walkBob, 14, Math.PI, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#38bdf8";
-        ctx.beginPath();
-        ctx.arc(0, -6 + walkBob, 3.5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -6 + walkBob, 3.5, 0, Math.PI * 2); ctx.fill();
       } else if (stageIdx === 1) {
         ctx.fillStyle = "#3b82f6";
         ctx.fillRect(-12, -22 + walkBob, 24, 7);
-        ctx.beginPath();
-        ctx.arc(0, -19 + walkBob, 12, Math.PI, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -19 + walkBob, 12, Math.PI, Math.PI * 2); ctx.fill();
       } else if (stageIdx === 2) {
         ctx.fillStyle = "#78350f";
-        ctx.beginPath();
-        ctx.arc(0, -18 + walkBob, 14, Math.PI * 0.9, Math.PI * 2.1);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -18 + walkBob, 14, Math.PI * 0.9, Math.PI * 2.1); ctx.fill();
       } else {
         ctx.fillStyle = "#dc2626";
         ctx.fillRect(-12, 0 + walkBob, 24, 18);
       }
-
       ctx.restore();
 
       ctx.save();
@@ -1344,7 +1202,7 @@
     }
 
     /* ========================================================
-       13. UI 업데이트 및 상점/장비 시스템
+       9. UI 업데이트 및 상점
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -1397,7 +1255,6 @@
           </div>
           <span class="text-[9px] bg-amber-400 text-amber-950 font-black px-1 rounded shrink-0">L${tierIdx + 1}</span>
         `;
-
         row.addEventListener('click', (e) => showItemTooltip(e, itemDef, tier, tierIdx));
         container.appendChild(row);
       });
@@ -1413,9 +1270,7 @@
       tt.style.left = `150px`;
       tt.classList.remove('hidden');
 
-      setTimeout(() => {
-        tt.classList.add('hidden');
-      }, 2500);
+      setTimeout(() => { tt.classList.add('hidden'); }, 2500);
     }
 
     document.getElementById('btn-toggle-equip').addEventListener('click', () => {
@@ -1431,9 +1286,6 @@
       }
     });
 
-    /* ========================================================
-       14. 상점 모달 구축 (스크롤 지원 10종)
-       ======================================================== */
     function buildShopUI() {
       const list = document.getElementById('shop-item-list');
       list.innerHTML = "";
@@ -1512,7 +1364,7 @@
     });
 
     /* ========================================================
-       15. 클린 랭킹 시스템
+       10. 랭킹 시스템 & 첫 화면 Top 5 미리보기
        ======================================================== */
     function getRankings() {
       localStorage.removeItem('yujun_rankings_v4');
@@ -1537,6 +1389,36 @@
       list.sort((a, b) => b.score - a.score);
       const top10 = list.slice(0, 10);
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(top10));
+    }
+
+    function renderStartRankPreview() {
+      const preview = document.getElementById('start-rank-preview');
+      const rankings = getRankings();
+
+      if (rankings.length === 0) {
+        preview.innerHTML = `
+          <div class="text-center py-4 text-[10px] text-slate-400">
+            아직 등록된 랭킹 기록이 없습니다.<br>첫 번째 1등 주인공이 되어보세요!
+          </div>
+        `;
+        return;
+      }
+
+      preview.innerHTML = "";
+      rankings.slice(0, 5).forEach((r, idx) => {
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
+        item.innerHTML = `
+          <div class="flex items-center gap-1.5 min-w-0 pr-1">
+            <span class="font-black text-xs shrink-0 w-4 text-center">${medal}</span>
+            <span class="font-bold text-slate-700 truncate max-w-[85px]">${r.name}</span>
+            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
+          </div>
+          <span class="font-black text-amber-600 shrink-0">${r.score.toLocaleString()} P</span>
+        `;
+        preview.appendChild(item);
+      });
     }
 
     function showRankings() {
@@ -1574,7 +1456,7 @@
     }
 
     /* ========================================================
-       16. 게임 오버 & 카카오톡 링크 공유
+       11. 게임 오버 & 단일 링크 카톡 공유
        ======================================================== */
     function gameOver() {
       state.isGameOver = true;
@@ -1589,21 +1471,22 @@
       document.getElementById('gameover-modal').classList.remove('hidden');
     }
 
+    // 링크가 1개만 나오도록 통합 정돈된 공유 로직
     document.getElementById('btn-kakao-share').addEventListener('click', async () => {
       const shareUrl = window.location.href;
-      const shareText = `[유준이 키우기]\n${state.playerName} 님이 유준이를 키워 최종 점수 ${state.score.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 1위 기록에 도전해보세요!`;
+      const shareText = `[유준이 키우기]\n${state.playerName} 님이 유준이를 키워 최종 점수 ${state.score.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 1위 기록에 도전해보세요!\n${shareUrl}`;
 
       if (navigator.share) {
         try {
+          // url 파라미터를 따로 넣으면 텍스트 속 링크와 중복되므로 text 하나에 단일 링크로 묶어 전달
           await navigator.share({
             title: '유준이 키우기',
-            text: shareText,
-            url: shareUrl
+            text: shareText
           });
         } catch(e) {}
       } else {
         const tempInput = document.createElement('textarea');
-        tempInput.value = `${shareText}\n${shareUrl}`;
+        tempInput.value = shareText;
         document.body.appendChild(tempInput);
         tempInput.select();
         document.execCommand('copy');
@@ -1617,7 +1500,7 @@
     });
 
     /* ========================================================
-       17. 시작 처리 및 세이브
+       12. 초기화 및 시작
        ======================================================== */
     function saveGame() {
       localStorage.setItem('yujun_save_v1', JSON.stringify({
@@ -1643,7 +1526,7 @@
 
     document.getElementById('btn-start-game').addEventListener('click', () => {
       const nameInput = document.getElementById('player-nickname-input').value.trim();
-      if (nameInput) state.playerName = nameInput;
+      state.playerName = nameInput.length > 0 ? nameInput : "익명의 수호자";
       document.getElementById('player-name-display').innerText = state.playerName;
 
       Sound.init();
@@ -1654,6 +1537,7 @@
     });
 
     loadGame();
+    renderStartRankPreview();
     updateHUD();
     requestAnimationFrame(gameLoop);
   </script>
