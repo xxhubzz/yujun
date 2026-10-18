@@ -229,7 +229,7 @@
 
   <!-- 진화 축하 팝업 -->
   <div id="evolve-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-6 border-4 border-amber-400 text-center">
+    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-6 border-4 border-amber-400 text-center animate-bounce">
       <div id="evolve-icon" class="text-6xl mb-2">🧒</div>
       <h3 class="text-xs font-black text-amber-500 tracking-wider">성장 축하합니다!</h3>
       <h2 id="evolve-title" class="text-xl font-black text-slate-800 mt-1">유준이가 진화했습니다!</h2>
@@ -433,7 +433,7 @@
       score: 0,
       items: {},
       kills: 0,
-      isPaused: false, // 바로 실행되도록 기본 활성화
+      isPaused: false,
       isGameOver: false,
       lastGrowthStage: 0,
       equipDrawerOpen: true
@@ -747,8 +747,9 @@
       cooldowns.cry = 8.0 * (1 - stats.coolReduce);
     }
 
+    // 경험치/코인 수치 계산 버그 완전 수정
     function applyDamage(enemy, baseDmg, isCry, icon) {
-      if (enemy.dead) return;
+      if (!enemy || enemy.dead) return;
       const stats = calcStats();
       const isCrit = Math.random() < stats.critRate;
       let finalDmg = Math.round(isCrit ? baseDmg * stats.critDmg : baseDmg);
@@ -769,12 +770,16 @@
       if (enemy.hp <= 0 && !enemy.dead) {
         enemy.dead = true;
         state.kills++;
-        state.score += enemy.scoreVal;
+        state.score += (enemy.scoreVal || 50);
 
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
-        const earnedCoin = Math.max(1, Math.round(enemy.coinVal * (1 + stats.coinBonus)));
-        const earnedExp = Math.max(15, Math.round(enemy.expVal * (1 + stats.expBonus)));
+        const coinBase = enemy.coinVal || enemy.coin || 6;
+        const earnedCoin = Math.max(1, Math.round(coinBase * (1 + (stats.coinBonus || 0))));
+        
+        // 경험치 변수명 불일치 완벽 해결 (expVal || exp)
+        const expBase = enemy.expVal || enemy.exp || 35;
+        const earnedExp = Math.max(20, Math.round(expBase * (1 + (stats.expBonus || 0))));
 
         for (let i = 0; i < Math.min(earnedCoin, 4); i++) {
           worldCoins.push({
@@ -799,13 +804,13 @@
       player.exp += amount;
 
       damageTexts.push({
-        text: `+${amount} EXP`,
+        text: `+${amount} EXP ✨`,
         x: player.x + (Math.random() - 0.5) * 30,
-        y: player.y - 25,
-        color: "#fbbf24",
-        scale: 1.1,
+        y: player.y - 30,
+        color: "#f59e0b",
+        scale: 1.3,
         alpha: 1,
-        life: 0.8
+        life: 0.9
       });
 
       let leveledUp = false;
@@ -822,11 +827,11 @@
         damageTexts.push({
           text: `🎉 LEVEL UP! Lv.${player.level}`,
           x: player.x,
-          y: player.y - 45,
-          color: "#38bdf8",
-          scale: 1.6,
+          y: player.y - 50,
+          color: "#06b6d4",
+          scale: 1.8,
           alpha: 1,
-          life: 1.5
+          life: 1.8
         });
         checkGrowthEvolution();
       }
@@ -854,10 +859,10 @@
 
     let spawnTimer = 0;
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 25, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, exp: 45, coinVal: 12, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, exp: 80, coinVal: 24, scoreVal: 180, size: 32 },
-      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, exp: 300, coinVal: 80, scoreVal: 600, size: 48, boss: true }
+      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, expVal: 35, exp: 35, coinVal: 6, coin: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, expVal: 55, exp: 55, coinVal: 12, coin: 12, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, expVal: 90, exp: 90, coinVal: 24, coin: 24, scoreVal: 180, size: 32 },
+      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, expVal: 350, exp: 350, coinVal: 80, coin: 80, scoreVal: 600, size: 48, boss: true }
     ];
 
     function spawnEnemies(dt) {
@@ -1049,7 +1054,6 @@
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
-      // 격자 도트
       ctx.fillStyle = "#fef08a";
       for (let x = 20; x < width; x += 40) {
         for (let y = 20; y < height; y += 40) {
@@ -1483,7 +1487,6 @@
       if (typeof player.maxExp !== 'number' || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
     }
 
-    // 진입점: 즉시 실행 보장
     loadGame();
     updateHUD();
     resize();
