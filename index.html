@@ -38,9 +38,8 @@
     .interactive {
       pointer-events: auto;
     }
-    /* 조이스틱 및 스킬 컨트롤러 위치 적당히 아래로 조정 */
     .controls-layer {
-      bottom: max(env(safe-area-inset-bottom, 15px) + 40px, 50px);
+      bottom: max(env(safe-area-inset-bottom, 15px) + 38px, 46px);
       left: 0;
       right: 0;
       display: flex;
@@ -123,24 +122,22 @@
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-2">
         <div id="hud-avatar" class="text-2xl filter drop-shadow">👶</div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5 leading-tight">
+          <div class="flex items-center gap-1.5 leading-tight mb-1">
             <span id="player-name-display" class="font-extrabold text-slate-800 text-sm truncate">유준이</span>
             <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">Lv.1</span>
           </div>
           
-          <!-- 체력 & 경험치 텍스트를 게이지 바 위로 올림 -->
-          <div class="flex justify-between items-center text-[9px] font-bold text-slate-500 mt-1 mb-0.5 leading-none">
-            <span id="hp-text" class="text-rose-600">HP 150/150</span>
-            <span id="exp-text" class="text-amber-600">EXP 0%</span>
+          <!-- 체력 게이지 바 (글자가 게이지 바 위에 완전히 겹쳐짐) -->
+          <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
+            <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
+            <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
           </div>
 
-          <!-- 체력 & 경험치 게이지 바 -->
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200 flex">
-            <div id="hp-bar" class="bg-rose-500 h-full transition-all duration-150" style="width: 100%;"></div>
-          </div>
-          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-0.5 border border-slate-200 flex">
-            <div id="exp-bar" class="bg-amber-400 h-full transition-all duration-150" style="width: 0%;"></div>
+          <!-- 경험치 게이지 바 (퍼센트 글자가 게이지 바 위에 완전히 겹쳐짐) -->
+          <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
+            <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
+            <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
           </div>
         </div>
       </div>
@@ -187,14 +184,13 @@
     <div id="tt-type" class="text-[9px] text-slate-400 mt-0.5"></div>
   </div>
 
-  <!-- 하단 컨트롤 레이어 (실시간 스킬 공격력 표시 추가) -->
+  <!-- 하단 컨트롤 레이어 -->
   <div class="controls-layer z-20">
     <div class="interactive joystick-base" id="joystick-base">
       <div class="joystick-thumb" id="joystick-thumb"></div>
     </div>
 
     <div class="interactive grid grid-cols-2 gap-2">
-      <!-- 똥폭탄 계열 -->
       <button id="btn-skill-poop" class="skill-btn bg-amber-800/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-amber-600 flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-poop" class="text-xl">💩</span>
         <span id="name-skill-poop" class="text-[8px] font-black mt-0.5 leading-none">똥폭탄</span>
@@ -202,7 +198,6 @@
         <div id="cool-poop" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <!-- 방귀 계열 -->
       <button id="btn-skill-fart" class="skill-btn bg-emerald-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-emerald-400 flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-fart" class="text-xl">💨</span>
         <span id="name-skill-fart" class="text-[8px] font-black mt-0.5 leading-none">방귀</span>
@@ -210,7 +205,6 @@
         <div id="cool-fart" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <!-- 울음 계열 -->
       <button id="btn-skill-cry" class="skill-btn bg-blue-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-blue-400 flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-cry" class="text-xl">😭</span>
         <span id="name-skill-cry" class="text-[8px] font-black mt-0.5 leading-none">울음</span>
@@ -218,7 +212,6 @@
         <div id="cool-cry" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <!-- 기본 공격 -->
       <button id="btn-attack" class="skill-btn bg-gradient-to-tr from-pink-500 to-rose-400 text-white p-1.5 rounded-2xl shadow-xl border-2 border-white flex flex-col items-center justify-center w-16 h-16">
         <span id="atk-btn-icon" class="text-xl">🍼</span>
         <span id="atk-btn-text" class="text-[8px] font-black mt-0.5 leading-none">분유던지기</span>
@@ -473,8 +466,8 @@
     };
 
     const camera = {
-      x: player.x,
-      y: player.y
+      x: (WORLD_WIDTH - 360) / 2,
+      y: (WORLD_HEIGHT - 640) / 2
     };
 
     const cooldowns = { poop: 0, fart: 0, cry: 0 };
@@ -496,6 +489,12 @@
       height = window.innerHeight || 640;
       canvas.width = width;
       canvas.height = height;
+
+      // 화면 리사이즈 시 카메라 정상 위치 유지
+      if (player && player.x) {
+        camera.x = player.x - width / 2;
+        camera.y = player.y - height / 2;
+      }
     }
     window.addEventListener('resize', resize);
     window.addEventListener('orientationchange', () => setTimeout(resize, 200));
@@ -732,7 +731,6 @@
       player.attackTimer = 0.20;
     }
 
-    // 강렬한 이펙트의 똥폭탄 (사방 파편 폭발)
     function triggerPoop() {
       if (state.isPaused || state.isGameOver || cooldowns.poop > 0) return;
       const stats = calcStats();
@@ -741,7 +739,6 @@
       
       const rad = poop.rad * stats.bombRadius;
       
-      // 메인 폭발
       particles.push({ 
         type: 'poop-blast', 
         x: player.x, y: player.y, 
@@ -751,7 +748,6 @@
         icon: poop.icon 
       });
 
-      // 강렬한 똥 파편들이 사방으로 흩날리는 역동적 연출 추가
       for (let i = 0; i < (poop.tier === 3 ? 16 : 10); i++) {
         const pang = Math.random() * Math.PI * 2;
         const pspd = 120 + Math.random() * 240;
@@ -774,7 +770,6 @@
       cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
 
-    // 강렬한 가스 구름과 기류의 방귀
     function triggerFart() {
       if (state.isPaused || state.isGameOver || cooldowns.fart > 0) return;
       const stats = calcStats();
@@ -790,7 +785,6 @@
         icon: fart.icon 
       });
 
-      // 방귀 맹독 가스 연기 파티클
       for (let i = 0; i < 14; i++) {
         const fang = Math.atan2(-player.dirY, -player.dirX) + (Math.random() - 0.5) * 1.5;
         const fspd = 80 + Math.random() * 180;
@@ -820,7 +814,6 @@
       cooldowns.fart = 4.0 * (1 - stats.coolReduce);
     }
 
-    // 울음
     function triggerCry() {
       if (state.isPaused || state.isGameOver || cooldowns.cry > 0) return;
       const stats = calcStats();
@@ -972,7 +965,7 @@
     }
 
     /* ========================================================
-       점진적 난이도 상승 몬스터 스폰 (레벨 비례 강화)
+       몬스터 스폰
        ======================================================== */
     let spawnTimer = 0;
     const ENEMY_TYPES = [
@@ -1019,7 +1012,6 @@
         ex = Math.max(80, Math.min(WORLD_WIDTH - 80, ex));
         ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, ey));
 
-        // 레벨 상승에 따른 점진적 강화 공식 (서서히 단단해짐)
         const hpScale = Math.pow(1.11, player.level - 1) + (player.level - 1) * 0.35;
         const dmgScale = 1 + (player.level - 1) * 0.20;
         const spdScale = Math.min(1.4, 1 + (player.level - 1) * 0.015);
@@ -1138,8 +1130,11 @@
         player.isMoving = false;
       }
 
-      camera.x = player.x - width / 2;
-      camera.y = player.y - height / 2;
+      // 카메라 좌표 NaN 방지 및 안전 추적
+      const targetCamX = player.x - width / 2;
+      const targetCamY = player.y - height / 2;
+      camera.x = isNaN(targetCamX) ? (WORLD_WIDTH - width) / 2 : targetCamX;
+      camera.y = isNaN(targetCamY) ? (WORLD_HEIGHT - height) / 2 : targetCamY;
 
       for (let i = worldCoins.length - 1; i >= 0; i--) {
         const c = worldCoins[i];
@@ -1303,13 +1298,16 @@
       ctx.clearRect(0, 0, width, height);
 
       ctx.save();
-      ctx.translate(-camera.x, -camera.y);
+      // 카메라 안전 변환
+      const camX = isNaN(camera.x) ? 0 : camera.x;
+      const camY = isNaN(camera.y) ? 0 : camera.y;
+      ctx.translate(-camX, -camY);
 
       // 월드 도트
       ctx.fillStyle = "#fef08a";
-      const startX = Math.max(0, Math.floor(camera.x / 40) * 40);
+      const startX = Math.max(0, Math.floor(camX / 40) * 40);
       const endX = Math.min(WORLD_WIDTH, startX + width + 80);
-      const startY = Math.max(0, Math.floor(camera.y / 40) * 40);
+      const startY = Math.max(0, Math.floor(camY / 40) * 40);
       const endY = Math.min(WORLD_HEIGHT, startY + height + 80);
 
       for (let x = startX; x <= endX; x += 40) {
@@ -1332,7 +1330,6 @@
       const stats = calcStats();
       const current = getCurrentStage().stage;
 
-      // 화려한 스킬 및 파편 이펙트
       particles.forEach(pt => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
@@ -1352,13 +1349,11 @@
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           }
         } else if (pt.type === 'poop-debris') {
-          // 사방으로 튀는 똥 파편
           ctx.fillStyle = "#78350f";
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
           ctx.fill();
         } else if (pt.type === 'fart-gas') {
-          // 뿜어져 나오는 방귀 가스 구름
           ctx.fillStyle = "rgba(16, 185, 129, 0.45)";
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
@@ -1520,7 +1515,7 @@
     }
 
     /* ========================================================
-       HUD & 상점 (스킬 공격력 실시간 갱신)
+       HUD & 상점 (게이지 바 위에 숫자 겹쳐 렌더링)
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -1531,12 +1526,13 @@
       document.getElementById('grow-stage-badge').innerText = stage.name;
       document.getElementById('level-badge').innerText = `Lv.${player.level}`;
 
+      // HP 수치가 게이지 바 위에 겹쳐짐
       const currentHp = Math.max(0, isNaN(player.hp) ? stats.maxHp : player.hp);
       const hpPct = Math.max(0, Math.min(100, (currentHp / stats.maxHp) * 100));
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
-      document.getElementById('hp-text').innerText = `HP ${Math.ceil(currentHp)}/${stats.maxHp}`;
+      document.getElementById('hp-text').innerText = `${Math.ceil(currentHp)} / ${stats.maxHp}`;
 
-      // 경험치 숫자 없이 퍼센트로만 표시
+      // EXP 퍼센트가 게이지 바 위에 겹쳐짐
       const currentExp = player.exp || 0;
       const targetExp = player.maxExp || 100;
       const expPct = Math.max(0, Math.min(100, (currentExp / targetExp) * 100));
@@ -1551,7 +1547,6 @@
       document.getElementById('atk-btn-icon').innerText = stage.atkIcon;
       document.getElementById('atk-btn-text').innerText = stage.atkName;
 
-      // 실시간 공격력 계산
       const baseAtk = Math.round(stats.atk * (1 + stats.dmgAmp));
       document.getElementById('dmg-atk-btn').innerText = `ATK ${baseAtk}`;
 
@@ -1831,13 +1826,12 @@
     }
 
     /* ========================================================
-       게임 오버 (성장 단계 및 레벨 완벽 보존 후 초기화)
+       게임 오버
        ======================================================== */
     function gameOver() {
       state.isGameOver = true;
       state.isPaused = true;
 
-      // 1. 도달한 최종 레벨과 성장 단계를 먼저 온전히 백업 (신생아 고정 버그 완벽 수정)
       const finalLevel = player.level;
       const { stage } = getCurrentStage();
       const finalStageName = stage.name;
@@ -1849,12 +1843,10 @@
       document.getElementById('final-score').innerText = `${finalScore.toLocaleString()} P`;
       document.getElementById('final-stats').innerText = `처치한 악당: ${state.kills}마리 | 모은 코인: ${state.coins}개`;
 
-      // 공유 URL에 올바른 최고 레벨과 최종 진화 단계가 정확히 인코딩되도록 구성
       window.lastShareUrl = `https://xxhubzz.github.io/yujun/?score=${finalScore}&name=${encodeURIComponent(state.playerName)}&stage=${encodeURIComponent(finalStageName)}&lv=${finalLevel}`;
 
       localStorage.setItem('yujun_remembered_name', state.playerName);
 
-      // 2. 기록 완료 후 다음 도전을 위해 플레이어 상태 초기화
       player.level = 1;
       player.exp = 0;
       player.maxExp = 100;
@@ -1910,7 +1902,7 @@
       }
     }
 
-    // 초기화
+    // 진입점 초기화
     initNickname();
     parseSharedScoreFromURL();
     renderStartRankPreview();
