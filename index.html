@@ -235,7 +235,6 @@
       
       <div class="mt-3 text-left">
         <label class="text-[11px] font-bold text-slate-600 block mb-1">플레이어 / 보호자 닉네임</label>
-        <!-- 닉네임 기본값을 비워두고 placeholder로 유도 -->
         <input type="text" id="player-nickname-input" maxlength="8" placeholder="닉네임을 입력하세요" class="w-full px-3 py-2 border-2 border-amber-300 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-amber-500" value="">
       </div>
 
@@ -243,15 +242,12 @@
         🍼 모험 시작하기!
       </button>
 
-      <!-- 첫 화면에 바로 노출되는 실시간 명예의 전당 -->
       <div class="mt-3 pt-3 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1.5">
           <span class="flex items-center gap-1">🏆 명예의 전당 Top 5</span>
           <span class="text-[9px] text-slate-400 font-normal">최고 득점 순위</span>
         </div>
-        <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[140px]">
-          <!-- 첫 화면 랭킹 목록이 들어옵니다 -->
-        </div>
+        <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[140px]"></div>
       </div>
     </div>
   </div>
@@ -282,7 +278,6 @@
         <div id="final-stats" class="text-[10px] text-slate-500 mt-1"></div>
       </div>
 
-      <!-- 링크 1개만 깔끔하게 나가는 공유 버튼 -->
       <button id="btn-kakao-share" class="w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-2">
         <span class="text-sm">💬</span> 결과 & 게임 링크 카톡 공유하기
       </button>
@@ -480,7 +475,7 @@
 
     const player = {
       x: 0, y: 0,
-      baseSpeed: 3.4,
+      baseSpeed: 180, // 초당 이동 픽셀 (델타타임 기준)
       level: 1, exp: 0, maxExp: 100,
       hp: 120, maxHp: 120,
       dirX: 0, dirY: -1,
@@ -488,9 +483,10 @@
       walkCycle: 0,
       reviveUsed: false,
       isAttacking: false,
-      attackCooldown: 0
+      attackTimer: 0
     };
 
+    // 초 단위 쿨타임 (120Hz/60Hz 무관)
     const cooldowns = { poop: 0, fart: 0, cry: 0 };
     let enemies = [];
     let projectiles = [];
@@ -521,7 +517,7 @@
     function calcStats() {
       let stats = {
         maxHp: 120, hpRegen: 0, def: 0, dmgReduction: 0,
-        critRate: 0.05, critDmg: 1.5, atk: 25, projSpeed: 8.5,
+        critRate: 0.05, critDmg: 1.5, atk: 25, projSpeed: 450,
         doubleShot: false, speedBonus: 0, coolReduce: 0, bombRadius: 1,
         lifeSteal: 0, coinBonus: 0, expBonus: 0, dmgAmp: 0, pierce: 0,
         strollerLevel: 0, aura: false, clothColor: "#fde047"
@@ -542,9 +538,9 @@
         if (tier.critRate) stats.critRate += tier.critRate;
         if (tier.critDmg) stats.critDmg = Math.max(stats.critDmg, tier.critDmg);
         if (tier.atk) stats.atk += tier.atk;
-        if (tier.projSpeed) stats.projSpeed += tier.projSpeed;
+        if (tier.projSpeed) stats.projSpeed += tier.projSpeed * 30;
         if (tier.doubleShot) stats.doubleShot = true;
-        if (tier.speed) stats.speedBonus += tier.speed;
+        if (tier.speed) stats.speedBonus += tier.speed * 40;
         if (tier.coolReduce) stats.coolReduce = Math.max(stats.coolReduce, tier.coolReduce);
         if (tier.bombRadius) stats.bombRadius *= tier.bombRadius;
         if (tier.lifeSteal) stats.lifeSteal += tier.lifeSteal;
@@ -698,7 +694,7 @@
     }
 
     function tryShoot() {
-      if (state.isPaused || state.isGameOver || player.attackCooldown > 0) return;
+      if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
       const current = getCurrentStage().stage;
 
@@ -725,7 +721,7 @@
         pierce: stats.pierce,
         type: current.atkIcon,
         radius: 13,
-        life: 80
+        life: 1.4 // 1.4초 유지
       });
 
       if (stats.doubleShot) {
@@ -735,7 +731,7 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackCooldown = 14;
+      player.attackTimer = 0.24; // 0.24초마다 연사
     }
 
     function triggerPoop() {
@@ -751,7 +747,7 @@
         if (d <= rad) applyDamage(en, stats.atk * 2.8 * (1 + stats.dmgAmp), false, "💩");
       });
 
-      cooldowns.poop = Math.round(300 * (1 - stats.coolReduce));
+      cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
 
     function triggerFart() {
@@ -772,7 +768,7 @@
 
       player.x += player.dirX * 35;
       player.y += player.dirY * 35;
-      cooldowns.fart = Math.round(240 * (1 - stats.coolReduce));
+      cooldowns.fart = 4.0 * (1 - stats.coolReduce);
     }
 
     function triggerCry() {
@@ -784,10 +780,10 @@
 
       enemies.forEach(en => {
         applyDamage(en, stats.atk * 3.5 * (1 + stats.dmgAmp), true, "😭");
-        en.stunTimer = 90;
+        en.stunTimer = 1.5;
       });
 
-      cooldowns.cry = Math.round(480 * (1 - stats.coolReduce));
+      cooldowns.cry = 8.0 * (1 - stats.coolReduce);
     }
 
     /* ========================================================
@@ -807,7 +803,7 @@
         y: enemy.y - 15,
         color: isCrit ? "#f43f5e" : "#fbbf24",
         scale: isCrit ? 1.4 : 1.0,
-        alpha: 1, life: 35
+        alpha: 1, life: 0.6
       });
 
       Sound.play('hit');
@@ -827,7 +823,7 @@
             x: enemy.x + (Math.random() - 0.5) * 25,
             y: enemy.y + (Math.random() - 0.5) * 25,
             val: Math.ceil(earnedCoin / Math.min(earnedCoin, 4)),
-            spd: 4 + Math.random() * 3
+            spd: 200 + Math.random() * 150
           });
         }
 
@@ -836,8 +832,13 @@
     }
 
     function gainExp(amount) {
-      player.exp += amount;
-      if (player.exp >= player.maxExp) {
+      if (isNaN(amount) || amount <= 0) return;
+      player.exp = (isNaN(player.exp) ? 0 : player.exp) + amount;
+      if (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) {
+        player.maxExp = 100;
+      }
+
+      while (player.exp >= player.maxExp) {
         player.exp -= player.maxExp;
         player.level++;
         player.maxExp = Math.round(player.maxExp * 1.35);
@@ -867,23 +868,24 @@
     });
 
     /* ========================================================
-       7. 몬스터 스폰
+       7. 몬스터 스폰 (시간 기반)
        ======================================================== */
-    let spawnCounter = 0;
+    let spawnTimer = 0;
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", hp: 45, spd: 1.6, dmg: 10, exp: 20, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 1.3, dmg: 16, exp: 35, coinVal: 12, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", hp: 160, spd: 1.8, dmg: 24, exp: 65, coinVal: 24, scoreVal: 180, size: 32 },
-      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 0.9, dmg: 40, exp: 250, coinVal: 80, scoreVal: 600, size: 48, boss: true }
+      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 20, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, exp: 35, coinVal: 12, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, exp: 65, coinVal: 24, scoreVal: 180, size: 32 },
+      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, exp: 250, coinVal: 80, scoreVal: 600, size: 48, boss: true }
     ];
 
-    function spawnEnemies() {
+    function spawnEnemies(dt) {
       if (state.isPaused || state.isGameOver) return;
-      spawnCounter++;
+      spawnTimer += dt;
 
-      const spawnInterval = Math.max(35, 110 - player.level * 3);
+      const spawnInterval = Math.max(0.6, 2.0 - player.level * 0.05);
 
-      if (spawnCounter % spawnInterval === 0) {
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
         let typeIdx = 0;
         const r = Math.random();
         if (player.level >= 15 && r < 0.12) typeIdx = 3;
@@ -913,12 +915,13 @@
     }
 
     /* ========================================================
-       8. 게임 루프 & 렌더링
+       8. 게임 루프 & 렌더링 (Delta Time 적용)
        ======================================================== */
     let lastTime = performance.now();
 
     function gameLoop(now) {
-      const dt = (now - lastTime) / 1000;
+      // 델타 타임 초 계산 (최대 0.1초로 제한하여 탭 전환 후 순간이동 방지)
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
 
       if (!state.isPaused && !state.isGameOver) updateGame(dt);
@@ -929,10 +932,11 @@
     function updateGame(dt) {
       const stats = calcStats();
 
-      if (cooldowns.poop > 0) cooldowns.poop--;
-      if (cooldowns.fart > 0) cooldowns.fart--;
-      if (cooldowns.cry > 0) cooldowns.cry--;
-      if (player.attackCooldown > 0) player.attackCooldown--;
+      // 스킬 쿨다운 감소
+      if (cooldowns.poop > 0) cooldowns.poop = Math.max(0, cooldowns.poop - dt);
+      if (cooldowns.fart > 0) cooldowns.fart = Math.max(0, cooldowns.fart - dt);
+      if (cooldowns.cry > 0) cooldowns.cry = Math.max(0, cooldowns.cry - dt);
+      if (player.attackTimer > 0) player.attackTimer = Math.max(0, player.attackTimer - dt);
 
       updateCoolText('cool-poop', cooldowns.poop);
       updateCoolText('cool-fart', cooldowns.fart);
@@ -952,9 +956,9 @@
       if (moveLen > 0.1) {
         player.isMoving = true;
         const finalSpeed = (player.baseSpeed + stats.speedBonus);
-        player.x += (moveX / (moveLen > 1 ? moveLen : 1)) * finalSpeed;
-        player.y += (moveY / (moveLen > 1 ? moveLen : 1)) * finalSpeed;
-        player.walkCycle += 0.2;
+        player.x += (moveX / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
+        player.y += (moveY / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
+        player.walkCycle += 10 * dt;
         player.dirX = moveX / moveLen;
         player.dirY = moveY / moveLen;
 
@@ -964,7 +968,7 @@
         player.isMoving = false;
       }
 
-      // 코인 자석 흡수
+      // 코인 흡수
       for (let i = worldCoins.length - 1; i >= 0; i--) {
         const c = worldCoins[i];
         const cdx = player.x - c.x;
@@ -978,18 +982,18 @@
           updateHUD();
           worldCoins.splice(i, 1);
         } else {
-          c.x += (cdx / cdist) * c.spd;
-          c.y += (cdy / cdist) * c.spd;
-          c.spd += 0.4;
+          c.x += (cdx / cdist) * c.spd * dt;
+          c.y += (cdy / cdist) * c.spd * dt;
+          c.spd += 250 * dt;
         }
       }
 
       // 발사체 이동
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life--;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
 
         for (let j = 0; j < enemies.length; j++) {
           const en = enemies[j];
@@ -1005,32 +1009,32 @@
         }
       }
 
-      // 몬스터 추적
+      // 몬스터 이동
       for (let i = enemies.length - 1; i >= 0; i--) {
         const en = enemies[i];
         if (en.dead) { enemies.splice(i, 1); continue; }
-        if (en.stunTimer > 0) { en.stunTimer--; continue; }
+        if (en.stunTimer > 0) { en.stunTimer -= dt; continue; }
 
         const dx = player.x - en.x;
         const dy = player.y - en.y;
         const d = Math.hypot(dx, dy);
 
         if (d > 0) {
-          en.x += (dx / d) * en.spd;
-          en.y += (dy / d) * en.spd;
+          en.x += (dx / d) * en.spd * dt;
+          en.y += (dy / d) * en.spd * dt;
         }
 
         if (d < en.size + 18) {
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
-          incomingDmg = Math.max(2, incomingDmg * dt * 4);
-          player.hp -= incomingDmg;
+          incomingDmg = Math.max(3, incomingDmg);
+          player.hp -= incomingDmg * dt * 2.5;
 
           if (player.hp <= 0) {
             if (stats.strollerLevel >= 3 && !player.reviveUsed) {
               player.reviveUsed = true;
               player.hp = stats.maxHp * 0.7;
               Sound.play('levelup');
-              damageTexts.push({ text: "✨ 부활 발동!", x: player.x, y: player.y - 30, color: "#38bdf8", scale: 1.5, alpha: 1, life: 60 });
+              damageTexts.push({ text: "✨ 부활 발동!", x: player.x, y: player.y - 30, color: "#38bdf8", scale: 1.5, alpha: 1, life: 1.2 });
             } else {
               gameOver();
             }
@@ -1039,27 +1043,29 @@
       }
 
       for (let i = damageTexts.length - 1; i >= 0; i--) {
-        const dt = damageTexts[i];
-        dt.y -= 0.8; dt.alpha -= 0.025; dt.life--;
-        if (dt.life <= 0 || dt.alpha <= 0) damageTexts.splice(i, 1);
+        const dtItem = damageTexts[i];
+        dtItem.y -= 40 * dt;
+        dtItem.alpha -= 1.4 * dt;
+        dtItem.life -= dt;
+        if (dtItem.life <= 0 || dtItem.alpha <= 0) damageTexts.splice(i, 1);
       }
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
-        pt.radius += (pt.maxRadius - pt.radius) * 0.2;
-        pt.alpha -= 0.04;
+        pt.radius += (pt.maxRadius - pt.radius) * 10 * dt;
+        pt.alpha -= 2.0 * dt;
         if (pt.alpha <= 0) particles.splice(i, 1);
       }
 
-      spawnEnemies();
+      spawnEnemies(dt);
       updateHUD();
     }
 
-    function updateCoolText(elementId, frames) {
+    function updateCoolText(elementId, seconds) {
       const el = document.getElementById(elementId);
-      if (frames > 0) {
+      if (seconds > 0) {
         el.classList.remove('hidden');
-        el.innerText = (frames / 60).toFixed(1) + 's';
+        el.innerText = seconds.toFixed(1) + 's';
       } else {
         el.classList.add('hidden');
       }
@@ -1147,7 +1153,8 @@
 
       if (stats.strollerLevel > 0) {
         ctx.fillStyle = "#64748b"; ctx.fillRect(-18, 12, 36, 6);
-        ctx.beginPath(); ctx.arc(-14, 18, 5, 0, Math.PI*2); ctx.arc(14, 18, 5, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(-14, 18, 5, 0, Math.PI*2);
+        ctx.arc(14, 18, 5, 0, Math.PI*2);
         ctx.fillStyle = "#1e293b"; ctx.fill();
       }
 
@@ -1163,7 +1170,8 @@
       ctx.beginPath(); ctx.arc(0, -10 + walkBob, 13, 0, Math.PI * 2); ctx.fill();
 
       ctx.fillStyle = "#0f172a";
-      ctx.beginPath(); ctx.arc(-4, -11 + walkBob, 2, 0, Math.PI * 2); ctx.arc(4, -11 + walkBob, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(-4, -11 + walkBob, 2, 0, Math.PI * 2);
+      ctx.arc(4, -11 + walkBob, 2, 0, Math.PI * 2); ctx.fill();
 
       if (stageIdx === 0) {
         ctx.fillStyle = "#fdba74";
@@ -1190,13 +1198,13 @@
       ctx.fillText(`유준이 (${current.name})`, player.x, player.y - 36);
       ctx.restore();
 
-      damageTexts.forEach(dt => {
+      damageTexts.forEach(dtItem => {
         ctx.save();
-        ctx.globalAlpha = Math.max(0, dt.alpha);
-        ctx.font = `bold ${Math.round(14 * dt.scale)}px sans-serif`;
-        ctx.fillStyle = dt.color;
+        ctx.globalAlpha = Math.max(0, dtItem.alpha);
+        ctx.font = `bold ${Math.round(14 * dtItem.scale)}px sans-serif`;
+        ctx.fillStyle = dtItem.color;
         ctx.textAlign = "center";
-        ctx.fillText(dt.text, dt.x, dt.y);
+        ctx.fillText(dtItem.text, dtItem.x, dtItem.y);
         ctx.restore();
       });
     }
@@ -1212,11 +1220,15 @@
       document.getElementById('grow-stage-badge').innerText = stage.name;
       document.getElementById('level-badge').innerText = `Lv.${player.level}`;
 
-      const hpPct = Math.max(0, Math.min(100, (player.hp / stats.maxHp) * 100));
+      // HP & EXP 정상 산출 (NaN 방지)
+      const currentHp = Math.max(0, isNaN(player.hp) ? stats.maxHp : player.hp);
+      const hpPct = Math.max(0, Math.min(100, (currentHp / stats.maxHp) * 100));
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
-      document.getElementById('hp-text').innerText = `${Math.ceil(player.hp)}/${stats.maxHp}`;
+      document.getElementById('hp-text').innerText = `${Math.ceil(currentHp)}/${stats.maxHp}`;
 
-      const expPct = Math.max(0, Math.min(100, (player.exp / player.maxExp) * 100));
+      const currentExp = isNaN(player.exp) ? 0 : player.exp;
+      const targetExp = (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) ? 100 : player.maxExp;
+      const expPct = Math.max(0, Math.min(100, (currentExp / targetExp) * 100));
       document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}%`;
 
       document.getElementById('coin-count').innerText = state.coins;
@@ -1364,7 +1376,7 @@
     });
 
     /* ========================================================
-       10. 랭킹 시스템 & 첫 화면 Top 5 미리보기
+       10. 랭킹 시스템
        ======================================================== */
     function getRankings() {
       localStorage.removeItem('yujun_rankings_v4');
@@ -1471,14 +1483,12 @@
       document.getElementById('gameover-modal').classList.remove('hidden');
     }
 
-    // 링크가 1개만 나오도록 통합 정돈된 공유 로직
     document.getElementById('btn-kakao-share').addEventListener('click', async () => {
       const shareUrl = window.location.href;
       const shareText = `[유준이 키우기]\n${state.playerName} 님이 유준이를 키워 최종 점수 ${state.score.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 1위 기록에 도전해보세요!\n${shareUrl}`;
 
       if (navigator.share) {
         try {
-          // url 파라미터를 따로 넣으면 텍스트 속 링크와 중복되므로 text 하나에 단일 링크로 묶어 전달
           await navigator.share({
             title: '유준이 키우기',
             text: shareText
@@ -1500,13 +1510,15 @@
     });
 
     /* ========================================================
-       12. 초기화 및 시작
+       12. 초기화 및 세이브 보정
        ======================================================== */
     function saveGame() {
       localStorage.setItem('yujun_save_v1', JSON.stringify({
         coins: state.coins,
         items: state.items,
         level: player.level,
+        exp: isNaN(player.exp) ? 0 : player.exp,
+        maxExp: (!player.maxExp || isNaN(player.maxExp)) ? 100 : player.maxExp,
         playerName: state.playerName
       }));
     }
@@ -1516,12 +1528,17 @@
       if (raw) {
         try {
           const d = JSON.parse(raw);
-          if (d.coins !== undefined) state.coins = d.coins;
+          if (d.coins !== undefined && !isNaN(d.coins)) state.coins = d.coins;
           if (d.items) state.items = d.items;
-          if (d.level) player.level = d.level;
+          if (d.level && !isNaN(d.level)) player.level = d.level;
+          if (d.exp !== undefined && !isNaN(d.exp)) player.exp = d.exp;
+          if (d.maxExp && !isNaN(d.maxExp) && d.maxExp > 0) player.maxExp = d.maxExp;
           if (d.playerName) state.playerName = d.playerName;
         } catch(e) {}
       }
+      // NaN 방어 검사
+      if (isNaN(player.exp)) player.exp = 0;
+      if (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
     }
 
     document.getElementById('btn-start-game').addEventListener('click', () => {
