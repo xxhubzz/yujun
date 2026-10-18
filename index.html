@@ -25,10 +25,11 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       display: block;
       touch-action: none;
+      z-index: 1;
     }
     .hud-layer, .controls-layer {
       position: absolute;
@@ -226,7 +227,7 @@
     </div>
   </div>
 
-  <!-- 시작 전 닉네임 입력 & 랭킹 확인 모달 -->
+  <!-- 시작 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">👶</div>
@@ -265,7 +266,7 @@
     </div>
   </div>
 
-  <!-- 게임 오버 모달 & 카톡 공유 -->
+  <!-- 게임 오버 모달 -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center">
       <div class="text-5xl mb-2">😢</div>
@@ -289,9 +290,6 @@
   </div>
 
   <script>
-    /* ========================================================
-       1. 사운드 엔진
-       ======================================================== */
     const Sound = {
       ctx: null,
       init() {
@@ -365,9 +363,6 @@
       }
     };
 
-    /* ========================================================
-       2. 아이템 10종 데이터
-       ======================================================== */
     const ITEMS_DATA = [
       {
         id: "diaper", name: "기저귀", icon: "🧷", attr: "위생 / 쾌적함",
@@ -458,9 +453,6 @@
       { minLv: 30, name: "멋진 어른", icon: "🦸", title: "유준이 영웅 완성체", atkName: "히어로 샷", atkIcon: "🔥", desc: "황금빛 오라를 두르고 세상을 지키는 어른으로 성장했습니다!" }
     ];
 
-    /* ========================================================
-       3. 상태 객체
-       ======================================================== */
     const state = {
       playerName: "익명의 수호자",
       coins: 0,
@@ -474,8 +466,8 @@
     };
 
     const player = {
-      x: 0, y: 0,
-      baseSpeed: 180, // 초당 이동 픽셀 (델타타임 기준)
+      x: 200, y: 350,
+      baseSpeed: 180,
       level: 1, exp: 0, maxExp: 100,
       hp: 120, maxHp: 120,
       dirX: 0, dirY: -1,
@@ -486,7 +478,6 @@
       attackTimer: 0
     };
 
-    // 초 단위 쿨타임 (120Hz/60Hz 무관)
     const cooldowns = { poop: 0, fart: 0, cry: 0 };
     let enemies = [];
     let projectiles = [];
@@ -496,24 +487,23 @@
 
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
-    let width = window.innerWidth;
-    let height = window.innerHeight;
+    let width = 360;
+    let height = 640;
 
+    // 삼성 브라우저 크기 방어 로직
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      width = Math.max(300, window.innerWidth || document.documentElement.clientWidth || 360);
+      height = Math.max(400, window.innerHeight || document.documentElement.clientHeight || 640);
       canvas.width = width;
       canvas.height = height;
+
+      if (!player.x || isNaN(player.x) || player.x <= 0) player.x = width / 2;
+      if (!player.y || isNaN(player.y) || player.y <= 0) player.y = height / 2;
     }
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 200));
     resize();
 
-    player.x = width / 2;
-    player.y = height / 2;
-
-    /* ========================================================
-       4. 스탯 계산 및 단계 판정
-       ======================================================== */
     function calcStats() {
       let stats = {
         maxHp: 120, hpRegen: 0, def: 0, dmgReduction: 0,
@@ -566,9 +556,6 @@
       return { stage: GROW_STAGES[stageIdx], idx: stageIdx };
     }
 
-    /* ========================================================
-       5. 컨트롤 & 자동 조준 발사
-       ======================================================== */
     const joyBase = document.getElementById('joystick-base');
     const joyThumb = document.getElementById('joystick-thumb');
     let joyTouchId = null;
@@ -721,7 +708,7 @@
         pierce: stats.pierce,
         type: current.atkIcon,
         radius: 13,
-        life: 1.4 // 1.4초 유지
+        life: 1.4
       });
 
       if (stats.doubleShot) {
@@ -731,7 +718,7 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackTimer = 0.24; // 0.24초마다 연사
+      player.attackTimer = 0.24;
     }
 
     function triggerPoop() {
@@ -786,9 +773,6 @@
       cooldowns.cry = 8.0 * (1 - stats.coolReduce);
     }
 
-    /* ========================================================
-       6. 피해 처리 & 자석 코인
-       ======================================================== */
     function applyDamage(enemy, baseDmg, isCry, icon) {
       if (enemy.dead) return;
       const stats = calcStats();
@@ -867,9 +851,6 @@
       state.isPaused = false;
     });
 
-    /* ========================================================
-       7. 몬스터 스폰 (시간 기반)
-       ======================================================== */
     let spawnTimer = 0;
     const ENEMY_TYPES = [
       { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 20, coinVal: 6, scoreVal: 50, size: 24 },
@@ -914,13 +895,10 @@
       }
     }
 
-    /* ========================================================
-       8. 게임 루프 & 렌더링 (Delta Time 적용)
-       ======================================================== */
-    let lastTime = performance.now();
+    let lastTime = 0;
 
     function gameLoop(now) {
-      // 델타 타임 초 계산 (최대 0.1초로 제한하여 탭 전환 후 순간이동 방지)
+      if (!lastTime) lastTime = now;
       const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
 
@@ -932,7 +910,6 @@
     function updateGame(dt) {
       const stats = calcStats();
 
-      // 스킬 쿨다운 감소
       if (cooldowns.poop > 0) cooldowns.poop = Math.max(0, cooldowns.poop - dt);
       if (cooldowns.fart > 0) cooldowns.fart = Math.max(0, cooldowns.fart - dt);
       if (cooldowns.cry > 0) cooldowns.cry = Math.max(0, cooldowns.cry - dt);
@@ -968,7 +945,6 @@
         player.isMoving = false;
       }
 
-      // 코인 흡수
       for (let i = worldCoins.length - 1; i >= 0; i--) {
         const c = worldCoins[i];
         const cdx = player.x - c.x;
@@ -988,7 +964,6 @@
         }
       }
 
-      // 발사체 이동
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         p.x += p.vx * dt;
@@ -1009,7 +984,6 @@
         }
       }
 
-      // 몬스터 이동
       for (let i = enemies.length - 1; i >= 0; i--) {
         const en = enemies[i];
         if (en.dead) { enemies.splice(i, 1); continue; }
@@ -1074,6 +1048,7 @@
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
+      // 격자 도트
       ctx.fillStyle = "#fef08a";
       for (let x = 20; x < width; x += 40) {
         for (let y = 20; y < height; y += 40) {
@@ -1143,8 +1118,12 @@
         ctx.restore();
       });
 
+      // 유준이 본체 렌더링 (좌표 방어 포함)
+      const renderPx = isNaN(player.x) ? width / 2 : player.x;
+      const renderPy = isNaN(player.y) ? height / 2 : player.y;
+
       ctx.save();
-      ctx.translate(player.x, player.y);
+      ctx.translate(renderPx, renderPy);
 
       if (stats.aura) {
         ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2);
@@ -1195,7 +1174,7 @@
       ctx.fillStyle = "rgba(0,0,0,0.65)";
       ctx.font = "bold 11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`유준이 (${current.name})`, player.x, player.y - 36);
+      ctx.fillText(`유준이 (${current.name})`, renderPx, renderPy - 36);
       ctx.restore();
 
       damageTexts.forEach(dtItem => {
@@ -1209,9 +1188,6 @@
       });
     }
 
-    /* ========================================================
-       9. UI 업데이트 및 상점
-       ======================================================== */
     function updateHUD() {
       const stats = calcStats();
       const { stage } = getCurrentStage();
@@ -1220,7 +1196,6 @@
       document.getElementById('grow-stage-badge').innerText = stage.name;
       document.getElementById('level-badge').innerText = `Lv.${player.level}`;
 
-      // HP & EXP 정상 산출 (NaN 방지)
       const currentHp = Math.max(0, isNaN(player.hp) ? stats.maxHp : player.hp);
       const hpPct = Math.max(0, Math.min(100, (currentHp / stats.maxHp) * 100));
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
@@ -1375,9 +1350,6 @@
       state.isPaused = false;
     });
 
-    /* ========================================================
-       10. 랭킹 시스템
-       ======================================================== */
     function getRankings() {
       localStorage.removeItem('yujun_rankings_v4');
       const data = localStorage.getItem('yujun_clean_rankings');
@@ -1467,9 +1439,6 @@
       });
     }
 
-    /* ========================================================
-       11. 게임 오버 & 단일 링크 카톡 공유
-       ======================================================== */
     function gameOver() {
       state.isGameOver = true;
       state.isPaused = true;
@@ -1509,9 +1478,6 @@
       location.reload();
     });
 
-    /* ========================================================
-       12. 초기화 및 세이브 보정
-       ======================================================== */
     function saveGame() {
       localStorage.setItem('yujun_save_v1', JSON.stringify({
         coins: state.coins,
@@ -1536,7 +1502,6 @@
           if (d.playerName) state.playerName = d.playerName;
         } catch(e) {}
       }
-      // NaN 방어 검사
       if (isNaN(player.exp)) player.exp = 0;
       if (!player.maxExp || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
     }
@@ -1551,6 +1516,7 @@
       state.isPaused = false;
       saveGame();
       updateHUD();
+      resize(); // 시작 직후 화면 크기 재계산 보장
     });
 
     loadGame();
