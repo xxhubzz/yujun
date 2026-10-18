@@ -10,8 +10,7 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     body, html {
       margin: 0;
@@ -21,7 +20,6 @@
       overflow: hidden;
       background-color: #fefce8;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Nanum Gothic", sans-serif;
-      touch-action: none;
     }
     #game-canvas {
       position: absolute;
@@ -47,24 +45,22 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      padding: 0 16px;
-      z-index: 20;
+      padding: 0 20px;
     }
     .joystick-base {
       width: 120px;
       height: 120px;
-      background: radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(220,220,220,0.55) 100%);
-      border: 3px solid rgba(255,255,255,0.9);
+      background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, rgba(200,200,200,0.5) 100%);
+      border: 3px solid rgba(255,255,255,0.85);
       border-radius: 50%;
       position: relative;
       touch-action: none;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     }
     .joystick-thumb {
       width: 52px;
       height: 52px;
       background: radial-gradient(circle, #fde047 0%, #eab308 100%);
-      border: 2px solid #ffffff;
       border-radius: 50%;
       position: absolute;
       top: 50%;
@@ -74,30 +70,23 @@
       pointer-events: none;
     }
     .skill-btn {
-      touch-action: none;
       transition: transform 0.08s ease, filter 0.08s ease;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
     }
     .skill-btn:active {
       transform: scale(0.92);
       filter: brightness(0.9);
     }
     .modal-overlay {
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
     }
     .allow-scroll {
       pointer-events: auto !important;
       touch-action: pan-y !important;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
-    }
-    .custom-scroll::-webkit-scrollbar {
-      display: none;
-    }
-    .custom-scroll {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
     }
     .equip-drawer {
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -114,48 +103,43 @@
   <!-- 상단 HUD 영역 -->
   <div class="hud-layer top-0 left-0 right-0 p-3 flex flex-col gap-2 z-10">
     <div class="flex items-center justify-between w-full max-w-md mx-auto">
-      
-      <!-- 유준이 프로필 & 경험치 바 -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-        <div id="hud-avatar" class="text-2xl filter drop-shadow shrink-0">👶</div>
+        <div id="hud-avatar" class="text-2xl filter drop-shadow">👶</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 leading-tight">
             <span id="player-name-display" class="font-extrabold text-slate-800 text-sm truncate">유준이</span>
             <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">Lv.1</span>
           </div>
-          <!-- HP 게이지 -->
           <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-1 border border-slate-200 flex">
             <div id="hp-bar" class="bg-rose-500 h-full transition-all duration-150" style="width: 100%;"></div>
           </div>
-          <!-- EXP 게이지 -->
-          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-1 border border-slate-200 flex">
-            <div id="exp-bar" class="bg-gradient-to-r from-amber-400 to-yellow-500 h-full transition-all duration-150" style="width: 0%;"></div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-0.5 border border-slate-200 flex">
+            <div id="exp-bar" class="bg-amber-400 h-full transition-all duration-150" style="width: 0%;"></div>
           </div>
           <div class="flex justify-between items-center text-[9px] font-semibold text-slate-400 mt-0.5">
             <span id="hp-text">120/120</span>
-            <span id="exp-text" class="text-amber-600 font-black">EXP 0% (0/100)</span>
+            <span id="exp-text" class="text-amber-600 font-bold">EXP 0% (0/100)</span>
           </div>
         </div>
       </div>
 
-      <!-- 코인 & 랭킹 & 상점 버튼 -->
       <div class="flex items-center gap-1.5 shrink-0">
         <div class="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
           <span class="text-base">🪙</span>
-          <span id="coin-count" class="font-black text-slate-800 text-sm tracking-tight tabular-nums">0</span>
+          <span id="coin-count" class="font-black text-slate-800 text-sm tracking-tight">0</span>
         </div>
-        <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0" title="명예의 전당">
+        <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
           🏆
         </button>
-        <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-2 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0" title="상점">
+        <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-2 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0">
           🛒 상점
         </button>
       </div>
     </div>
   </div>
 
-  <!-- 왼쪽 세로형 장비 바 (글자 짤림 방지 138px 너비 + 토글 접기/펼치기) -->
+  <!-- 왼쪽 세로형 장비 바 -->
   <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 76px; left: 8px;">
     <div class="flex items-start">
       <div class="interactive rounded-2xl p-2 shadow-xl border border-slate-600/50 flex flex-col gap-1 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(30, 41, 59, 0.78); backdrop-filter: blur(8px);">
@@ -163,7 +147,7 @@
           <span class="flex items-center gap-1 text-amber-300">🎒 장비</span>
           <span id="equip-count" class="text-slate-300">0/10</span>
         </div>
-        <div id="equip-slot-container" class="allow-scroll custom-scroll overflow-y-auto pr-0.5 flex flex-col gap-1 text-white text-[10px]">
+        <div id="equip-slot-container" class="allow-scroll overflow-y-auto pr-0.5 flex flex-col gap-1 text-white text-[10px]">
           <div class="text-[9px] text-slate-300 text-center py-2">상점에서 아이템을 구매하면 장착됩니다</div>
         </div>
       </div>
@@ -180,36 +164,34 @@
     <div id="tt-type" class="text-[9px] text-slate-400 mt-0.5"></div>
   </div>
 
-  <!-- 하단 컨트롤 레이어 (2x2 그리드 스킬 버튼 + 모바일 상향 배치 조이스틱) -->
+  <!-- 하단 컨트롤 레이어 -->
   <div class="controls-layer z-20">
     <div class="interactive joystick-base" id="joystick-base">
       <div class="joystick-thumb" id="joystick-thumb"></div>
     </div>
 
     <div class="interactive grid grid-cols-2 gap-2.5">
-      <!-- 1행: 똥폭탄, 방귀 -->
       <button id="btn-skill-poop" class="skill-btn bg-amber-800/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-amber-600 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span class="text-2xl pointer-events-none">💩</span>
-        <span class="text-[9px] font-black mt-0.5 pointer-events-none">똥폭탄</span>
-        <div id="cool-poop" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white pointer-events-none">0s</div>
+        <span class="text-2xl">💩</span>
+        <span class="text-[9px] font-black mt-0.5">똥폭탄</span>
+        <div id="cool-poop" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
       <button id="btn-skill-fart" class="skill-btn bg-emerald-600/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-emerald-400 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span class="text-2xl pointer-events-none">💨</span>
-        <span class="text-[9px] font-black mt-0.5 pointer-events-none">방귀</span>
-        <div id="cool-fart" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white pointer-events-none">0s</div>
+        <span class="text-2xl">💨</span>
+        <span class="text-[9px] font-black mt-0.5">방귀</span>
+        <div id="cool-fart" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
-      <!-- 2행: 대성통곡, 기본공격 (누르고 있으면 자동 연속 무빙샷) -->
       <button id="btn-skill-cry" class="skill-btn bg-blue-600/95 text-white p-2.5 rounded-2xl shadow-lg border-2 border-blue-400 flex flex-col items-center justify-center w-16 h-16 relative">
-        <span class="text-2xl pointer-events-none">😭</span>
-        <span class="text-[9px] font-black mt-0.5 pointer-events-none">대성통곡</span>
-        <div id="cool-cry" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white pointer-events-none">0s</div>
+        <span class="text-2xl">😭</span>
+        <span class="text-[9px] font-black mt-0.5">대성통곡</span>
+        <div id="cool-cry" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
       </button>
 
       <button id="btn-attack" class="skill-btn bg-gradient-to-tr from-pink-500 to-rose-400 text-white p-2.5 rounded-2xl shadow-xl border-2 border-white flex flex-col items-center justify-center w-16 h-16">
-        <span id="atk-btn-icon" class="text-2xl pointer-events-none">🍼</span>
-        <span id="atk-btn-text" class="text-[9px] font-black mt-0.5 pointer-events-none">분유던지기</span>
+        <span id="atk-btn-icon" class="text-2xl">🍼</span>
+        <span id="atk-btn-text" class="text-[9px] font-black mt-0.5">분유던지기</span>
       </button>
     </div>
   </div>
@@ -230,7 +212,7 @@
           <button id="btn-close-shop" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-7 h-7 flex items-center justify-center font-black">✕</button>
         </div>
       </div>
-      <div id="shop-item-list" class="allow-scroll custom-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-2 pb-16"></div>
+      <div id="shop-item-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-2 pb-16"></div>
     </div>
   </div>
 
@@ -241,11 +223,11 @@
         <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 (랭킹)</h2>
         <button id="btn-close-rank" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-7 h-7 flex items-center justify-center font-black">✕</button>
       </div>
-      <div id="rank-list" class="allow-scroll custom-scroll flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+      <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
     </div>
   </div>
 
-  <!-- 시작 전 닉네임 입력 & 랭킹 Top 5 확인 모달 -->
+  <!-- 시작 전 닉네임 입력 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">👶</div>
@@ -266,7 +248,7 @@
           <span class="flex items-center gap-1">🏆 명예의 전당 Top 5</span>
           <span class="text-[9px] text-slate-400 font-normal">최고 득점 순위</span>
         </div>
-        <div id="start-rank-preview" class="allow-scroll custom-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[140px]"></div>
+        <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[140px]"></div>
       </div>
     </div>
   </div>
@@ -284,7 +266,7 @@
     </div>
   </div>
 
-  <!-- 게임 오버 모달 & 단일 링크 카톡 공유 -->
+  <!-- 게임 오버 모달 -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center">
       <div class="text-5xl mb-2">😢</div>
@@ -308,9 +290,6 @@
   </div>
 
   <script>
-    /* ========================================================
-       1. Web Audio API 사운드 합성 엔진
-       ======================================================== */
     const Sound = {
       ctx: null,
       init() {
@@ -374,19 +353,16 @@
               const o = this.ctx.createOscillator();
               const g = this.ctx.createGain();
               o.connect(g); g.connect(this.ctx.destination);
-              o.frequency.setValueAtTime(freq, t + idx * 0.08);
-              g.gain.setValueAtTime(0.25, t + idx * 0.08);
-              g.gain.linearRampToValueAtTime(0.01, t + idx * 0.08 + 0.2);
-              o.start(t + idx * 0.08); o.stop(t + idx * 0.08 + 0.2);
+              o.frequency.setValueAtTime(freq, t + idx * 0.07);
+              g.gain.setValueAtTime(0.2, t + idx * 0.07);
+              g.gain.linearRampToValueAtTime(0.01, t + idx * 0.07 + 0.18);
+              o.start(t + idx * 0.07); o.stop(t + idx * 0.07 + 0.18);
             });
           }
         } catch(e) {}
       }
     };
 
-    /* ========================================================
-       2. 육아 아이템 10종 & 3단계 데이터베이스
-       ======================================================== */
     const ITEMS_DATA = [
       {
         id: "diaper", name: "기저귀", icon: "🧷", attr: "위생 / 쾌적함",
@@ -470,9 +446,6 @@
       }
     ];
 
-    /* ========================================================
-       3. 4단계 성장 진화 정의
-       ======================================================== */
     const GROW_STAGES = [
       { minLv: 1, name: "신생아", icon: "👶", title: "호기심 많은 신생아", atkName: "분유던지기", atkIcon: "🍼", desc: "분유를 힘차게 던져 악당을 물리칩니다." },
       { minLv: 10, name: "어린이", icon: "🧒", title: "씩씩한 유치원생", atkName: "주스발사", atkIcon: "🧃", desc: "키가 쑥 자라고 주스 팩을 발사해 공격합니다!" },
@@ -480,9 +453,6 @@
       { minLv: 30, name: "멋진 어른", icon: "🦸", title: "유준이 영웅 완성체", atkName: "히어로 샷", atkIcon: "🔥", desc: "황금빛 오라를 두르고 세상을 지키는 어른으로 성장했습니다!" }
     ];
 
-    /* ========================================================
-       4. 게임 상태 객체 (클린 초기화 보장)
-       ======================================================== */
     const state = {
       playerName: "익명의 수호자",
       coins: 0,
@@ -498,11 +468,8 @@
     const player = {
       x: 200, y: 350,
       baseSpeed: 180,
-      level: 1,
-      exp: 0,
-      maxExp: 100,
-      hp: 120,
-      maxHp: 120,
+      level: 1, exp: 0, maxExp: 100,
+      hp: 120, maxHp: 120,
       dirX: 0, dirY: -1,
       isMoving: false,
       walkCycle: 0,
@@ -536,9 +503,6 @@
     window.addEventListener('orientationchange', () => setTimeout(resize, 200));
     resize();
 
-    /* ========================================================
-       5. 능력치 계산기
-       ======================================================== */
     function calcStats() {
       let stats = {
         maxHp: 120, hpRegen: 0, def: 0, dmgReduction: 0,
@@ -591,16 +555,11 @@
       return { stage: GROW_STAGES[stageIdx], idx: stageIdx };
     }
 
-    /* ========================================================
-       6. 가상 조이스틱 & 독립 멀티터치 컨트롤 (무빙샷)
-       ======================================================== */
     const joyBase = document.getElementById('joystick-base');
     const joyThumb = document.getElementById('joystick-thumb');
     let joyTouchId = null;
     let joyVector = { x: 0, y: 0 };
-    let isMouseDraggingJoy = false;
 
-    // 모바일 터치 이벤트
     joyBase.addEventListener('touchstart', (e) => {
       e.preventDefault(); Sound.init();
       if (joyTouchId !== null) return;
@@ -621,7 +580,6 @@
 
     function resetJoystick() {
       joyTouchId = null;
-      isMouseDraggingJoy = false;
       joyVector = { x: 0, y: 0 };
       joyThumb.style.transform = `translate(-50%, -50%)`;
       player.isMoving = false;
@@ -635,32 +593,6 @@
           break;
         }
       }
-    });
-
-    window.addEventListener('touchcancel', (e) => {
-      if (joyTouchId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) {
-          resetJoystick();
-          break;
-        }
-      }
-    });
-
-    // PC 마우스 드래그 조이스틱 지원
-    joyBase.addEventListener('mousedown', (e) => {
-      e.preventDefault(); Sound.init();
-      isMouseDraggingJoy = true;
-      updateJoystick(e.clientX, e.clientY);
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!isMouseDraggingJoy) return;
-      updateJoystick(e.clientX, e.clientY);
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (isMouseDraggingJoy) resetJoystick();
     });
 
     function updateJoystick(clientX, clientY) {
@@ -689,7 +621,6 @@
       player.isMoving = true;
     }
 
-    // PC 키보드 지원
     const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.key.toLowerCase()] = true;
@@ -703,7 +634,6 @@
       if (e.code === 'Space') player.isAttacking = false;
     });
 
-    // 기본 공격 무빙샷 연사 버튼
     const atkBtn = document.getElementById('btn-attack');
     atkBtn.addEventListener('touchstart', (e) => {
       e.preventDefault(); Sound.init();
@@ -735,14 +665,10 @@
     document.getElementById('btn-skill-cry').addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerCry(); }, { passive: false });
     document.getElementById('btn-skill-cry').addEventListener('click', triggerCry);
 
-    /* ========================================================
-       7. 오토 타겟팅(자동 조준) & 스킬 시전
-       ======================================================== */
     function getNearestEnemy() {
       let nearest = null;
       let minDist = Infinity;
-      for (let i = 0; i < enemies.length; i++) {
-        const en = enemies[i];
+      for (const en of enemies) {
         if (en.dead) continue;
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d < minDist) {
@@ -791,7 +717,7 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackTimer = 0.22; // 연사 간격
+      player.attackTimer = 0.24;
     }
 
     function triggerPoop() {
@@ -802,12 +728,10 @@
       const rad = 110 * stats.bombRadius;
       particles.push({ type: 'poop-blast', x: player.x, y: player.y, radius: 10, maxRadius: rad, alpha: 1 });
 
-      for (let i = 0; i < enemies.length; i++) {
-        const en = enemies[i];
-        if (en.dead) continue;
+      enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d <= rad) applyDamage(en, stats.atk * 2.8 * (1 + stats.dmgAmp), false, "💩");
-      }
+      });
 
       cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
@@ -819,16 +743,14 @@
 
       particles.push({ type: 'fart-cloud', x: player.x - player.dirX * 25, y: player.y - player.dirY * 25, radius: 15, maxRadius: 90, alpha: 0.9 });
 
-      for (let i = 0; i < enemies.length; i++) {
-        const en = enemies[i];
-        if (en.dead) continue;
+      enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d < 140) {
           en.x += player.dirX * 90;
           en.y += player.dirY * 90;
           applyDamage(en, stats.atk * 1.5 * (1 + stats.dmgAmp), false, "💨");
         }
-      }
+      });
 
       player.x += player.dirX * 35;
       player.y += player.dirY * 35;
@@ -842,21 +764,16 @@
 
       particles.push({ type: 'cry-wave', x: player.x, y: player.y, radius: 20, maxRadius: width * 0.75, alpha: 1 });
 
-      for (let i = 0; i < enemies.length; i++) {
-        const en = enemies[i];
-        if (en.dead) continue;
+      enemies.forEach(en => {
         applyDamage(en, stats.atk * 3.5 * (1 + stats.dmgAmp), true, "😭");
         en.stunTimer = 1.5;
-      }
+      });
 
       cooldowns.cry = 8.0 * (1 - stats.coolReduce);
     }
 
-    /* ========================================================
-       8. 피격 처리 & 경험치/레벨업 완전 버그 픽스
-       ======================================================== */
     function applyDamage(enemy, baseDmg, isCry, icon) {
-      if (!enemy || enemy.dead) return;
+      if (enemy.dead) return;
       const stats = calcStats();
       const isCrit = Math.random() < stats.critRate;
       let finalDmg = Math.round(isCrit ? baseDmg * stats.critDmg : baseDmg);
@@ -874,78 +791,67 @@
 
       Sound.play('hit');
 
-      // 적 사망 판정: 즉시 경험치 지급 및 레벨업 체크
-      if (enemy.hp <= 0) {
+      if (enemy.hp <= 0 && !enemy.dead) {
         enemy.dead = true;
-        state.kills = (state.kills || 0) + 1;
-        state.score = (state.score || 0) + (enemy.scoreVal || 50);
+        state.kills++;
+        state.score += enemy.scoreVal;
 
-        if (stats.lifeSteal > 0) {
-          player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
-        }
+        if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
-        const earnedCoin = Math.max(1, Math.round((enemy.coinVal || 6) * (1 + stats.coinBonus)));
-        const earnedExp = Math.max(25, Math.round((enemy.expVal || 35) * (1 + stats.expBonus)));
+        const earnedCoin = Math.max(1, Math.round(enemy.coinVal * (1 + stats.coinBonus)));
+        const earnedExp = Math.max(15, Math.round(enemy.expVal * (1 + stats.expBonus)));
 
-        // 코인 구슬 생성
         for (let i = 0; i < Math.min(earnedCoin, 4); i++) {
           worldCoins.push({
             x: enemy.x + (Math.random() - 0.5) * 25,
             y: enemy.y + (Math.random() - 0.5) * 25,
             val: Math.ceil(earnedCoin / Math.min(earnedCoin, 4)),
-            spd: 220 + Math.random() * 140
+            spd: 200 + Math.random() * 150
           });
         }
 
-        // 즉시 경험치 획득 실행
-        awardExp(earnedExp);
+        gainExp(earnedExp);
       }
     }
 
-    // 경험치 누적 및 레벨업 함수 (격리 검증형)
-    function awardExp(amount) {
-      const expAdd = Number(amount);
-      if (isNaN(expAdd) || expAdd <= 0) return;
-
-      // 수치 클린업 보장
+    function gainExp(amount) {
+      if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return;
+      
       if (typeof player.exp !== 'number' || isNaN(player.exp) || player.exp < 0) player.exp = 0;
       if (typeof player.maxExp !== 'number' || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
       if (typeof player.level !== 'number' || isNaN(player.level) || player.level < 1) player.level = 1;
 
-      player.exp += expAdd;
+      player.exp += amount;
 
-      // 화면에 +EXP 플로팅 텍스트 팝업
       damageTexts.push({
-        text: `+${expAdd} EXP ✨`,
+        text: `+${amount} EXP`,
         x: player.x + (Math.random() - 0.5) * 30,
-        y: player.y - 28,
+        y: player.y - 25,
         color: "#fbbf24",
-        scale: 1.25,
+        scale: 1.1,
         alpha: 1,
         life: 0.8
       });
 
-      // 레벨업 조건 루프 처리
-      let didLevelUp = false;
+      let leveledUp = false;
       while (player.exp >= player.maxExp) {
         player.exp -= player.maxExp;
-        player.level += 1;
+        player.level++;
         player.maxExp = Math.round(player.maxExp * 1.35);
-        didLevelUp = true;
+        leveledUp = true;
       }
 
-      if (didLevelUp) {
+      if (leveledUp) {
         Sound.play('levelup');
-        const stats = calcStats();
-        player.hp = stats.maxHp; // 레벨업 시 HP 완전 회복
+        player.hp = calcStats().maxHp;
         damageTexts.push({
           text: `🎉 LEVEL UP! Lv.${player.level}`,
           x: player.x,
-          y: player.y - 48,
+          y: player.y - 45,
           color: "#38bdf8",
-          scale: 1.7,
+          scale: 1.6,
           alpha: 1,
-          life: 1.6
+          life: 1.5
         });
         checkGrowthEvolution();
       }
@@ -971,15 +877,12 @@
       state.isPaused = false;
     });
 
-    /* ========================================================
-       9. 몬스터 스폰 시스템
-       ======================================================== */
     let spawnTimer = 0;
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, expVal: 35, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, expVal: 60, coinVal: 12, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, expVal: 110, coinVal: 24, scoreVal: 180, size: 32 },
-      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, expVal: 400, coinVal: 80, scoreVal: 600, size: 48, boss: true }
+      { name: "세균몬", emoji: "🦠", hp: 45, spd: 85, dmg: 10, exp: 25, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", hp: 80, spd: 70, dmg: 16, exp: 45, coinVal: 12, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", hp: 160, spd: 95, dmg: 24, exp: 80, coinVal: 24, scoreVal: 180, size: 32 },
+      { name: "충치대마왕(보스)", emoji: "👺", hp: 600, spd: 50, dmg: 40, exp: 300, coinVal: 80, scoreVal: 600, size: 48, boss: true }
     ];
 
     function spawnEnemies(dt) {
@@ -1018,9 +921,6 @@
       }
     }
 
-    /* ========================================================
-       10. 메인 루프 (Delta Time 완전 고정)
-       ======================================================== */
     let lastTime = 0;
 
     function gameLoop(now) {
@@ -1071,7 +971,6 @@
         player.isMoving = false;
       }
 
-      // 코인 자석 흡수
       for (let i = worldCoins.length - 1; i >= 0; i--) {
         const c = worldCoins[i];
         const cdx = player.x - c.x;
@@ -1079,7 +978,7 @@
         const cdist = Math.hypot(cdx, cdy);
 
         if (cdist < 22) {
-          state.coins = (state.coins || 0) + c.val;
+          state.coins += c.val;
           Sound.play('coin');
           saveGame();
           updateHUD();
@@ -1091,7 +990,6 @@
         }
       }
 
-      // 발사체 이동 & 몬스터 충돌
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         p.x += p.vx * dt;
@@ -1112,13 +1010,9 @@
         }
       }
 
-      // 몬스터 추적 및 사망 몬스터 정리
       for (let i = enemies.length - 1; i >= 0; i--) {
         const en = enemies[i];
-        if (en.dead) {
-          enemies.splice(i, 1);
-          continue;
-        }
+        if (en.dead) { enemies.splice(i, 1); continue; }
         if (en.stunTimer > 0) { en.stunTimer -= dt; continue; }
 
         const dx = player.x - en.x;
@@ -1177,13 +1071,9 @@
       }
     }
 
-    /* ========================================================
-       11. 캔버스 그래픽 렌더링
-       ======================================================== */
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
 
-      // 격자 도트 바닥 패턴
       ctx.fillStyle = "#fef08a";
       for (let x = 20; x < width; x += 40) {
         for (let y = 20; y < height; y += 40) {
@@ -1238,7 +1128,7 @@
           ctx.fillStyle = "rgba(0,0,0,0.4)";
           ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW, 4);
           ctx.fillStyle = "#ef4444";
-          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (Math.max(0, en.hp) / en.maxHp), 4);
+          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (en.hp / en.maxHp), 4);
         }
         if (en.boss) {
           ctx.beginPath();
@@ -1322,9 +1212,6 @@
       });
     }
 
-    /* ========================================================
-       12. UI 연동 및 실시간 HUD 업데이트
-       ======================================================== */
     function updateHUD() {
       const stats = calcStats();
       const { stage } = getCurrentStage();
@@ -1338,7 +1225,6 @@
       document.getElementById('hp-bar').style.width = `${hpPct}%`;
       document.getElementById('hp-text').innerText = `${Math.ceil(currentHp)}/${stats.maxHp}`;
 
-      // 경험치 바 연동 및 수치 렌더링 (NaN 원천 차단)
       const currentExp = (typeof player.exp === 'number' && !isNaN(player.exp)) ? player.exp : 0;
       const targetExp = (typeof player.maxExp === 'number' && !isNaN(player.maxExp) && player.maxExp > 0) ? player.maxExp : 100;
       const expPct = Math.max(0, Math.min(100, (currentExp / targetExp) * 100));
@@ -1347,8 +1233,8 @@
       if (expBar) expBar.style.width = `${expPct}%`;
       document.getElementById('exp-text').innerText = `EXP ${Math.floor(expPct)}% (${currentExp}/${targetExp})`;
 
-      document.getElementById('coin-count').innerText = state.coins || 0;
-      document.getElementById('modal-coin').innerText = state.coins || 0;
+      document.getElementById('coin-count').innerText = state.coins;
+      document.getElementById('modal-coin').innerText = state.coins;
 
       document.getElementById('atk-btn-icon').innerText = stage.atkIcon;
       document.getElementById('atk-btn-text').innerText = stage.atkName;
@@ -1491,9 +1377,6 @@
       state.isPaused = false;
     });
 
-    /* ========================================================
-       13. 랭킹 시스템
-       ======================================================== */
     function getRankings() {
       localStorage.removeItem('yujun_rankings_v4');
       const data = localStorage.getItem('yujun_clean_rankings');
@@ -1583,9 +1466,6 @@
       });
     }
 
-    /* ========================================================
-       14. 게임 오버 & 단일 링크 카카오톡 공유
-       ======================================================== */
     function gameOver() {
       state.isGameOver = true;
       state.isPaused = true;
@@ -1625,9 +1505,6 @@
       location.reload();
     });
 
-    /* ========================================================
-       15. 세이브 복구 & 시작 처리 (오염 데이터 완전 제거)
-       ======================================================== */
     function saveGame() {
       try {
         localStorage.setItem('yujun_save_v1', JSON.stringify({
@@ -1655,7 +1532,6 @@
         }
       } catch(e) {}
 
-      // 수치 오염 원천 격리
       if (typeof player.level !== 'number' || isNaN(player.level) || player.level < 1) player.level = 1;
       if (typeof player.exp !== 'number' || isNaN(player.exp) || player.exp < 0) player.exp = 0;
       if (typeof player.maxExp !== 'number' || isNaN(player.maxExp) || player.maxExp <= 0) player.maxExp = 100;
@@ -1681,4 +1557,3 @@
   </script>
 </body>
 </html>
-
