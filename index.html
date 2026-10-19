@@ -384,8 +384,84 @@
   </div>
 
   <script>
-    // 🔗 방금 발급하신 구글 시트 웹 앱 URL 적용 완료
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxeDgGrijSFYURmhC5L4un8ZyxNRhXlLiKAAQZKbCw_LzB3JZqYtxUGq6Pth9KQEewP/exec";
+    // 🌐 게임 전용 무료 클라우드 랭킹 API (LootLocker / 전 세계 공용 실시간 랭킹 서버)
+    const LL_API_KEY = "dev_27b8782d8c36477e9b0479b69b52a58b";
+    const LL_BOARD_ID = "yujun_rankings";
+    let llSessionId = null;
+
+    async function initLootLocker() {
+      try {
+        const res = await fetch("https://api.lootlocker.io/game/v2/guest-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ game_key: LL_API_KEY, development_mode: true })
+        });
+        const data = await res.json();
+        if (data && data.session_id) {
+          llSessionId = data.session_id;
+        }
+      } catch(e) {}
+    }
+    initLootLocker();
+
+    async function submitScoreOnline(finalScore, finalAge, finalStage) {
+      if (!llSessionId) await initLootLocker();
+      if (!llSessionId) return;
+      try {
+        await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/member`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-session-id": llSessionId
+          },
+          body: JSON.stringify({
+            score: finalScore,
+            metadata: `${state.playerName}|${finalStage} (${finalAge}세)|${new Date().toLocaleString()}`
+          })
+        });
+      } catch(e) {}
+    }
+
+    async function fetchOnlineRankings() {
+      try {
+        if (!llSessionId) await initLootLocker();
+        if (!llSessionId) return [];
+
+        const res = await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/list?count=10`, {
+          method: "GET",
+          headers: { "x-session-id": llSessionId }
+        });
+        const data = await res.json();
+        if (data && data.items) {
+          return data.items.map(item => {
+            let pName = "익명";
+            let pStage = "신생아";
+            let pDate = new Date().toLocaleString();
+            
+            if (item.metadata) {
+              const parts = item.metadata.split("|");
+              if (parts.length >= 3) {
+                pName = parts[0];
+                pStage = parts[1];
+                pDate = parts[2];
+              } else {
+                pName = item.player.name || "익명";
+              }
+            } else {
+              pName = item.player.name || "익명";
+            }
+
+            return {
+              name: pName,
+              score: item.score || 0,
+              stage: pStage,
+              createdAt: pDate
+            };
+          });
+        }
+      } catch(e) {}
+      return [];
+    }
 
     const Sound = {
       ctx: null,
@@ -619,7 +695,7 @@
         choices: [
           { name: "치킨집 창업", cost: 0, desc: "무료! 처치 시 코인 획득량 3배 폭증", perk: "치킨집", pwr: 1.5 },
           { name: "세계 일주 은퇴 이민", cost: 10000, desc: "10000🪙 모든 스킬 쿨타임 50% 단축", perk: "세계일주", pwr: 3.0 },
-          { name: "실버 세대 대부호", cost: 25000, desc: "25000🪙 궁극의 크리티컬 영웅 각성 (크리티컬 피해 2배)", perk: "실버대부호", pwr: 5.0 }
+          { name: "실버 세대 대부호", key: "실버대부호", cost: 25000, desc: "25000🪙 궁극의 크리티컬 영웅 각성 (크리티컬 피해 2배)", perk: "실버대부호", pwr: 5.0 }
         ]
       }
     };
@@ -2348,50 +2424,67 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       서버 실시간 랭킹 연동 시스템 (구글 시트 전용)
+       서버 실시간 랭킹 연동 시스템 (LootLocker 클라우드 서버 전용)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
     async function submitScoreOnline(finalScore, finalAge, finalStage) {
-      if (!GOOGLE_SHEET_API_URL || GOOGLE_SHEET_API_URL.includes("여기에_웹앱_URL")) return;
       try {
-        await fetch(GOOGLE_SHEET_API_URL, {
+        if (!llSessionId) await initLootLocker();
+        if (!llSessionId) return;
+
+        await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/member`, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-session-id": llSessionId
+          },
           body: JSON.stringify({
-            name: state.playerName,
             score: finalScore,
-            stage: `${finalStage} (${finalAge}세)`
+            metadata: `${state.playerName}|${finalStage} (${finalAge}세)|${new Date().toLocaleString()}`
           })
         });
-      } catch (err) {}
+      } catch(e) {}
     }
 
     async function fetchOnlineRankings() {
-      if (!GOOGLE_SHEET_API_URL || GOOGLE_SHEET_API_URL.includes("여기에_웹앱_URL")) return [];
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-        
-        const res = await fetch(GOOGLE_SHEET_API_URL, { 
-          method: "GET",
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
+        if (!llSessionId) await initLootLocker();
+        if (!llSessionId) return [];
 
-        if (res.ok) {
-          const list = await res.json();
-          if (Array.isArray(list) && list.length > 0) {
-            return list.map(item => ({
-              name: item.name || "익명",
-              score: Number(item.score) || 0,
-              stage: item.stage || "신생아",
-              createdAt: item.date || new Date().toLocaleString()
-            })).sort((a, b) => b.score - a.score);
-          }
+        const res = await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/list?count=10`, {
+          method: "GET",
+          headers: { "x-session-id": llSessionId }
+        });
+        const data = await res.json();
+        if (data && data.items) {
+          return data.items.map(item => {
+            let pName = "익명";
+            let pStage = "신생아";
+            let pDate = new Date().toLocaleString();
+            
+            if (item.metadata) {
+              const parts = item.metadata.split("|");
+              if (parts.length >= 3) {
+                pName = parts[0];
+                pStage = parts[1];
+                pDate = parts[2];
+              } else {
+                pName = item.player.name || "익명";
+              }
+            } else {
+              pName = item.player.name || "익명";
+            }
+
+            return {
+              name: pName,
+              score: item.score || 0,
+              stage: pStage,
+              createdAt: pDate
+            };
+          });
         }
-      } catch (err) {}
+      } catch(e) {}
       return [];
     }
 
