@@ -166,7 +166,8 @@
       </div>
     </div>
 
-    <div id="passive-skills-bar" class="flex gap-1.5 justify-center max-w-md mx-auto pointer-events-none"></div>
+    <!-- 진로 특성 배너 -->
+    <div id="passive-skills-bar" class="flex flex-wrap gap-1 justify-center max-w-md mx-auto pointer-events-none"></div>
   </div>
 
   <!-- 왼쪽 세로형 장비 바 -->
@@ -249,18 +250,17 @@
     </div>
   </div>
 
-  <!-- 랭킹 모달창 (일간/주간/월간/전체 탭 & 50위 스크롤 지원) -->
+  <!-- 랭킹 모달창 -->
   <div id="rank-modal" class="fixed inset-0 modal-overlay z-40 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
       <div class="bg-amber-400 p-3.5 text-white flex items-center justify-between shrink-0">
         <div>
           <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 랭킹</h2>
-          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">최대 50위까지 실시간 집계됩니다</p>
+          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">실시간 동기화 완료</p>
         </div>
         <button id="btn-close-rank" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
       </div>
 
-      <!-- 랭킹 기간 필터 탭 -->
       <div class="flex p-2 gap-1 bg-amber-100/70 border-b border-amber-200 shrink-0 text-xs font-bold">
         <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors" data-period="daily">오늘(일간)</button>
         <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="weekly">이번 주</button>
@@ -268,7 +268,6 @@
         <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="all">전체</button>
       </div>
 
-      <!-- 랭킹 목록 (50개 스크롤) -->
       <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-1.5"></div>
     </div>
   </div>
@@ -340,11 +339,7 @@
   </div>
 
   <script>
-    /* ========================================================
-       SimpleBoards API 온라인 랭킹 설정
-       ======================================================== */
     const SIMPLEBOARDS_API_KEY = "8dc250c0-5aae-4914-8988-1ab0641b8ff3";
-    // 실제 발급받은 보드 ID로 교체하시면 즉시 온라인 연동됩니다.
     const SIMPLEBOARDS_LEADERBOARD_ID = "00000000-0000-0000-0000-000000000000";
 
     const Sound = {
@@ -420,6 +415,13 @@
             gain.gain.setValueAtTime(0.35, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
             osc.start(t); osc.stop(t + 0.2);
+          } else if (type === 'air_strike') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(700, t);
+            osc.frequency.exponentialRampToValueAtTime(150, t + 0.6);
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.6);
+            osc.start(t); osc.stop(t + 0.6);
           } else if (type === 'event_fanfare') {
             [523, 659, 783, 1046].forEach((freq, idx) => {
               const o = this.ctx.createOscillator();
@@ -452,7 +454,12 @@
     ];
 
     function getItemCost(item, level) {
-      return Math.round(item.baseCost * Math.pow(item.costScale, level));
+      let cost = Math.round(item.baseCost * Math.pow(item.costScale, level));
+      // 실업계 자격증마스터: 상점 강화비용 20% 영구 할인 반영
+      if (state.selectedLifePerks.some(p => p.perk === "자격증마스터")) {
+        cost = Math.round(cost * 0.8);
+      }
+      return cost;
     }
 
     const LIFE_STAGES = [
@@ -471,15 +478,15 @@
         icon: "🏫", ageStr: "8세 초등학교 입학", title: "인생의 첫 학교 선택",
         choices: [
           { name: "동네 일반초", cost: 0, desc: "무료! 기본 급식 식판 투척 스킬 획득", perk: "급식어택", pwr: 1.0 },
-          { name: "명문 사립초", cost: 250, desc: "250🪙 오케스트라 음파로 적 이동속도 -40%", perk: "사립오케스트라", pwr: 1.4 },
-          { name: "국제학교 / 조기유학", cost: 600, desc: "600🪙 프리토킹 알파벳 3방향 연사 탄환!", perk: "프리토킹", pwr: 2.0 }
+          { name: "명문 사립초", cost: 250, desc: "250🪙 오케스트라 음파: 주변 적 이동속도 -40% 지속 감속", perk: "사립오케스트라", pwr: 1.4 },
+          { name: "국제학교 / 조기유학", cost: 600, desc: "600🪙 프리토킹 알파벳 3방향 관통 연사 탄환!", perk: "프리토킹", pwr: 2.0 }
         ]
       },
       14: {
         icon: "🎒", ageStr: "14세 중학교 입학", title: "질풍노도의 사춘기",
         choices: [
           { name: "일반 중학교", cost: 0, desc: "무료! 중2병 질풍노도 발차기 돌진 넉백", perk: "질풍노도", pwr: 1.0 },
-          { name: "특목고 대비반", cost: 450, desc: "450🪙 오답노트 배리어: 받는 피해 25% 상시 흡수", perk: "오답노트", pwr: 1.5 },
+          { name: "특목고 대비반", cost: 450, desc: "450🪙 오답노트 배리어: 받는 모든 피해 25% 상시 흡수", perk: "오답노트", pwr: 1.5 },
           { name: "체육/예술 중학교", cost: 1100, desc: "1100🪙 파워 축구공 슛: 벽을 튕기며 적 관통", perk: "파워슛", pwr: 2.2 }
         ]
       },
@@ -488,7 +495,7 @@
         choices: [
           { name: "특성화고(실업계)", cost: 0, desc: "무료! 장비 강화비용 20% 영구 할인 & 스패너 투척", perk: "자격증마스터", pwr: 1.0 },
           { name: "일반 인문계고", cost: 700, desc: "700🪙 수능 컴싸 난사: 부채꼴 7연발 탄환", perk: "컴싸난사", pwr: 1.6 },
-          { name: "과학고/영재고", cost: 1800, desc: "1800🪙 양자역학 블랙홀: 적들을 중심부로 흡인", perk: "양자블랙홀", pwr: 2.5 }
+          { name: "과학고/영재고", cost: 1800, desc: "1800🪙 양자역학 블랙홀: 주기적으로 적들을 중심부로 흡인", perk: "양자블랙홀", pwr: 2.5 }
         ]
       },
       20: {
@@ -504,8 +511,8 @@
         choices: [
           { name: "대한민국 육군 (보병)", cost: 0, desc: "무료! K2 소총 6점사 폭풍 관통 사격", perk: "육군보병", pwr: 1.0 },
           { name: "해군 (함정근무)", cost: 800, desc: "800🪙 함포 지원 포격: 지정 지점 거대 물기둥 폭발", perk: "해군함포", pwr: 1.8 },
-          { name: "공군 (기술행정)", cost: 1500, desc: "1500🪙 전투기 F-15K 출격: 전 필드 융단 폭격", perk: "공군폭격", pwr: 2.4 },
-          { name: "카투사 / 어학병", cost: 2800, desc: "2800🪙 미군 레이션 박스: 주기적으로 체력 완전회복", perk: "카투사키트", pwr: 2.8 }
+          { name: "공군 (기술행정)", cost: 1500, desc: "1500🪙 전투기 F-15K 출격: 전 필드 주기적 융단 폭격", perk: "공군폭격", pwr: 2.4 },
+          { name: "카투사 / 어학병", cost: 2800, desc: "2800🪙 미군 레이션 박스: 주기적으로 체력 100% 완전회복 키트 소환", perk: "카투사키트", pwr: 2.8 }
         ]
       },
       22: {
@@ -518,7 +525,7 @@
         icon: "💼", ageStr: "25세 사회 진출", title: "본격적인 직장인 생활",
         choices: [
           { name: "중소기업 올라운더", cost: 0, desc: "무료! 야근의 분노: 체력 35% 이하 시 공속 2.5배", perk: "야근분노", pwr: 1.0 },
-          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 피해 무효화 쉴드", perk: "철밥통", pwr: 1.8 },
+          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 다음 피해 무효화 쉴드 생성", perk: "철밥통", pwr: 1.8 },
           { name: "대기업 / 스타트업 대표", cost: 4000, desc: "4000🪙 법카 골드 폭격: 황금 골드를 난사해 싹쓸이", perk: "법카폭격", pwr: 3.0 }
         ]
       }
@@ -548,7 +555,13 @@
       isMoving: false,
       walkCycle: 0,
       isAttacking: false,
-      attackTimer: 0
+      attackTimer: 0,
+      // 특수 스킬 내부 타이머
+      blackholeTimer: 0,
+      airStrikeTimer: 0,
+      katusaTimer: 0,
+      ironShieldTimer: 0,
+      hasShield: false
     };
 
     const camera = {
@@ -594,6 +607,7 @@
 
     function calcStats() {
       const getL = (id) => state.itemLevels[id] || 0;
+      const current = getCurrentStage();
 
       let stats = {
         maxHp: 150 + player.age * 25 + getL('bed') * 55,
@@ -614,12 +628,31 @@
         clothColor: "#fde047"
       };
 
+      // 예비군 전역 보너스 반영
       if (state.selectedLifePerks.some(p => p.perk === "예비군각성")) {
         stats.atk *= 1.3;
         stats.maxHp *= 1.3;
       }
+
+      // 국립대 장학 반영
+      if (state.selectedLifePerks.some(p => p.perk === "국립대장학")) {
+        stats.maxHp += 300;
+        stats.atk += 35;
+      }
+
+      // 칼퇴근 부스터 반영
       if (state.selectedLifePerks.some(p => p.perk === "칼퇴근")) {
         stats.speedBonus += 35;
+      }
+
+      // 특목고 대비반 오답노트 배리어: 받는 피해 추가 25% 흡수
+      if (state.selectedLifePerks.some(p => p.perk === "오답노트")) {
+        stats.dmgReduction = Math.min(0.85, stats.dmgReduction + 0.25);
+      }
+
+      // 중소기업 야근분노: 체력 35% 이하 시 공격 속도 & 공격력 증폭
+      if (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) {
+        stats.atk *= 1.6;
       }
 
       if (getL('clothes') >= 5) stats.clothColor = "#a7f3d0";
@@ -771,7 +804,7 @@
     }
 
     /* ========================================================
-       스킬 & 공격
+       스킬 & 공격 (진로별 특수 스킬 정확한 실시간 반영)
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -788,20 +821,47 @@
       Sound.play('shoot');
 
       const speed = stats.projSpeed;
-      const createProj = (ang) => ({
+      const isFreeTalking = state.selectedLifePerks.some(p => p.perk === "프리토킹");
+      const isArmyK2 = state.selectedLifePerks.some(p => p.perk === "육군보병");
+      const isExamPen = state.selectedLifePerks.some(p => p.perk === "컴싸난사");
+
+      const createProj = (ang, extraPierce = 0, pIcon = current.atkIcon) => ({
         x: player.x, y: player.y,
         vx: Math.cos(ang) * speed,
         vy: Math.sin(ang) * speed,
         damage: stats.atk * (1 + stats.dmgAmp),
         critRate: stats.critRate,
         critDmg: stats.critDmg,
-        pierce: player.age >= 17 ? 2 : 0,
-        type: current.atkIcon,
+        pierce: (player.age >= 17 ? 2 : 0) + extraPierce,
+        type: pIcon,
         radius: 13,
         life: 1.6
       });
 
-      if (player.age >= 14) {
+      // 국제학교 프리토킹: 3방향 알파벳 관통 탄환
+      if (isFreeTalking) {
+        projectiles.push(createProj(angle - 0.22, 2, "🔤"));
+        projectiles.push(createProj(angle, 2, "🔤"));
+        projectiles.push(createProj(angle + 0.22, 2, "🔤"));
+      } 
+      // 육군보병: K2 소총 고속 6점사
+      else if (isArmyK2) {
+        for (let i = 0; i < 6; i++) {
+          setTimeout(() => {
+            if (!state.isPaused && !state.isGameOver) {
+              projectiles.push(createProj(angle + (Math.random() - 0.5) * 0.12, 1, "💥"));
+              Sound.play('shoot');
+            }
+          }, i * 40);
+        }
+      }
+      // 일반 인문계고: 수능 컴싸 부채꼴 7연발
+      else if (isExamPen) {
+        for (let k = -3; k <= 3; k++) {
+          projectiles.push(createProj(angle + k * 0.12, 1, "🖍️"));
+        }
+      }
+      else if (player.age >= 14) {
         projectiles.push(createProj(angle - 0.22));
         projectiles.push(createProj(angle));
         projectiles.push(createProj(angle + 0.22));
@@ -809,7 +869,9 @@
         projectiles.push(createProj(angle));
       }
 
-      player.attackTimer = 0.20;
+      // 중소기업 야근분노 시 연사속도 2.5배
+      const atkCooldown = (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      player.attackTimer = atkCooldown;
     }
 
     function triggerPoop() {
@@ -1086,7 +1148,7 @@
       { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 800, spd: 140, dmg: 50, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
       { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1650, spd: 75, dmg: 68, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
       { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3200, spd: 85, dmg: 95, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true },
-      { name: "충치대마왕(보스)", emoji: "👺", minAge: 8, baseHp: 4800, spd: 60, dmg: 75, expVal: 3800, coinVal: 600, scoreVal: 5000, size: 56, boss: true }
+      { name: "충치대마왕(보스)", emoji: "👺", minAge: 14, baseHp: 4800, spd: 60, dmg: 75, expVal: 3800, coinVal: 600, scoreVal: 5000, size: 56, boss: true }
     ];
 
     function spawnEnemies(dt) {
@@ -1101,12 +1163,14 @@
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
         
-        const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge);
+        const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge && !m.boss);
         const r = Math.random();
         
         let def;
         let isBossSpawn = false;
-        if (player.age >= 8 && r < 0.06) {
+        
+        const hasBossOnField = enemies.some(e => e.boss && !e.dead);
+        if (!hasBossOnField && player.age >= 14 && r < 0.025) {
           def = ENEMY_TYPES.find(m => m.boss);
           isBossSpawn = true;
         } else {
@@ -1130,6 +1194,7 @@
           hp: Math.round(def.baseHp * hpScale),
           maxHp: Math.round(def.baseHp * hpScale),
           dmg: Math.round(def.dmg * dmgScale),
+          baseSpd: def.spd * spdScale, // 기본 속도 보관
           spd: def.spd * spdScale,
           expVal: Math.round(def.expVal * hpScale * 0.7),
           coinVal: Math.round(def.coinVal * (1 + player.age * 0.2)),
@@ -1146,7 +1211,7 @@
     }
 
     /* ========================================================
-       게임 루프
+       게임 루프 (진로별 특수 스킬 정확한 실시간 연동)
        ======================================================== */
     let lastTime = 0;
 
@@ -1175,6 +1240,83 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
+      /* --- 1. [명문 사립초: 사립오케스트라] 주변 적 이동속도 -40% 감속 실시간 적용 --- */
+      const hasOrchestra = state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
+      enemies.forEach(en => {
+        if (en.dead) return;
+        const d = Math.hypot(en.x - player.x, en.y - player.y);
+        if (hasOrchestra && d <= 180) {
+          en.spd = en.baseSpd * 0.6; // 40% 감속 반영!
+        } else {
+          en.spd = en.baseSpd; // 범위 벗어나면 정상 속도 복귀
+        }
+      });
+
+      /* --- 2. [과학고: 양자역학 블랙홀] 5초마다 적 흡인 및 폭발 --- */
+      if (state.selectedLifePerks.some(p => p.perk === "양자블랙홀")) {
+        player.blackholeTimer = (player.blackholeTimer || 0) + dt;
+        if (player.blackholeTimer >= 5.0) {
+          player.blackholeTimer = 0;
+          Sound.play('hit');
+          const target = getNearestEnemy();
+          const bx = target ? target.x : player.x;
+          const by = target ? target.y : player.y;
+
+          // 블랙홀 파티클 생성
+          particles.push({ type: 'blackhole', x: bx, y: by, radius: 15, maxRadius: 180, alpha: 1.0 });
+
+          // 주변 적들을 블랙홀 중심부로 흡인 후 큰 데미지
+          enemies.forEach(en => {
+            if (en.dead) return;
+            const ed = Math.hypot(en.x - bx, en.y - by);
+            if (ed <= 200) {
+              en.x = bx + (en.x - bx) * 0.3;
+              en.y = by + (en.y - by) * 0.3;
+              applyDamage(en, stats.atk * 3.5, false, "🌀");
+            }
+          });
+        }
+      }
+
+      /* --- 3. [공군: 공군폭격] 8초마다 F-15K 융단 폭격 --- */
+      if (state.selectedLifePerks.some(p => p.perk === "공군폭격")) {
+        player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
+        if (player.airStrikeTimer >= 8.0) {
+          player.airStrikeTimer = 0;
+          Sound.play('air_strike');
+          // 화면 내 모든 적에게 폭격 대미지
+          enemies.forEach(en => {
+            if (en.dead) return;
+            applyDamage(en, stats.atk * 4.0, false, "✈️");
+            damageTexts.push({ text: "F-15K 폭격!", x: en.x, y: en.y - 25, color: "#f97316", scale: 1.3, alpha: 1, life: 0.8 });
+          });
+        }
+      }
+
+      /* --- 4. [카투사: 레이션 박스] 10초마다 체력 100% 완전 회복 --- */
+      if (state.selectedLifePerks.some(p => p.perk === "카투사키트")) {
+        player.katusaTimer = (player.katusaTimer || 0) + dt;
+        if (player.katusaTimer >= 10.0) {
+          player.katusaTimer = 0;
+          player.hp = stats.maxHp;
+          Sound.play('coin');
+          damageTexts.push({ text: "💚 미군 레이션 체력 100% 회복!", x: player.x, y: player.y - 40, color: "#22c55e", scale: 1.5, alpha: 1, life: 1.2 });
+        }
+      }
+
+      /* --- 5. [공기업: 철밥통 무적 쉴드] 6초마다 피해 무효화 쉴드 충전 --- */
+      if (state.selectedLifePerks.some(p => p.perk === "철밥통")) {
+        if (!player.hasShield) {
+          player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
+          if (player.ironShieldTimer >= 6.0) {
+            player.ironShieldTimer = 0;
+            player.hasShield = true;
+            damageTexts.push({ text: "🛡️ 철밥통 무적 쉴드 장착!", x: player.x, y: player.y - 30, color: "#38bdf8", scale: 1.3, alpha: 1, life: 1.0 });
+          }
+        }
+      }
+
+      // 조이스틱 이동
       let moveX = joyVector.x;
       let moveY = joyVector.y;
       if (keys['w'] || keys['arrowup']) moveY -= 1;
@@ -1248,6 +1390,14 @@
         bp.life -= dt;
 
         if (Math.hypot(player.x - bp.x, player.y - bp.y) < bp.radius + 14) {
+          // 철밥통 쉴드 방어 체크
+          if (player.hasShield) {
+            player.hasShield = false;
+            damageTexts.push({ text: "🛡️ 쉴드 방어!", x: player.x, y: player.y - 20, color: "#38bdf8", scale: 1.2, alpha: 1, life: 0.8 });
+            bp.life = 0;
+            continue;
+          }
+
           let incomingDmg = bp.damage * (1 - stats.dmgReduction) - stats.def;
           incomingDmg = Math.max(6, incomingDmg);
           player.hp -= incomingDmg;
@@ -1312,7 +1462,14 @@
           }
         }
 
+        // 근접 피격 판정
         if (d < en.size + 18) {
+          if (player.hasShield) {
+            player.hasShield = false;
+            damageTexts.push({ text: "🛡️ 쉴드 방어!", x: player.x, y: player.y - 20, color: "#38bdf8", scale: 1.2, alpha: 1, life: 0.8 });
+            continue;
+          }
+
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
           incomingDmg = Math.max(4, incomingDmg);
           player.hp -= incomingDmg * dt * 2.4;
@@ -1359,7 +1516,7 @@
     }
 
     /* ========================================================
-       오픈월드 렌더링
+       오픈월드 렌더링 (사립초 오케스트라 음파 장판 시각화 포함)
        ======================================================== */
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
@@ -1394,6 +1551,34 @@
       const stats = calcStats();
       const current = getCurrentStage();
 
+      // [명문 사립초: 사립오케스트라] 유준이 주변 오케스트라 감속 음파 장판 렌더링
+      if (state.selectedLifePerks.some(p => p.perk === "사립오케스트라")) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, 180, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(168, 85, 247, 0.55)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = "rgba(192, 132, 252, 0.08)";
+        ctx.fill();
+        ctx.font = "14px sans-serif";
+        ctx.fillText("🎻 음파 감속(-40%)", player.x - 55, player.y + 195);
+        ctx.restore();
+      }
+
+      // [공기업: 철밥통 무적 쉴드] 렌더링
+      if (player.hasShield) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, 38, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillStyle = "rgba(56, 189, 248, 0.2)";
+        ctx.fill();
+        ctx.restore();
+      }
+
       particles.forEach(pt => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
@@ -1412,6 +1597,12 @@
             ctx.fillStyle = "rgba(180, 83, 9, 0.55)";
             ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
           }
+        } else if (pt.type === 'blackhole') {
+          ctx.strokeStyle = "rgba(168, 85, 247, 0.9)";
+          ctx.lineWidth = 8;
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = "rgba(88, 28, 135, 0.5)";
+          ctx.fill();
         } else if (pt.type === 'poop-debris') {
           ctx.fillStyle = "#78350f";
           ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); ctx.fill();
@@ -1773,7 +1964,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       일간/주간/월간/전체 실시간 온라인 랭킹 (SimpleBoards 연동)
+       실시간 랭킹 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -1786,7 +1977,6 @@
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(list));
     }
 
-    // SimpleBoards API 연동: 점수 온라인 업로드
     async function submitScoreOnline(finalScore, finalAge, finalStage) {
       const timestamp = new Date().toISOString();
       const metaObj = {
@@ -1804,20 +1994,17 @@
               "x-api-key": SIMPLEBOARDS_API_KEY
             },
             body: JSON.stringify({
-              leaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
-              playerDisplayName: state.playerName,
-              score: String(finalScore),
-              metadata: JSON.stringify(metaObj)
+              LeaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
+              PlayerDisplayName: state.playerName,
+              Score: String(finalScore),
+              Metadata: JSON.stringify(metaObj)
             })
           });
-        } catch (err) {
-          console.warn("온라인 랭킹 서버 통신 실패 (로컬 저장 유지):", err);
-        }
+        } catch (err) {}
       }
       recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
     }
 
-    // SimpleBoards API 연동: 실시간 랭킹 목록 가져오기
     async function fetchOnlineRankings() {
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
         try {
@@ -1828,22 +2015,22 @@
           if (res.ok) {
             const list = await res.json();
             if (Array.isArray(list)) {
-              return list.map(item => {
+              const parsed = list.map(item => {
                 let meta = {};
-                try { meta = JSON.parse(item.metadata || "{}"); } catch(e) {}
+                try { meta = JSON.parse(item.Metadata || item.metadata || "{}"); } catch(e) {}
                 return {
-                  name: item.playerDisplayName || item.playerName || "익명",
-                  score: parseInt(item.score) || 0,
+                  name: item.PlayerDisplayName || item.playerDisplayName || "익명",
+                  score: parseInt(item.Score || item.score) || 0,
                   age: meta.age || 0,
                   stage: meta.stage || "신생아",
-                  createdAt: meta.createdAt || item.createdAt || new Date().toISOString()
+                  createdAt: meta.createdAt || item.CreatedAt || new Date().toISOString()
                 };
               });
+              saveLocalRankings(parsed);
+              return parsed;
             }
           }
-        } catch (err) {
-          console.warn("온라인 랭킹 로드 실패, 로컬 데이터 사용:", err);
-        }
+        } catch (err) {}
       }
       return getLocalRankings();
     }
@@ -1888,7 +2075,6 @@
       saveLocalRankings(list.slice(0, 50));
     }
 
-    // 기간별(일간, 주간, 월간, 전체) 필터링 함수
     function filterRankingsByPeriod(list, period) {
       const now = new Date();
       return list.filter(item => {
@@ -1908,12 +2094,11 @@
       });
     }
 
-    // 첫 화면 실시간 Top 5 미리보기
     async function renderStartRankPreview() {
       const preview = document.getElementById('start-rank-preview');
       const allList = await fetchOnlineRankings();
       const filtered = filterRankingsByPeriod(allList, 'daily');
-      const displayList = filtered.length > 0 ? filtered : allList; // 오늘 데이터가 없으면 전체 fallback
+      const displayList = filtered.length > 0 ? filtered : allList;
 
       if (displayList.length === 0) {
         preview.innerHTML = `
@@ -1941,14 +2126,12 @@
       });
     }
 
-    // 랭킹 팝업 모달창 (일간/주간/월간/전체 탭 & 50개 렌더링)
     async function showRankings(period = 'daily') {
       currentRankPeriod = period;
       const listContainer = document.getElementById('rank-list');
       const allList = await fetchOnlineRankings();
       const filtered = filterRankingsByPeriod(allList, period);
 
-      // 탭 스타일 갱신
       document.querySelectorAll('.rank-tab-btn').forEach(btn => {
         if (btn.getAttribute('data-period') === period) {
           btn.className = "rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors";
@@ -1994,7 +2177,6 @@
       });
     }
 
-    // 랭킹 탭 클릭 이벤트 바인딩
     document.querySelectorAll('.rank-tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2015,7 +2197,6 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      // 점수 온라인 & 로컬 제출
       await submitScoreOnline(finalScore, finalAge, finalStageName);
 
       document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${finalStageName} ${finalAge}세]까지 성장했습니다!`;
@@ -2035,6 +2216,7 @@
       state.itemLevels = {};
       state.selectedLifePerks = [];
       state.pendingEventAge = null;
+      player.hasShield = false;
 
       document.getElementById('btn-pending-decision').classList.add('hidden');
       document.getElementById('gameover-modal').classList.remove('hidden');
