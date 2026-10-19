@@ -113,16 +113,16 @@
 
   <canvas id="game-canvas"></canvas>
 
-  <!-- 진로 보류 시 일시정지 경고 배너 -->
-  <div id="postpone-warning-banner" class="hud-layer top-16 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
-    <div class="bg-amber-600/95 border-2 border-amber-200 text-white font-black text-xs px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 animate-pulse">
+  <!-- 진로 보류 시 일시정지 경고 배너 (위치를 낮추고 투명도를 주어 시야 확보) -->
+  <div id="postpone-warning-banner" class="hud-layer top-24 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
+    <div class="bg-amber-600/85 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[11px] px-3.5 py-1 rounded-full shadow-md flex items-center gap-1.5">
       <span>⏳</span>
       <span>진로 결정 보류 중: 레벨업 및 경험치 획득이 일시 중지되었습니다!</span>
     </div>
   </div>
 
   <!-- 보스 경고 배너 -->
-  <div id="boss-warning-banner" class="hud-layer top-24 left-0 right-0 z-30 hidden flex justify-center">
+  <div id="boss-warning-banner" class="hud-layer top-32 left-0 right-0 z-30 hidden flex justify-center">
     <div class="boss-alert bg-rose-600/95 border-2 border-amber-300 text-white font-black text-xs md:text-sm px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-2">
       <span class="text-base">⚠️</span>
       <span id="boss-warning-text">WARNING! 보스 출현!</span>
@@ -351,7 +351,6 @@
         <div id="final-stats" class="text-[10px] text-slate-500 mt-0.5"></div>
       </div>
 
-      <!-- 게임 오버 창 내 실시간 랭킹 Top 5 프리뷰 -->
       <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
           <span class="flex items-center gap-1">🏆 실시간 랭킹 Top 5</span>
@@ -2264,7 +2263,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (서버 동기화 우선 반영)
+       실시간 랭킹 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
