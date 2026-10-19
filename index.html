@@ -117,28 +117,35 @@
   <div id="boss-warning-banner" class="hud-layer top-16 left-0 right-0 z-30 hidden flex justify-center">
     <div class="boss-alert bg-rose-600/95 border-2 border-amber-300 text-white font-black text-xs md:text-sm px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-2">
       <span class="text-base">⚠️</span>
-      <span id="boss-warning-text">WARNING! 충치대마왕 출현!</span>
+      <span id="boss-warning-text">WARNING! 보스 출현!</span>
       <span class="text-base">⚠️</span>
     </div>
   </div>
 
-  <!-- 상단 HUD 영역 -->
-  <div class="hud-layer top-0 left-0 right-0 p-3 flex flex-col gap-2 z-20">
+  <!-- 상단 HUD 영역 (텍스트 짤림 방지 레이아웃) -->
+  <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-20">
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
-      <div class="interactive bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-        <div id="hud-avatar" class="text-2xl filter drop-shadow">👶</div>
+      
+      <!-- 유준이 프로필 (2줄 구조로 짤림 원천 차단) -->
+      <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
+        <div id="hud-avatar" class="text-3xl filter drop-shadow shrink-0">👶</div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5 leading-tight mb-1">
-            <span id="player-name-display" class="font-extrabold text-slate-800 text-sm whitespace-nowrap">유준이</span>
-            <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
+          <!-- 1줄: 닉네임 -->
+          <div class="font-black text-slate-800 text-xs sm:text-sm truncate leading-tight" id="player-name-display">유준이</div>
+          
+          <!-- 2줄: 단계 뱃지 + 나이 (한 줄로 깔끔 정렬) -->
+          <div class="flex items-center gap-1.5 mt-0.5 mb-1 leading-none">
+            <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
           </div>
-          
+
+          <!-- 체력 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
             <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
             <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
           </div>
 
+          <!-- 경험치 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
             <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
             <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
@@ -146,32 +153,32 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-end gap-1.5 shrink-0 z-30">
-        <div class="flex items-center gap-1.5">
-          <div class="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
-            <span class="text-base">🪙</span>
-            <span id="coin-count" class="font-black text-slate-800 text-sm tracking-tight">0</span>
+      <!-- 우측 상단 코인, 랭킹, 상점 및 진로결정 버튼 -->
+      <div class="flex flex-col items-end gap-1 shrink-0 z-30">
+        <div class="flex items-center gap-1">
+          <div class="bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
+            <span class="text-sm">🪙</span>
+            <span id="coin-count" class="font-black text-slate-800 text-xs tracking-tight">0</span>
           </div>
-          <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
+          <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
             🏆
           </button>
-          <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-2 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer">
+          <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-2.5 py-1.5 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer">
             🛒 상점
           </button>
         </div>
 
-        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[11px] px-3 py-1.5 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white">
-          🔔 진로 결정하기
+        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[10px] px-2.5 py-1 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white mt-0.5">
+          <span id="pending-count-badge">🔔 미결정 진로</span>
         </button>
       </div>
     </div>
 
-    <!-- 진로 특성 배너 -->
     <div id="passive-skills-bar" class="flex flex-wrap gap-1 justify-center max-w-md mx-auto pointer-events-none"></div>
   </div>
 
   <!-- 왼쪽 세로형 장비 바 -->
-  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 86px; left: 8px;">
+  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 96px; left: 8px;">
     <div class="flex items-start">
       <div class="interactive rounded-2xl p-2 shadow-xl border border-slate-600/50 flex flex-col gap-1 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(30, 41, 59, 0.78); backdrop-filter: blur(8px);">
         <div class="flex items-center justify-between pb-1 border-b border-slate-600/60 text-white text-[10px] font-bold">
@@ -311,6 +318,17 @@
       <button id="btn-postpone-decision" class="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-amber-300 font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1">
         <span>💰</span> 결정을 미루고 돈 더 모으기 (파밍 계속)
       </button>
+    </div>
+  </div>
+
+  <!-- 보류된 진로 목록 선택 메뉴 -->
+  <div id="pending-picker-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center flex flex-col max-h-[80vh] overflow-hidden">
+      <div class="text-3xl mb-1">📋</div>
+      <h2 class="text-base font-black text-slate-800">미결정 진로 선택</h2>
+      <p class="text-[11px] text-slate-500 mt-0.5 mb-3">결정을 미뤄두었던 진로를 지금 선택하세요.</p>
+      <div id="pending-picker-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
+      <button id="btn-close-pending-picker" class="w-full mt-2 bg-slate-200 text-slate-700 font-black py-2 rounded-xl text-xs active:scale-95">닫기</button>
     </div>
   </div>
 
@@ -455,7 +473,6 @@
 
     function getItemCost(item, level) {
       let cost = Math.round(item.baseCost * Math.pow(item.costScale, level));
-      // 실업계 자격증마스터: 상점 강화비용 20% 영구 할인 반영
       if (state.selectedLifePerks.some(p => p.perk === "자격증마스터")) {
         cost = Math.round(cost * 0.8);
       }
@@ -475,6 +492,7 @@
 
     const LIFE_EVENTS = {
       8: {
+        categoryKey: "elem",
         icon: "🏫", ageStr: "8세 초등학교 입학", title: "인생의 첫 학교 선택",
         choices: [
           { name: "동네 일반초", cost: 0, desc: "무료! 기본 급식 식판 투척 스킬 획득", perk: "급식어택", pwr: 1.0 },
@@ -483,6 +501,7 @@
         ]
       },
       14: {
+        categoryKey: "middle",
         icon: "🎒", ageStr: "14세 중학교 입학", title: "질풍노도의 사춘기",
         choices: [
           { name: "일반 중학교", cost: 0, desc: "무료! 중2병 질풍노도 발차기 돌진 넉백", perk: "질풍노도", pwr: 1.0 },
@@ -491,6 +510,7 @@
         ]
       },
       17: {
+        categoryKey: "high",
         icon: "📚", ageStr: "17세 고등학교 진학", title: "입시와 진로의 갈림길",
         choices: [
           { name: "특성화고(실업계)", cost: 0, desc: "무료! 장비 강화비용 20% 영구 할인 & 스패너 투척", perk: "자격증마스터", pwr: 1.0 },
@@ -499,6 +519,7 @@
         ]
       },
       20: {
+        categoryKey: "univ",
         icon: "🎓", ageStr: "20세 대학 진학", title: "캠퍼스 라이프와 사회 진출",
         choices: [
           { name: "전문대/취업준비", cost: 0, desc: "무료! 칼퇴근 부스터: 이동속도 +35px/s 상시 증가", perk: "칼퇴근", pwr: 1.0 },
@@ -507,6 +528,7 @@
         ]
       },
       21: {
+        categoryKey: "military",
         icon: "🪖", ageStr: "21세 국방의 의무", title: "군대 입대!",
         choices: [
           { name: "대한민국 육군 (보병)", cost: 0, desc: "무료! K2 소총 6점사 폭풍 관통 사격", perk: "육군보병", pwr: 1.0 },
@@ -516,16 +538,18 @@
         ]
       },
       22: {
+        categoryKey: "reserve",
         icon: "🎖️", ageStr: "22세 군대 만기전역", title: "빛나는 군필 예비군!",
         choices: [
           { name: "늠름한 예비군 1년차", cost: 0, desc: "전역 축하! 모든 공격력 & 체력 +30% 영구 보너스!", perk: "예비군각성", pwr: 1.3 }
         ]
       },
       25: {
+        categoryKey: "job",
         icon: "💼", ageStr: "25세 사회 진출", title: "본격적인 직장인 생활",
         choices: [
           { name: "중소기업 올라운더", cost: 0, desc: "무료! 야근의 분노: 체력 35% 이하 시 공속 2.5배", perk: "야근분노", pwr: 1.0 },
-          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 다음 피해 무효화 쉴드 생성", perk: "철밥통", pwr: 1.8 },
+          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 피해 무효화 쉴드 생성", perk: "철밥통", pwr: 1.8 },
           { name: "대기업 / 스타트업 대표", cost: 4000, desc: "4000🪙 법카 골드 폭격: 황금 골드를 난사해 싹쓸이", perk: "법카폭격", pwr: 3.0 }
         ]
       }
@@ -541,7 +565,9 @@
       isGameOver: false,
       equipDrawerOpen: true,
       selectedLifePerks: [],
-      pendingEventAge: null
+      pendingEventAges: [],
+      currentModalAge: null,
+      spawnedAge8Boss: false // 8세 보스 출현 트리거
     };
 
     const player = {
@@ -556,7 +582,6 @@
       walkCycle: 0,
       isAttacking: false,
       attackTimer: 0,
-      // 특수 스킬 내부 타이머
       blackholeTimer: 0,
       airStrikeTimer: 0,
       katusaTimer: 0,
@@ -628,29 +653,20 @@
         clothColor: "#fde047"
       };
 
-      // 예비군 전역 보너스 반영
       if (state.selectedLifePerks.some(p => p.perk === "예비군각성")) {
         stats.atk *= 1.3;
         stats.maxHp *= 1.3;
       }
-
-      // 국립대 장학 반영
       if (state.selectedLifePerks.some(p => p.perk === "국립대장학")) {
         stats.maxHp += 300;
         stats.atk += 35;
       }
-
-      // 칼퇴근 부스터 반영
       if (state.selectedLifePerks.some(p => p.perk === "칼퇴근")) {
         stats.speedBonus += 35;
       }
-
-      // 특목고 대비반 오답노트 배리어: 받는 피해 추가 25% 흡수
       if (state.selectedLifePerks.some(p => p.perk === "오답노트")) {
         stats.dmgReduction = Math.min(0.85, stats.dmgReduction + 0.25);
       }
-
-      // 중소기업 야근분노: 체력 35% 이하 시 공격 속도 & 공격력 증폭
       if (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) {
         stats.atk *= 1.6;
       }
@@ -804,7 +820,7 @@
     }
 
     /* ========================================================
-       스킬 & 공격 (진로별 특수 스킬 정확한 실시간 반영)
+       스킬 & 공격
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -838,14 +854,11 @@
         life: 1.6
       });
 
-      // 국제학교 프리토킹: 3방향 알파벳 관통 탄환
       if (isFreeTalking) {
         projectiles.push(createProj(angle - 0.22, 2, "🔤"));
         projectiles.push(createProj(angle, 2, "🔤"));
         projectiles.push(createProj(angle + 0.22, 2, "🔤"));
-      } 
-      // 육군보병: K2 소총 고속 6점사
-      else if (isArmyK2) {
+      } else if (isArmyK2) {
         for (let i = 0; i < 6; i++) {
           setTimeout(() => {
             if (!state.isPaused && !state.isGameOver) {
@@ -854,14 +867,11 @@
             }
           }, i * 40);
         }
-      }
-      // 일반 인문계고: 수능 컴싸 부채꼴 7연발
-      else if (isExamPen) {
+      } else if (isExamPen) {
         for (let k = -3; k <= 3; k++) {
           projectiles.push(createProj(angle + k * 0.12, 1, "🖍️"));
         }
-      }
-      else if (player.age >= 14) {
+      } else if (player.age >= 14) {
         projectiles.push(createProj(angle - 0.22));
         projectiles.push(createProj(angle));
         projectiles.push(createProj(angle + 0.22));
@@ -869,7 +879,6 @@
         projectiles.push(createProj(angle));
       }
 
-      // 중소기업 야근분노 시 연사속도 2.5배
       const atkCooldown = (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = atkCooldown;
     }
@@ -1051,6 +1060,12 @@
           alpha: 1, life: 1.8
         });
 
+        // 8세 도달 시 첫 번째 보스 확정 출현
+        if (player.age >= 8 && !state.spawnedAge8Boss) {
+          state.spawnedAge8Boss = true;
+          spawnBossGuaranteed("불량 젤리왕");
+        }
+
         checkLifeEvent(player.age);
       }
 
@@ -1061,11 +1076,25 @@
       const eventDef = LIFE_EVENTS[age];
       if (!eventDef) return;
 
+      const alreadyChosen = state.selectedLifePerks.some(p => p.category === eventDef.categoryKey);
+      if (alreadyChosen) return;
+
+      if (!state.pendingEventAges.includes(age)) {
+        state.pendingEventAges.push(age);
+      }
+
+      openLifeEventModal(age);
+    }
+
+    function openLifeEventModal(age) {
+      const eventDef = LIFE_EVENTS[age];
+      if (!eventDef) return;
+
       Sound.play('event_fanfare');
       state.isPaused = true;
       player.isMoving = false;
       player.isAttacking = false;
-      state.pendingEventAge = age;
+      state.currentModalAge = age;
 
       document.getElementById('life-modal-icon').innerText = eventDef.icon;
       document.getElementById('life-modal-age').innerText = `${age}세 도달!`;
@@ -1092,10 +1121,16 @@
         if (canAfford) {
           itemCard.querySelector('button').addEventListener('click', () => {
             state.coins -= ch.cost;
-            state.selectedLifePerks.push(ch);
-            state.pendingEventAge = null;
-            document.getElementById('btn-pending-decision').classList.add('hidden');
+            state.selectedLifePerks.push({
+              ...ch,
+              category: eventDef.categoryKey
+            });
+
+            state.pendingEventAges = state.pendingEventAges.filter(a => a !== age);
+            state.currentModalAge = null;
+
             document.getElementById('life-choice-modal').classList.add('hidden');
+            updatePendingButtonBadge();
             state.isPaused = false;
             updateHUD();
           });
@@ -1109,24 +1144,80 @@
 
     document.getElementById('btn-postpone-decision').addEventListener('click', () => {
       document.getElementById('life-choice-modal').classList.add('hidden');
-      document.getElementById('btn-pending-decision').classList.remove('hidden');
+      state.currentModalAge = null;
+      updatePendingButtonBadge();
       state.isPaused = false;
       resetJoystick();
     });
 
     document.getElementById('btn-pending-decision').addEventListener('click', (e) => {
       e.stopPropagation();
-      if (state.pendingEventAge) {
-        checkLifeEvent(state.pendingEventAge);
+      if (state.pendingEventAges.length === 0) return;
+
+      if (state.pendingEventAges.length === 1) {
+        openLifeEventModal(state.pendingEventAges[0]);
+      } else {
+        openPendingPickerModal();
       }
     });
+
+    function openPendingPickerModal() {
+      state.isPaused = true;
+      player.isMoving = false;
+      player.isAttacking = false;
+
+      const pickerModal = document.getElementById('pending-picker-modal');
+      const list = document.getElementById('pending-picker-list');
+      list.innerHTML = "";
+
+      state.pendingEventAges.forEach(age => {
+        const ev = LIFE_EVENTS[age];
+        if (!ev) return;
+        const row = document.createElement('div');
+        row.className = "p-3 rounded-2xl bg-amber-50 border border-amber-300 flex items-center justify-between active:scale-95 cursor-pointer";
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">${ev.icon}</span>
+            <div>
+              <div class="font-black text-xs text-slate-800">${ev.title}</div>
+              <div class="text-[10px] text-slate-500 font-semibold">${ev.ageStr}</div>
+            </div>
+          </div>
+          <button class="bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl">선택하기</button>
+        `;
+        row.addEventListener('click', () => {
+          pickerModal.classList.add('hidden');
+          openLifeEventModal(age);
+        });
+        list.appendChild(row);
+      });
+
+      pickerModal.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-close-pending-picker').addEventListener('click', () => {
+      document.getElementById('pending-picker-modal').classList.add('hidden');
+      state.isPaused = false;
+      resetJoystick();
+    });
+
+    function updatePendingButtonBadge() {
+      const btn = document.getElementById('btn-pending-decision');
+      const badge = document.getElementById('pending-count-badge');
+      if (state.pendingEventAges.length > 0) {
+        btn.classList.remove('hidden');
+        badge.innerText = `🔔 미결정 진로 (${state.pendingEventAges.length}건)`;
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
 
     let bossWarningTimeout = null;
     function triggerBossWarning(name) {
       Sound.play('boss_warning');
       const banner = document.getElementById('boss-warning-banner');
       const text = document.getElementById('boss-warning-text');
-      text.innerText = `WARNING! ${name} 출현!`;
+      text.innerText = `WARNING! [${name}] 출현!`;
       banner.classList.remove('hidden');
 
       if (bossWarningTimeout) clearTimeout(bossWarningTimeout);
@@ -1136,72 +1227,106 @@
     }
 
     /* ========================================================
-       몬스터 스폰
+       다채로운 보스 4종 & 일반 몬스터 스폰 시스템 (난이도 상향)
        ======================================================== */
-    let spawnTimer = 0;
-    const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", minAge: 0, baseHp: 55, spd: 80, dmg: 10, expVal: 45, coinVal: 6, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", minAge: 3, baseHp: 120, spd: 68, dmg: 16, expVal: 85, coinVal: 15, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", minAge: 8, baseHp: 240, spd: 92, dmg: 24, expVal: 160, coinVal: 30, scoreVal: 180, size: 32 },
-      { name: "유령 바이러스", emoji: "👻", minAge: 14, baseHp: 380, spd: 125, dmg: 32, expVal: 260, coinVal: 45, scoreVal: 260, size: 26 },
-      { name: "골렘 충치", emoji: "🗿", minAge: 17, baseHp: 950, spd: 45, dmg: 44, expVal: 480, coinVal: 80, scoreVal: 450, size: 38 },
-      { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 800, spd: 140, dmg: 50, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
-      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1650, spd: 75, dmg: 68, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
-      { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3200, spd: 85, dmg: 95, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true },
-      { name: "충치대마왕(보스)", emoji: "👺", minAge: 14, baseHp: 4800, spd: 60, dmg: 75, expVal: 3800, coinVal: 600, scoreVal: 5000, size: 56, boss: true }
+    const BOSS_TYPES = [
+      { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3200, spd: 70, dmg: 55, expVal: 2200, coinVal: 350, scoreVal: 2500, size: 48, boss: true, bossType: "jelly" },
+      { name: "충치대마왕", emoji: "👺", minAge: 14, baseHp: 5800, spd: 62, dmg: 85, expVal: 4200, coinVal: 650, scoreVal: 5500, size: 56, boss: true, bossType: "tooth" },
+      { name: "해골군주", emoji: "💀", minAge: 20, baseHp: 9500, spd: 75, dmg: 110, expVal: 7000, coinVal: 1100, scoreVal: 9000, size: 60, boss: true, bossType: "skull" },
+      { name: "세균 황제 드라큘라", emoji: "👑", minAge: 25, baseHp: 16000, spd: 88, dmg: 150, expVal: 13000, coinVal: 2200, scoreVal: 18000, size: 64, boss: true, bossType: "emperor" }
     ];
 
+    const ENEMY_TYPES = [
+      { name: "세균몬", emoji: "🦠", minAge: 0, baseHp: 65, spd: 85, dmg: 12, expVal: 45, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", minAge: 3, baseHp: 135, spd: 72, dmg: 18, expVal: 85, coinVal: 15, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", minAge: 8, baseHp: 270, spd: 98, dmg: 26, expVal: 160, coinVal: 30, scoreVal: 180, size: 32 },
+      { name: "유령 바이러스", emoji: "👻", minAge: 14, baseHp: 440, spd: 130, dmg: 36, expVal: 260, coinVal: 45, scoreVal: 260, size: 26 },
+      { name: "골렘 충치", emoji: "🗿", minAge: 17, baseHp: 1100, spd: 48, dmg: 50, expVal: 480, coinVal: 80, scoreVal: 450, size: 38 },
+      { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 920, spd: 145, dmg: 58, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
+      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1900, spd: 78, dmg: 76, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
+      { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3800, spd: 90, dmg: 105, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true }
+    ];
+
+    function spawnBossGuaranteed(bossName) {
+      const def = BOSS_TYPES.find(b => b.name === bossName) || BOSS_TYPES[0];
+      const spawnAng = Math.random() * Math.PI * 2;
+      const spawnDist = 480;
+      let ex = Math.max(80, Math.min(WORLD_WIDTH - 80, player.x + Math.cos(spawnAng) * spawnDist));
+      let ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, player.y + Math.sin(spawnAng) * spawnDist));
+
+      const hpScale = Math.pow(1.12, player.age) + player.age * 0.45;
+      const dmgScale = 1 + player.age * 0.25;
+
+      enemies.push({
+        ...def,
+        hp: Math.round(def.baseHp * hpScale),
+        maxHp: Math.round(def.baseHp * hpScale),
+        dmg: Math.round(def.dmg * dmgScale),
+        baseSpd: def.spd,
+        spd: def.spd,
+        expVal: Math.round(def.expVal * hpScale * 0.75),
+        coinVal: Math.round(def.coinVal * (1 + player.age * 0.25)),
+        x: ex, y: ey,
+        dead: false,
+        stunTimer: 0,
+        shootCooldown: 2.2
+      });
+
+      triggerBossWarning(def.name);
+    }
+
+    let spawnTimer = 0;
     function spawnEnemies(dt) {
       if (state.isPaused || state.isGameOver) return;
 
       const aliveEnemies = enemies.filter(e => !e.dead).length;
-      if (aliveEnemies >= 24) return;
+      if (aliveEnemies >= 26) return;
 
       spawnTimer += dt;
-      const spawnInterval = Math.max(1.3, 2.7 - player.age * 0.04);
+      const spawnInterval = Math.max(1.2, 2.5 - player.age * 0.04);
 
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
         
-        const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge && !m.boss);
+        const hasBossOnField = enemies.some(e => e.boss && !e.dead);
+        const eligibleBosses = BOSS_TYPES.filter(b => player.age >= b.minAge);
         const r = Math.random();
         
         let def;
         let isBossSpawn = false;
-        
-        const hasBossOnField = enemies.some(e => e.boss && !e.dead);
-        if (!hasBossOnField && player.age >= 14 && r < 0.025) {
-          def = ENEMY_TYPES.find(m => m.boss);
+
+        // 필드에 보스가 없고 조건 만족 시 4대 보스 중 하나 출현
+        if (!hasBossOnField && eligibleBosses.length > 0 && r < 0.04) {
+          def = eligibleBosses[Math.floor(Math.random() * eligibleBosses.length)];
           isBossSpawn = true;
         } else {
+          const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge);
           def = pool[Math.floor(Math.random() * pool.length)];
         }
 
         const spawnAng = Math.random() * Math.PI * 2;
-        const spawnDist = 450 + Math.random() * 200;
-        let ex = player.x + Math.cos(spawnAng) * spawnDist;
-        let ey = player.y + Math.sin(spawnAng) * spawnDist;
+        const spawnDist = 460 + Math.random() * 200;
+        let ex = Math.max(80, Math.min(WORLD_WIDTH - 80, player.x + Math.cos(spawnAng) * spawnDist));
+        let ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, player.y + Math.sin(spawnAng) * spawnDist));
 
-        ex = Math.max(80, Math.min(WORLD_WIDTH - 80, ex));
-        ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, ey));
-
-        const hpScale = Math.pow(1.10, player.age) + player.age * 0.35;
-        const dmgScale = 1 + player.age * 0.20;
-        const spdScale = Math.min(1.4, 1 + player.age * 0.015);
+        // 난이도 상향: 적 체력 및 대미지 스케일링 강화
+        const hpScale = Math.pow(1.12, player.age) + player.age * 0.45;
+        const dmgScale = 1 + player.age * 0.24;
+        const spdScale = Math.min(1.45, 1 + player.age * 0.018);
 
         enemies.push({
           ...def,
           hp: Math.round(def.baseHp * hpScale),
           maxHp: Math.round(def.baseHp * hpScale),
           dmg: Math.round(def.dmg * dmgScale),
-          baseSpd: def.spd * spdScale, // 기본 속도 보관
+          baseSpd: def.spd * spdScale,
           spd: def.spd * spdScale,
-          expVal: Math.round(def.expVal * hpScale * 0.7),
-          coinVal: Math.round(def.coinVal * (1 + player.age * 0.2)),
+          expVal: Math.round(def.expVal * hpScale * 0.75),
+          coinVal: Math.round(def.coinVal * (1 + player.age * 0.25)),
           x: ex, y: ey,
           dead: false,
           stunTimer: 0,
-          shootCooldown: 2.5
+          shootCooldown: 2.2
         });
 
         if (isBossSpawn || def.rangedDragon) {
@@ -1211,7 +1336,7 @@
     }
 
     /* ========================================================
-       게임 루프 (진로별 특수 스킬 정확한 실시간 연동)
+       게임 루프
        ======================================================== */
     let lastTime = 0;
 
@@ -1240,19 +1365,19 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      /* --- 1. [명문 사립초: 사립오케스트라] 주변 적 이동속도 -40% 감속 실시간 적용 --- */
+      // 1. 사립오케스트라 감속(-40%)
       const hasOrchestra = state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
       enemies.forEach(en => {
         if (en.dead) return;
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (hasOrchestra && d <= 180) {
-          en.spd = en.baseSpd * 0.6; // 40% 감속 반영!
+          en.spd = en.baseSpd * 0.6;
         } else {
-          en.spd = en.baseSpd; // 범위 벗어나면 정상 속도 복귀
+          en.spd = en.baseSpd;
         }
       });
 
-      /* --- 2. [과학고: 양자역학 블랙홀] 5초마다 적 흡인 및 폭발 --- */
+      // 2. 과학고 블랙홀
       if (state.selectedLifePerks.some(p => p.perk === "양자블랙홀")) {
         player.blackholeTimer = (player.blackholeTimer || 0) + dt;
         if (player.blackholeTimer >= 5.0) {
@@ -1262,10 +1387,8 @@
           const bx = target ? target.x : player.x;
           const by = target ? target.y : player.y;
 
-          // 블랙홀 파티클 생성
           particles.push({ type: 'blackhole', x: bx, y: by, radius: 15, maxRadius: 180, alpha: 1.0 });
 
-          // 주변 적들을 블랙홀 중심부로 흡인 후 큰 데미지
           enemies.forEach(en => {
             if (en.dead) return;
             const ed = Math.hypot(en.x - bx, en.y - by);
@@ -1278,13 +1401,12 @@
         }
       }
 
-      /* --- 3. [공군: 공군폭격] 8초마다 F-15K 융단 폭격 --- */
+      // 3. 공군 F-15K 융단 폭격
       if (state.selectedLifePerks.some(p => p.perk === "공군폭격")) {
         player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
         if (player.airStrikeTimer >= 8.0) {
           player.airStrikeTimer = 0;
           Sound.play('air_strike');
-          // 화면 내 모든 적에게 폭격 대미지
           enemies.forEach(en => {
             if (en.dead) return;
             applyDamage(en, stats.atk * 4.0, false, "✈️");
@@ -1293,7 +1415,7 @@
         }
       }
 
-      /* --- 4. [카투사: 레이션 박스] 10초마다 체력 100% 완전 회복 --- */
+      // 4. 카투사 레이션 100% 회복
       if (state.selectedLifePerks.some(p => p.perk === "카투사키트")) {
         player.katusaTimer = (player.katusaTimer || 0) + dt;
         if (player.katusaTimer >= 10.0) {
@@ -1304,7 +1426,7 @@
         }
       }
 
-      /* --- 5. [공기업: 철밥통 무적 쉴드] 6초마다 피해 무효화 쉴드 충전 --- */
+      // 5. 공기업 철밥통 무적 쉴드
       if (state.selectedLifePerks.some(p => p.perk === "철밥통")) {
         if (!player.hasShield) {
           player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
@@ -1390,7 +1512,6 @@
         bp.life -= dt;
 
         if (Math.hypot(player.x - bp.x, player.y - bp.y) < bp.radius + 14) {
-          // 철밥통 쉴드 방어 체크
           if (player.hasShield) {
             player.hasShield = false;
             damageTexts.push({ text: "🛡️ 쉴드 방어!", x: player.x, y: player.y - 20, color: "#38bdf8", scale: 1.2, alpha: 1, life: 0.8 });
@@ -1399,7 +1520,7 @@
           }
 
           let incomingDmg = bp.damage * (1 - stats.dmgReduction) - stats.def;
-          incomingDmg = Math.max(6, incomingDmg);
+          incomingDmg = Math.max(7, incomingDmg);
           player.hp -= incomingDmg;
           damageTexts.push({ text: `-${Math.round(incomingDmg)}`, x: player.x, y: player.y - 20, color: "#ef4444", scale: 1.2, alpha: 1, life: 0.8 });
           Sound.play('hit');
@@ -1426,21 +1547,52 @@
           en.y += (dy / d) * en.spd * dt;
         }
 
+        // 보스별 특수 공격 패턴
         if (en.boss) {
           en.shootCooldown -= dt;
           if (en.shootCooldown <= 0) {
-            en.shootCooldown = Math.max(2.0, 2.8 - player.age * 0.02);
+            en.shootCooldown = 2.2;
             Sound.play('boss_shoot');
-            for (let k = 0; k < 8; k++) {
-              const ang = (Math.PI * 2 / 8) * k;
-              bossProjectiles.push({
-                x: en.x, y: en.y,
-                vx: Math.cos(ang) * 210,
-                vy: Math.sin(ang) * 210,
-                damage: en.dmg * 0.75,
-                radius: 11,
-                life: 3.2
-              });
+
+            if (en.bossType === "tooth" || en.bossType === "emperor") {
+              // 8방향 탄막 난사
+              for (let k = 0; k < 8; k++) {
+                const ang = (Math.PI * 2 / 8) * k;
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(ang) * 220,
+                  vy: Math.sin(ang) * 220,
+                  damage: en.dmg * 0.8,
+                  radius: 11,
+                  life: 3.2
+                });
+              }
+            } else if (en.bossType === "skull") {
+              // 3방향 맹독 해골탄
+              const fang = Math.atan2(player.y - en.y, player.x - en.x);
+              for (let k = -1; k <= 1; k++) {
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(fang + k * 0.3) * 240,
+                  vy: Math.sin(fang + k * 0.3) * 240,
+                  damage: en.dmg * 0.9,
+                  radius: 12,
+                  life: 2.8
+                });
+              }
+            } else {
+              // 젤리왕: 4방향 튀는 파편
+              for (let k = 0; k < 4; k++) {
+                const ang = (Math.PI / 2) * k + Math.random() * 0.3;
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(ang) * 190,
+                  vy: Math.sin(ang) * 190,
+                  damage: en.dmg * 0.7,
+                  radius: 10,
+                  life: 2.5
+                });
+              }
             }
           }
         }
@@ -1448,21 +1600,20 @@
         if (en.rangedDragon) {
           en.shootCooldown -= dt;
           if (en.shootCooldown <= 0) {
-            en.shootCooldown = 2.4;
+            en.shootCooldown = 2.2;
             Sound.play('boss_shoot');
             const fang = Math.atan2(player.y - en.y, player.x - en.x);
             bossProjectiles.push({
               x: en.x, y: en.y,
-              vx: Math.cos(fang) * 230,
-              vy: Math.sin(fang) * 230,
-              damage: en.dmg * 0.8,
+              vx: Math.cos(fang) * 240,
+              vy: Math.sin(fang) * 240,
+              damage: en.dmg * 0.85,
               radius: 12,
               life: 2.5
             });
           }
         }
 
-        // 근접 피격 판정
         if (d < en.size + 18) {
           if (player.hasShield) {
             player.hasShield = false;
@@ -1471,8 +1622,8 @@
           }
 
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
-          incomingDmg = Math.max(4, incomingDmg);
-          player.hp -= incomingDmg * dt * 2.4;
+          incomingDmg = Math.max(5, incomingDmg);
+          player.hp -= incomingDmg * dt * 2.6;
 
           if (player.hp <= 0) gameOver();
         }
@@ -1516,7 +1667,7 @@
     }
 
     /* ========================================================
-       오픈월드 렌더링 (사립초 오케스트라 음파 장판 시각화 포함)
+       오픈월드 렌더링
        ======================================================== */
     function renderGame() {
       ctx.clearRect(0, 0, width, height);
@@ -1551,7 +1702,7 @@
       const stats = calcStats();
       const current = getCurrentStage();
 
-      // [명문 사립초: 사립오케스트라] 유준이 주변 오케스트라 감속 음파 장판 렌더링
+      // 사립오케스트라 음파 감속 장판
       if (state.selectedLifePerks.some(p => p.perk === "사립오케스트라")) {
         ctx.save();
         ctx.beginPath();
@@ -1566,7 +1717,7 @@
         ctx.restore();
       }
 
-      // [공기업: 철밥통 무적 쉴드] 렌더링
+      // 철밥통 쉴드
       if (player.hasShield) {
         ctx.save();
         ctx.beginPath();
@@ -1756,7 +1907,7 @@
     }
 
     /* ========================================================
-       HUD 업데이트
+       HUD 업데이트 (2줄 프로필 & 스킬 공격력)
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -1764,6 +1915,7 @@
       const { fart, poop, cry } = getSkillEvolutions();
 
       document.getElementById('hud-avatar').innerText = current.icon;
+      document.getElementById('player-name-display').innerText = state.playerName;
       document.getElementById('grow-stage-badge').innerText = current.name;
       document.getElementById('level-badge').innerText = `${player.age}세`;
 
@@ -1807,6 +1959,7 @@
         skillBar.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">${p.name}</span>`;
       });
 
+      updatePendingButtonBadge();
       renderEquipSidebar();
     }
 
@@ -2207,6 +2360,7 @@
 
       localStorage.setItem('yujun_remembered_name', state.playerName);
 
+      // 환생 초기화
       player.age = 0;
       player.exp = 0;
       player.maxExp = 100;
@@ -2215,10 +2369,13 @@
       state.coins = 0;
       state.itemLevels = {};
       state.selectedLifePerks = [];
-      state.pendingEventAge = null;
+      state.pendingEventAges = [];
+      state.currentModalAge = null;
+      state.spawnedAge8Boss = false;
       player.hasShield = false;
 
       document.getElementById('btn-pending-decision').classList.add('hidden');
+      document.getElementById('pending-picker-modal').classList.add('hidden');
       document.getElementById('gameover-modal').classList.remove('hidden');
     }
 
