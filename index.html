@@ -221,7 +221,7 @@
     <div id="tt-type" class="text-[9px] text-slate-400 mt-0.5"></div>
   </div>
 
-  <!-- 하단 컨트롤 레이er -->
+  <!-- 하단 컨트롤 레이어 -->
   <div class="controls-layer z-20">
     <div class="interactive joystick-base" id="joystick-base">
       <div class="joystick-thumb" id="joystick-thumb"></div>
@@ -367,7 +367,7 @@
 
       <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
-          <span class="flex items-center gap-1">🏆 서버 실시간 랭킹 Top 5</span>
+          <span class="flex items-center gap-1">🌐 서버 실시간 랭킹 Top 5</span>
           <span class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
         </div>
         <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
@@ -384,8 +384,8 @@
   </div>
 
   <script>
-    // 🔗 아래에 구글 스프레드시트 Apps Script에서 발급받은 [웹 앱 URL]을 넣어주세요!
-    const GOOGLE_SHEET_API_URL = "여기에_웹앱_URL을_붙여넣으세요";
+    // 🔗 구글 스프레드시트 Apps Script에서 발급받은 웹 앱 URL 적용 완료
+    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwzaB7wBcUhcMVFsSJaUxY28As_ezVKDUc5yW--cansgCU8oMyMUsoggv92lQm5pL6M/exec";
 
     const Sound = {
       ctx: null,
@@ -916,7 +916,7 @@
     }
 
     /* ========================================================
-       진로별 스킬 발사 루프
+       [완벽 복구] 모든 진로 스킬 발사 루프 (컴싸난사, 파워슛 등 정상화)
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -2348,7 +2348,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       구글 시트 랭킹 연동 시스템 (실시간 랭킹 Top 5)
+       서버 실시간 랭킹 연동 시스템 (구글 시트 전용)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2371,15 +2371,23 @@
     async function fetchOnlineRankings() {
       if (!GOOGLE_SHEET_API_URL || GOOGLE_SHEET_API_URL.includes("여기에_웹앱_URL")) return [];
       try {
-        const res = await fetch(GOOGLE_SHEET_API_URL, { method: "GET" });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        
+        const res = await fetch(GOOGLE_SHEET_API_URL, { 
+          method: "GET",
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           const list = await res.json();
-          if (Array.isArray(list)) {
+          if (Array.isArray(list) && list.length > 0) {
             return list.map(item => ({
               name: item.name || "익명",
               score: Number(item.score) || 0,
               stage: item.stage || "신생아",
-              createdAt: item.date || new Date().toISOString()
+              createdAt: item.date || new Date().toLocaleString()
             })).sort((a, b) => b.score - a.score);
           }
         }
@@ -2408,60 +2416,68 @@
 
     async function renderStartRankPreview() {
       const preview = document.getElementById('start-rank-preview');
-      const allList = await fetchOnlineRankings();
-      const displayList = allList.length > 0 ? allList : [];
+      try {
+        const allList = await fetchOnlineRankings();
+        const displayList = allList.length > 0 ? allList : [];
 
-      if (displayList.length === 0) {
-        preview.innerHTML = `
-          <div class="text-center py-4 text-[10px] text-slate-400">
-            서버에 등록된 랭킹 기록이 없습니다.<br>첫 번째 1등 주인공이 되어보세요!
-          </div>
-        `;
-        return;
+        if (displayList.length === 0) {
+          preview.innerHTML = `
+            <div class="text-center py-4 text-[10px] text-slate-400">
+              서버에 등록된 랭킹 기록이 없습니다.<br>첫 번째 1등 주인공이 되어보세요!
+            </div>
+          `;
+          return;
+        }
+
+        preview.innerHTML = "";
+        displayList.slice(0, 5).forEach((r, idx) => {
+          const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+          const item = document.createElement('div');
+          item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
+          item.innerHTML = `
+            <div class="flex items-center gap-1.5 min-w-0 pr-1">
+              <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
+              <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
+              <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
+            </div>
+            <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
+          `;
+          preview.appendChild(item);
+        });
+      } catch (e) {
+        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">서버 랭킹 기록이 없습니다.</div>`;
       }
-
-      preview.innerHTML = "";
-      displayList.slice(0, 5).forEach((r, idx) => {
-        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
-        const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
-        item.innerHTML = `
-          <div class="flex items-center gap-1.5 min-w-0 pr-1">
-            <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
-            <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
-          </div>
-          <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
-        `;
-        preview.appendChild(item);
-      });
     }
 
     async function renderGameOverRankPreview() {
       const preview = document.getElementById('gameover-rank-preview');
-      const allList = await fetchOnlineRankings();
-      const displayList = allList.length > 0 ? allList : [];
+      try {
+        const allList = await fetchOnlineRankings();
+        const displayList = allList.length > 0 ? allList : [];
 
-      if (displayList.length === 0) {
+        if (displayList.length === 0) {
+          preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">서버 랭킹 기록이 없습니다.</div>`;
+          return;
+        }
+
+        preview.innerHTML = "";
+        displayList.slice(0, 5).forEach((r, idx) => {
+          const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+          const item = document.createElement('div');
+          item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
+          item.innerHTML = `
+            <div class="flex items-center gap-1 min-w-0 pr-1">
+              <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
+              <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
+              <span class="text-[9px] text-amber-700 shrink-0">${r.stage}</span>
+            </div>
+            <span class="font-black text-amber-600 shrink-0">${Number(r.score).toLocaleString()} P</span>
+          `;
+          preview.appendChild(item);
+        });
+      } catch(e) {
         preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">서버 랭킹 기록이 없습니다.</div>`;
-        return;
       }
-
-      preview.innerHTML = "";
-      displayList.slice(0, 5).forEach((r, idx) => {
-        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
-        const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
-        item.innerHTML = `
-          <div class="flex items-center gap-1 min-w-0 pr-1">
-            <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
-            <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 shrink-0">${r.stage}</span>
-          </div>
-          <span class="font-black text-amber-600 shrink-0">${Number(r.score).toLocaleString()} P</span>
-        `;
-        preview.appendChild(item);
-      });
     }
 
     async function showRankings(period = 'daily') {
