@@ -420,7 +420,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
+            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -2263,7 +2263,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (서버 동기화 및 렌더링 안정화)
+       실시간 랭킹 시스템 (로컬 우선 반영 보장)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2288,13 +2288,8 @@
 
     async function submitScoreOnline(finalScore, finalAge, finalStage) {
       const timestamp = new Date().toISOString();
-      const metaObj = {
-        age: finalAge,
-        stage: finalStage,
-        createdAt: timestamp
-      };
-
-      // 즉시 로컬에 강제 기록하여 반영 보장
+      
+      // 1. 랭킹 목록에 즉시 강제 기록하여 즉시 반영 보장
       recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
 
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
@@ -2309,7 +2304,11 @@
               LeaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
               PlayerDisplayName: state.playerName,
               Score: String(finalScore),
-              Metadata: JSON.stringify(metaObj)
+              Metadata: JSON.stringify({
+                age: finalAge,
+                stage: finalStage,
+                createdAt: timestamp
+              })
             })
           });
         } catch (err) {}
@@ -2317,6 +2316,9 @@
     }
 
     async function fetchOnlineRankings() {
+      // 1순위로 로컬 저장된 최신 랭킹을 먼저 반환하여 즉각적인 가시성 확보
+      const localList = getLocalRankings();
+
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
         try {
           const res = await fetch(`https://api.simpleboards.dev/api/leaderboards/${SIMPLEBOARDS_LEADERBOARD_ID}/entries`, {
@@ -2343,7 +2345,7 @@
           }
         } catch (err) {}
       }
-      return getLocalRankings();
+      return localList;
     }
 
     function recordCurrentScore(newScore, finalAge, finalStage, timestamp) {
