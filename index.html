@@ -80,9 +80,10 @@
       filter: brightness(0.9);
     }
     .modal-overlay {
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(4px);
-      pointer-events: auto;
+      pointer-events: auto !important;
+      z-index: 9999 !important;
     }
     .modal-overlay.hidden {
       display: none !important;
@@ -131,7 +132,15 @@
   </div>
 
   <!-- 상단 HUD 영역 -->
-  <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-20">
+  <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-25 pointer-events-none">
+    
+    <!-- 최상단 독립 점수 표시 배지 (짤림 방지) -->
+    <div class="flex justify-center w-full">
+      <div id="live-score-display" class="pointer-events-auto text-xs sm:text-sm font-black text-rose-600 bg-white/95 backdrop-blur-md px-4 py-1 rounded-2xl border-2 border-rose-300 shadow-lg shrink-0">
+        🎯 0 P
+      </div>
+    </div>
+
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
       
       <!-- 유준이 프로필 -->
@@ -140,11 +149,10 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between leading-tight mb-0.5">
             <span id="player-name-display" class="font-extrabold text-slate-800 text-xs sm:text-sm truncate">유준이</span>
-            <span id="live-score-display" class="text-xs font-black text-rose-600 bg-rose-100 px-2 py-0.5 rounded-lg border border-rose-300 shrink-0 shadow-sm">🎯 0 P</span>
+            <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
           </div>
           
           <div class="flex items-center gap-1.5 mb-1 leading-none">
-            <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
           </div>
 
@@ -174,6 +182,12 @@
           </button>
         </div>
 
+        <!-- 전체 미니맵 (레이더) -->
+        <div class="interactive bg-slate-900/85 border-2 border-amber-300 rounded-2xl shadow-lg w-20 h-20 overflow-hidden relative mt-1 shrink-0">
+          <canvas id="minimap-canvas" width="80" height="80" class="w-full h-full block"></canvas>
+          <div class="absolute inset-0 pointer-events-none border border-white/20 rounded-2xl"></div>
+        </div>
+
         <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[10px] px-2.5 py-1 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white mt-0.5">
           <span id="pending-count-badge">🔔 미결정 진로</span>
         </button>
@@ -184,7 +198,7 @@
   </div>
 
   <!-- 왼쪽 세로형 장비 바 -->
-  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 96px; left: 8px;">
+  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 130px; left: 8px;">
     <div class="flex items-start">
       <div class="interactive rounded-2xl p-2 shadow-xl border border-slate-600/50 flex flex-col gap-1 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(30, 41, 59, 0.78); backdrop-filter: blur(8px);">
         <div class="flex items-center justify-between pb-1 border-b border-slate-600/60 text-white text-[10px] font-bold">
@@ -311,9 +325,9 @@
     </div>
   </div>
 
-  <!-- 나이별 인생 진로 선택 모달창 -->
+  <!-- 나이별 인생 진로 선택 모달창 (아이폰 터치 오류 완전 수정) -->
   <div id="life-choice-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 border-4 border-amber-400 text-center flex flex-col max-h-[88vh] overflow-hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 border-4 border-amber-400 text-center flex flex-col max-h-[88vh] overflow-hidden relative z-50">
       <div id="life-modal-icon" class="text-4xl mb-1">🏫</div>
       <h3 id="life-modal-age" class="text-xs font-black text-amber-500 tracking-wider">8세 도달!</h3>
       <h2 id="life-modal-title" class="text-base font-black text-slate-800 mt-0.5">인생의 갈림길</h2>
@@ -321,7 +335,7 @@
       
       <div id="life-choice-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
 
-      <button id="btn-postpone-decision" class="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-amber-300 font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1">
+      <button id="btn-postpone-decision" class="interactive w-full mt-2 bg-slate-800 hover:bg-slate-900 text-amber-300 font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1 cursor-pointer">
         <span>💰</span> 결정을 미루고 돈 더 모으기 (파밍 계속)
       </button>
     </div>
@@ -329,12 +343,12 @@
 
   <!-- 보류된 진로 목록 선택 메뉴 -->
   <div id="pending-picker-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center flex flex-col max-h-[80vh] overflow-hidden">
+    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center flex flex-col max-h-[80vh] overflow-hidden relative z-50">
       <div class="text-3xl mb-1">📋</div>
       <h2 class="text-base font-black text-slate-800">미결정 진로 선택</h2>
       <p class="text-[11px] text-slate-500 mt-0.5 mb-3">결정을 미뤄두었던 인생 이벤트를 순서대로 선택하세요.</p>
       <div id="pending-picker-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
-      <button id="btn-close-pending-picker" class="w-full mt-2 bg-slate-200 text-slate-700 font-black py-2 rounded-xl text-xs active:scale-95">닫기</button>
+      <button id="btn-close-pending-picker" class="interactive w-full mt-2 bg-slate-200 text-slate-700 font-black py-2 rounded-xl text-xs active:scale-95 cursor-pointer">닫기</button>
     </div>
   </div>
 
@@ -359,11 +373,11 @@
         <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
       </div>
 
-      <button id="btn-kakao-share" class="w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-1.5 shrink-0">
+      <button id="btn-kakao-share" class="interactive w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-1.5 shrink-0 cursor-pointer">
         <span class="text-sm">💬</span> 결과 & 랭킹 카톡 공유하기
       </button>
 
-      <button id="btn-restart" class="w-full bg-slate-800 text-white font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs shrink-0">
+      <button id="btn-restart" class="interactive w-full bg-slate-800 text-white font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs shrink-0 cursor-pointer">
         🔄 0세부터 다시 환생하기
       </button>
     </div>
@@ -902,7 +916,7 @@
     }
 
     /* ========================================================
-       [핵심 수정] 진로별 특수 스킬 발사 루프 정밀 연동
+       진로별 특수 스킬 정확한 발사 루프
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -919,8 +933,6 @@
       Sound.play('shoot');
 
       const speed = stats.projSpeed;
-      
-      // 진로별 퍼크(Perk) 활성화 여부 확인
       const hasPerk = (pName) => state.selectedLifePerks.some(p => p.perk === pName);
 
       const isFreeTalking = hasPerk("프리토킹");
@@ -945,7 +957,6 @@
         life: 1.6
       });
 
-      // 개별 진로 스킬 분기 우선순위 명확화
       if (isFreeTalking) {
         projectiles.push(createProj(angle - 0.22, 2, "🔤"));
         projectiles.push(createProj(angle, 2, "🔤"));
@@ -1024,7 +1035,7 @@
 
       particles.push({ 
         type: 'fart-cloud', 
-        x: player.x - player.dirX * 30, y: player.y - player.dirY * 30, 
+        x: player.x, y: player.y, 
         radius: 15, maxRadius: fart.rad, 
         alpha: 0.95, 
         tier: fart.tier,
@@ -1032,8 +1043,8 @@
       });
 
       for (let i = 0; i < 14; i++) {
-        const fang = Math.atan2(-player.dirY, -player.dirX) + (Math.random() - 0.5) * 1.5;
-        const fspd = 80 + Math.random() * 180;
+        const fang = Math.random() * Math.PI * 2;
+        const fspd = 120 + Math.random() * 200;
         particles.push({
           type: 'fart-gas',
           x: player.x, y: player.y,
@@ -1044,12 +1055,14 @@
         });
       }
 
+      // 방귀 스킬: 유준이는 가만히 있고, 적들만 나로부터 바깥쪽으로 밀려남 (순수 넉백)
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
-        if (d < fart.rad + 40) {
-          const pushDist = fart.tier === 3 ? 200 : (fart.tier === 2 ? 150 : 100);
-          en.x += player.dirX * pushDist;
-          en.y += player.dirY * pushDist;
+        if (d < fart.rad + 50) {
+          const pushAngle = Math.atan2(en.y - player.y, en.x - player.x);
+          const pushDist = fart.tier === 3 ? 240 : (fart.tier === 2 ? 180 : 130);
+          en.x += Math.cos(pushAngle) * pushDist;
+          en.y += Math.sin(pushAngle) * pushDist;
           applyDamage(en, stats.atk * fart.pwr * (1 + stats.dmgAmp), false, fart.icon);
         }
       });
@@ -1217,7 +1230,7 @@
             <div class="font-black text-xs text-slate-800">${ch.name}</div>
             <div class="text-[10px] text-slate-500 font-medium mt-0.5">${ch.desc}</div>
           </div>
-          <button class="shrink-0 font-black text-xs px-3 py-2 rounded-xl shadow-md active:scale-95 transition-transform ${canAfford ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}" ${canAfford ? '' : 'disabled'}>
+          <button class="interactive shrink-0 font-black text-xs px-3 py-2 rounded-xl shadow-md active:scale-95 transition-transform cursor-pointer ${canAfford ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}" ${canAfford ? '' : 'disabled'}>
             ${ch.cost === 0 ? '선택 (무료)' : `🪙 ${ch.cost}`}
           </button>
         `;
@@ -1323,7 +1336,7 @@
         const ev = LIFE_EVENTS[age];
         if (!ev) return;
         const row = document.createElement('div');
-        row.className = "p-3 rounded-2xl bg-amber-50 border border-amber-300 flex items-center justify-between active:scale-95 cursor-pointer";
+        row.className = "interactive p-3 rounded-2xl bg-amber-50 border border-amber-300 flex items-center justify-between active:scale-95 cursor-pointer";
         row.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="text-2xl">${ev.icon}</span>
@@ -1377,13 +1390,13 @@
     }
 
     /* ========================================================
-       몬스터 스폰
+       몬스터 & 궁극 보스 스폰 ("엄마의 잔소리")
        ======================================================== */
     const BOSS_TYPES = [
-      { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3800, spd: 75, dmg: 65, expVal: 2600, coinVal: 400, scoreVal: 3000, size: 48, boss: true, bossType: "jelly" },
-      { name: "충치대마왕", emoji: "👺", minAge: 14, baseHp: 6800, spd: 68, dmg: 95, expVal: 5200, coinVal: 800, scoreVal: 6500, size: 56, boss: true, bossType: "tooth" },
-      { name: "해골군주", emoji: "💀", minAge: 20, baseHp: 11500, spd: 82, dmg: 130, expVal: 8500, coinVal: 1400, scoreVal: 11000, size: 60, boss: true, bossType: "skull" },
-      { name: "세균 황제 드라큘라", emoji: "👑", minAge: 25, baseHp: 19500, spd: 95, dmg: 180, expVal: 15000, coinVal: 2600, scoreVal: 22000, size: 64, boss: true, bossType: "emperor" }
+      { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3800, spd: 75, dmg: 65, expVal: 2600, coinVal: 400, scoreVal: 3000, size: 48, boss: true },
+      { name: "충치대마왕", emoji: "👺", minAge: 14, baseHp: 6800, spd: 68, dmg: 95, expVal: 5200, coinVal: 800, scoreVal: 6500, size: 56, boss: true },
+      { name: "해골군주", emoji: "💀", minAge: 20, baseHp: 11500, spd: 82, dmg: 130, expVal: 8500, coinVal: 1400, scoreVal: 11000, size: 60, boss: true },
+      { name: "세균 황제 드라큘라", emoji: "👑", minAge: 25, baseHp: 19500, spd: 95, dmg: 180, expVal: 15000, coinVal: 2600, scoreVal: 22000, size: 64, boss: true }
     ];
 
     const ENEMY_TYPES = [
@@ -1393,13 +1406,43 @@
       { name: "유령 바이러스", emoji: "👻", minAge: 14, baseHp: 460, spd: 138, dmg: 40, expVal: 310, coinVal: 55, scoreVal: 260, size: 26 },
       { name: "골렘 충치", emoji: "🗿", minAge: 17, baseHp: 1150, spd: 50, dmg: 55, expVal: 580, coinVal: 95, scoreVal: 450, size: 38 },
       { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 980, spd: 152, dmg: 62, expVal: 780, coinVal: 130, scoreVal: 650, size: 30 },
-      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1950, spd: 82, dmg: 82, expVal: 1200, coinVal: 210, scoreVal: 1050, size: 36, poison: true },
+      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1950, spd: 82, dmg: 82, expVal: 1200, coinVal: 210, scoreVal: 1050, size: 36 },
       { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3800, spd: 92, dmg: 115, expVal: 2300, coinVal: 380, scoreVal: 2200, size: 44, rangedDragon: true }
     ];
 
     let spawnTimer = 0;
+    let lastMomAgeSpawned = 0;
+
     function spawnEnemies(dt) {
       if (state.isPaused || state.isGameOver) return;
+
+      const currentAgeGroup = Math.floor(player.age / 20) * 20;
+      if (currentAgeGroup >= 20 && currentAgeGroup > lastMomAgeSpawned) {
+        lastMomAgeSpawned = currentAgeGroup;
+        triggerBossWarning("엄마의 잔소리");
+        
+        const spawnAng = Math.random() * Math.PI * 2;
+        enemies.push({
+          name: "엄마의 잔소리",
+          emoji: "🗣️💥",
+          boss: true,
+          isMomNagging: true,
+          baseHp: 45000 * (currentAgeGroup / 20),
+          hp: 45000 * (currentAgeGroup / 20),
+          maxHp: 45000 * (currentAgeGroup / 20),
+          spd: 65,
+          dmg: 150 + currentAgeGroup * 15,
+          expVal: 50000,
+          coinVal: 5000,
+          scoreVal: 50000,
+          size: 72,
+          x: player.x + Math.cos(spawnAng) * 500,
+          y: player.y + Math.sin(spawnAng) * 500,
+          dead: false,
+          stunTimer: 0,
+          shootCooldown: 1.5
+        });
+      }
 
       const aliveEnemies = enemies.filter(e => !e.dead).length;
       if (aliveEnemies >= 28) return;
@@ -1475,6 +1518,7 @@
 
       if (!state.isPaused && !state.isGameOver) updateGame(dt);
       renderGame();
+      renderMiniMap();
       requestAnimationFrame(gameLoop);
     }
 
@@ -1738,20 +1782,21 @@
           en.y += (dy / d) * en.spd * dt;
         }
 
-        if (en.boss) {
+        if (en.boss || en.isMomNagging) {
           en.shootCooldown -= dt;
           if (en.shootCooldown <= 0) {
-            en.shootCooldown = Math.max(2.0, 2.8 - player.age * 0.02);
+            en.shootCooldown = en.isMomNagging ? 1.0 : Math.max(2.0, 2.8 - player.age * 0.02);
             Sound.play('boss_shoot');
-            for (let k = 0; k < 8; k++) {
-              const ang = (Math.PI * 2 / 8) * k;
+            const shots = en.isMomNagging ? 12 : 8;
+            for (let k = 0; k < shots; k++) {
+              const ang = (Math.PI * 2 / shots) * k;
               bossProjectiles.push({
                 x: en.x, y: en.y,
-                vx: Math.cos(ang) * 210,
-                vy: Math.sin(ang) * 210,
-                damage: en.dmg * 0.75,
-                radius: 11,
-                life: 3.2
+                vx: Math.cos(ang) * (en.isMomNagging ? 260 : 210),
+                vy: Math.sin(ang) * (en.isMomNagging ? 260 : 210),
+                damage: en.dmg * 0.8,
+                radius: en.isMomNagging ? 13 : 11,
+                life: 3.5
               });
             }
           }
@@ -1977,13 +2022,13 @@
           const barW = en.size * 1.5;
           ctx.fillStyle = "rgba(0,0,0,0.4)";
           ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW, 5);
-          ctx.fillStyle = en.boss ? "#f43f5e" : "#ef4444";
+          ctx.fillStyle = (en.boss || en.isMomNagging) ? "#f43f5e" : "#ef4444";
           ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (en.hp / en.maxHp), 5);
         }
-        if (en.boss) {
+        if (en.boss || en.isMomNagging) {
           ctx.beginPath();
           ctx.arc(en.x, en.y, en.size + 14, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(220, 38, 38, 0.28)";
+          ctx.fillStyle = "rgba(220, 38, 38, 0.35)";
           ctx.fill();
         }
         ctx.font = `${en.size * 1.5}px sans-serif`;
@@ -2056,6 +2101,36 @@
       });
 
       ctx.restore();
+    }
+
+    /* ========================================================
+       미니맵(전체 맵 레이더) 렌더링
+       ======================================================== */
+    function renderMiniMap() {
+      const mCanvas = document.getElementById('minimap-canvas');
+      if (!mCanvas) return;
+      const mCtx = mCanvas.getContext('2d');
+      const mw = mCanvas.width;
+      const mh = mCanvas.height;
+
+      mCtx.clearRect(0, 0, mw, mh);
+
+      mCtx.fillStyle = "rgba(30, 41, 59, 0.9)";
+      mCtx.fillRect(0, 0, mw, mh);
+
+      const scaleX = mw / WORLD_WIDTH;
+      const scaleY = mh / WORLD_HEIGHT;
+
+      enemies.forEach(en => {
+        if (en.dead) return;
+        mCtx.fillStyle = (en.boss || en.isMomNagging) ? "#ef4444" : "#f59e0b";
+        mCtx.fillRect(en.x * scaleX - 1, en.y * scaleY - 1, 2.5, 2.5);
+      });
+
+      mCtx.fillStyle = "#38bdf8";
+      mCtx.beginPath();
+      mCtx.arc(player.x * scaleX, player.y * scaleY, 3, 0, Math.PI * 2);
+      mCtx.fill();
     }
 
     /* ========================================================
@@ -2196,7 +2271,7 @@
               <div class="text-[10px] text-slate-500 truncate font-semibold mt-0.5">${item.desc}</div>
             </div>
           </div>
-          <button class="btn-buy-tier shrink-0 font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition-transform active:scale-95 ${state.coins >= nextCost ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}">
+          <button class="interactive btn-buy-tier shrink-0 font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition-transform active:scale-95 cursor-pointer ${state.coins >= nextCost ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}" ${state.coins >= nextCost ? '' : 'disabled'}>
             강화 🪙 ${nextCost.toLocaleString()}
           </button>
         `;
@@ -2270,7 +2345,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       서버 순정 API 전용 + 중복 제거 필터 시스템
+       서버 API 랭킹 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2319,7 +2394,6 @@
               };
             });
 
-            // 닉네임 + 점수가 완전히 동일할 경우 최신 기록 1개만 남기도록 중복 제거
             const uniqueMap = new Map();
             parsed.forEach(item => {
               const key = `${item.name}_${item.score}`;
