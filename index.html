@@ -902,7 +902,7 @@
     }
 
     /* ========================================================
-       스킬 & 공격
+       [핵심 수정] 진로별 특수 스킬 발사 루프 정밀 연동
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -919,11 +919,15 @@
       Sound.play('shoot');
 
       const speed = stats.projSpeed;
-      const isFreeTalking = state.selectedLifePerks.some(p => p.perk === "프리토킹");
-      const isArmyK2 = state.selectedLifePerks.some(p => p.perk === "육군보병");
-      const isExamPen = state.selectedLifePerks.some(p => p.perk === "컴싸난사");
-      const isBigBaby = state.selectedLifePerks.some(p => p.perk === "육아전쟁");
-      const isPowerShot = state.selectedLifePerks.some(p => p.perk === "파워슛");
+      
+      // 진로별 퍼크(Perk) 활성화 여부 확인
+      const hasPerk = (pName) => state.selectedLifePerks.some(p => p.perk === pName);
+
+      const isFreeTalking = hasPerk("프리토킹");
+      const isArmyK2 = hasPerk("육군보병");
+      const isExamPen = hasPerk("컴싸난사");
+      const isBigBaby = hasPerk("육아전쟁");
+      const isPowerShot = hasPerk("파워슛");
 
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : ((player.age >= 17 ? 2 : 0));
@@ -941,6 +945,7 @@
         life: 1.6
       });
 
+      // 개별 진로 스킬 분기 우선순위 명확화
       if (isFreeTalking) {
         projectiles.push(createProj(angle - 0.22, 2, "🔤"));
         projectiles.push(createProj(angle, 2, "🔤"));
@@ -958,6 +963,8 @@
         for (let k = -3; k <= 3; k++) {
           projectiles.push(createProj(angle + k * 0.12, 1, "🖍️"));
         }
+      } else if (isPowerShot) {
+        projectiles.push(createProj(angle, 2, "⚽"));
       } else if (player.age >= 14) {
         projectiles.push(createProj(angle - 0.22));
         projectiles.push(createProj(angle));
@@ -966,8 +973,8 @@
         projectiles.push(createProj(angle));
       }
 
-      const soloFast = state.selectedLifePerks.some(p => p.perk === "솔로프리덤") ? 0.75 : 1.0;
-      const yagenFast = (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      const soloFast = hasPerk("솔로프리덤") ? 0.75 : 1.0;
+      const yagenFast = (hasPerk("야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = yagenFast * soloFast;
     }
 
