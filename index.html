@@ -1114,7 +1114,7 @@
     }
 
     function gainExp(amount) {
-      if (state.pendingEventAges.length > 0) return; // 진로 미결정 시 경험치 획득 잠시 중단 (방어안전장치)
+      if (state.pendingEventAges.length > 0) return;
       if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return;
       
       player.exp = (player.exp || 0) + amount;
@@ -1152,9 +1152,6 @@
       updateHUD();
     }
 
-    /* ========================================================
-       선행 순서 검증 및 진로 보류 시 EXP/나이 정지 엔진
-       ======================================================== */
     function checkLifeEvent(age) {
       const eventDef = LIFE_EVENTS[age];
       if (!eventDef) return;
@@ -1162,7 +1159,6 @@
       const alreadyChosen = state.selectedLifePerks.some(p => p.category === eventDef.categoryKey);
       if (alreadyChosen) return;
 
-      // 선행 단계 검사: 이전 단계 진로를 안 끝냈으면 이벤트 발생 보류
       const currentOrderIdx = eventDef.orderIdx;
       for (let i = 0; i < currentOrderIdx; i++) {
         const requiredAge = STAGE_ORDER[i];
@@ -1454,7 +1450,7 @@
     }
 
     /* ========================================================
-       게임 루프
+       게임 루프 (서버 랭킹 동기화 안전장치 적용)
        ======================================================== */
     let lastTime = 0;
 
@@ -2260,7 +2256,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템
+       실시간 랭킹 시스템 (서버 통신 오류 방지 및 데이터 동기화 최적화)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2291,6 +2287,9 @@
         createdAt: timestamp
       };
 
+      // 먼저 로컬에 즉시 안전 저장하여 초기화 방지
+      recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
+
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
         try {
           await fetch("https://api.simpleboards.dev/api/entries", {
@@ -2308,7 +2307,6 @@
           });
         } catch (err) {}
       }
-      recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
     }
 
     async function fetchOnlineRankings() {
@@ -2320,7 +2318,7 @@
           });
           if (res.ok) {
             const list = await res.json();
-            if (Array.isArray(list)) {
+            if (Array.isArray(list) && list.length > 0) {
               const parsed = list.map(item => {
                 let meta = {};
                 try { meta = JSON.parse(item.Metadata || item.metadata || "{}"); } catch(e) {}
