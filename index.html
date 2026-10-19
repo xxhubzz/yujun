@@ -405,7 +405,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
+            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -2128,7 +2128,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (점수 숫자 비교 정렬 적용)
+       실시간 랭킹 시스템 (숫자 크기 순 내림차순 정렬 엄격 적용)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2147,7 +2147,7 @@
         }
       });
       const cleaned = Array.from(uniqueMap.values());
-      // [핵심 수정] 점수를 무조건 숫자로 명시적 변환 후 내림차순 정렬
+      // [핵심] 점수 숫자 크기 기준 내림차순 정렬 (높은 점수가 무조건 1등)
       cleaned.sort((a, b) => Number(b.score) - Number(a.score));
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(cleaned));
     }
