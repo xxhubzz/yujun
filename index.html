@@ -126,7 +126,7 @@
   <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-20">
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
       
-      <!-- 유준이 프로필 (현재 점수 강조 표시) -->
+      <!-- 유준이 프로필 (현재 점수 실시간 표시) -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
         <div id="hud-avatar" class="text-3xl filter drop-shadow shrink-0">👶</div>
         <div class="flex-1 min-w-0">
@@ -405,7 +405,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
+            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -2128,7 +2128,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (중복 제거 정렬 필터 적용)
+       실시간 랭킹 시스템 (점수 숫자 비교 정렬 적용)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2138,16 +2138,17 @@
     }
 
     function saveLocalRankings(list) {
-      // 동일 닉네임과 점수가 중복 기록되는 것을 방지하기 위해 유니크하게 정제
       const uniqueMap = new Map();
       list.forEach(item => {
-        const key = `${item.name}_${item.score}`;
+        const scoreNum = Number(item.score) || 0;
+        const key = `${item.name}_${scoreNum}`;
         if (!uniqueMap.has(key) || new Date(item.createdAt || 0) > new Date(uniqueMap.get(key).createdAt || 0)) {
-          uniqueMap.set(key, item);
+          uniqueMap.set(key, { ...item, score: scoreNum });
         }
       });
       const cleaned = Array.from(uniqueMap.values());
-      cleaned.sort((a, b) => b.score - a.score);
+      // [핵심 수정] 점수를 무조건 숫자로 명시적 변환 후 내림차순 정렬
+      cleaned.sort((a, b) => Number(b.score) - Number(a.score));
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(cleaned));
     }
 
@@ -2213,7 +2214,7 @@
       const list = getLocalRankings();
       list.push({
         name: state.playerName,
-        score: newScore,
+        score: Number(newScore),
         age: finalAge,
         stage: finalStage,
         createdAt: timestamp || new Date().toISOString()
@@ -2266,7 +2267,7 @@
             <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
             <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage} (${r.age !== undefined ? r.age : 0}세)</span>
           </div>
-          <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${r.score.toLocaleString()} P</span>
+          <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
         `;
         preview.appendChild(item);
       });
@@ -2317,7 +2318,7 @@
               <div class="text-[9px] text-slate-400 font-semibold truncate">${r.stage} (${r.age !== undefined ? r.age : 0}세) · ${dateFormatted}</div>
             </div>
           </div>
-          <span class="font-black text-amber-600 text-sm whitespace-nowrap">${r.score.toLocaleString()} P</span>
+          <span class="font-black text-amber-600 text-sm whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
         `;
         listContainer.appendChild(row);
       });
