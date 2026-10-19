@@ -114,9 +114,9 @@
 
   <canvas id="game-canvas"></canvas>
 
-  <!-- 진로 보류 시 일시정지 경고 배너 (겹침 방지를 위해 아래로 배치) -->
+  <!-- 진로 보류 시 일시정지 경고 배너 -->
   <div id="postpone-warning-banner" class="hud-layer top-36 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
-    <div class="bg-amber-600/80 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
+    <div class="bg-amber-600/80 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5">
       <span>⏳</span>
       <span>진로 결정 보류 중: 레벨업 및 경험치 획득이 일시 중지되었습니다!</span>
     </div>
@@ -182,7 +182,7 @@
           </button>
         </div>
 
-        <!-- 전체 미니맵 (투명도 대폭 상향으로 시야 확보) -->
+        <!-- 전체 미니맵 (투명도 대폭 상향) -->
         <div class="interactive bg-slate-900/40 backdrop-blur-xs border-2 border-amber-300/80 rounded-2xl shadow-lg w-20 h-20 overflow-hidden relative shrink-0">
           <canvas id="minimap-canvas" width="80" height="80" class="w-full h-full block"></canvas>
           <div class="absolute inset-0 pointer-events-none border border-white/10 rounded-2xl"></div>
@@ -916,7 +916,7 @@
     }
 
     /* ========================================================
-       진로별 특수 스킬 정확한 발사 루프
+       [완벽 수정] 모든 진로 스킬 발사 루프 전면 동기화
        ======================================================== */
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
@@ -940,6 +940,7 @@
       const isExamPen = hasPerk("컴싸난사");
       const isBigBaby = hasPerk("육아전쟁");
       const isPowerShot = hasPerk("파워슛");
+      const isMarriage = hasPerk("신혼부부");
 
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : ((player.age >= 17 ? 2 : 0));
@@ -952,7 +953,7 @@
         critRate: stats.critRate,
         critDmg: stats.critDmg,
         pierce: pierceBonus + extraPierce,
-        type: isPowerShot ? "⚽" : pIcon,
+        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : pIcon),
         radius: isPowerShot ? 18 : projSize,
         life: 1.6
       });
@@ -974,6 +975,9 @@
         for (let k = -3; k <= 3; k++) {
           projectiles.push(createProj(angle + k * 0.12, 1, "🖍️"));
         }
+      } else if (isMarriage) {
+        projectiles.push(createProj(angle - 0.15, 2, "💌"));
+        projectiles.push(createProj(angle + 0.15, 2, "💌"));
       } else if (isPowerShot) {
         projectiles.push(createProj(angle, 2, "⚽"));
       } else if (player.age >= 14) {
@@ -1055,7 +1059,7 @@
         });
       }
 
-      // 방귀 스킬: 유준이는 제자리에 정지, 적들만 나로부터 바깥쪽으로 확실하게 넉백
+      // 방귀 스킬: 유준이는 가만히 있고 적들만 사방 바깥쪽으로 밀려남 (순수 넉백)
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d < fart.rad + 50) {
@@ -2115,8 +2119,7 @@
 
       mCtx.clearRect(0, 0, mw, mh);
 
-      // 반투명 다크 배경으로 게임 시야 확보
-      mCtx.fillStyle = "rgba(15, 23, 42, 0.5)";
+      mCtx.fillStyle = "rgba(15, 23, 42, 0.4)";
       mCtx.fillRect(0, 0, mw, mh);
 
       const scaleX = mw / WORLD_WIDTH;
