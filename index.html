@@ -405,7 +405,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
+            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -763,7 +763,7 @@
     }
 
     /* ========================================================
-       조이스틱 & 컨트롤러
+       조이스틱 & 멀티터치 컨트롤러
        ======================================================== */
     const joyBase = document.getElementById('joystick-base');
     const joyThumb = document.getElementById('joystick-thumb');
@@ -844,23 +844,17 @@
       if (e.code === 'Space') player.isAttacking = false;
     });
 
+    // 모든 액티브 스킬 버튼에 멀티터치(touchstart) 즉시 반응 바인딩
     const atkBtn = document.getElementById('btn-attack');
+    const poopBtn = document.getElementById('btn-skill-poop');
+    const fartBtn = document.getElementById('btn-skill-fart');
+    const cryBtn = document.getElementById('btn-skill-cry');
+
     atkBtn.addEventListener('touchstart', (e) => {
       e.preventDefault(); Sound.init();
       player.isAttacking = true;
       tryShoot();
     }, { passive: false });
-
-    window.addEventListener('touchend', (e) => {
-      let stillAtk = false;
-      for (let i = 0; i < e.touches.length; i++) {
-        if (e.touches[i].target === atkBtn || atkBtn.contains(e.touches[i].target)) {
-          stillAtk = true; break;
-        }
-      }
-      if (!stillAtk) player.isAttacking = false;
-    });
-
     atkBtn.addEventListener('mousedown', (e) => {
       e.preventDefault(); Sound.init();
       player.isAttacking = true;
@@ -868,9 +862,14 @@
     });
     window.addEventListener('mouseup', () => { player.isAttacking = false; });
 
-    document.getElementById('btn-skill-poop').addEventListener('click', triggerPoop);
-    document.getElementById('btn-skill-fart').addEventListener('click', triggerFart);
-    document.getElementById('btn-skill-cry').addEventListener('click', triggerCry);
+    poopBtn.addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerPoop(); }, { passive: false });
+    poopBtn.addEventListener('click', (e) => { e.preventDefault(); Sound.init(); triggerPoop(); });
+
+    fartBtn.addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerFart(); }, { passive: false });
+    fartBtn.addEventListener('click', (e) => { e.preventDefault(); Sound.init(); triggerFart(); });
+
+    cryBtn.addEventListener('touchstart', (e) => { e.preventDefault(); Sound.init(); triggerCry(); }, { passive: false });
+    cryBtn.addEventListener('click', (e) => { e.preventDefault(); Sound.init(); triggerCry(); });
 
     function getNearestEnemy() {
       let nearest = null;
@@ -1386,7 +1385,7 @@
     }
 
     /* ========================================================
-       게임 루프 (모든 진로별 특수 스킬 엔진 완전 연동)
+       게임 루프
        ======================================================== */
     let lastTime = 0;
 
@@ -1415,7 +1414,6 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      // 1. 대기업/스타트업 법카 골드 폭격
       if (state.selectedLifePerks.some(p => p.perk === "법카폭격")) {
         player.lawMoneyTimer = (player.lawMoneyTimer || 0) + dt;
         if (player.lawMoneyTimer >= 3.0) {
@@ -1439,7 +1437,6 @@
         }
       }
 
-      // 2. 다자녀 다둥이 패밀리 메테오 오라
       if (state.selectedLifePerks.some(p => p.perk === "다둥이패밀리")) {
         player.meteorTimer = (player.meteorTimer || 0) + dt;
         if (player.meteorTimer >= 4.0) {
@@ -1453,7 +1450,6 @@
         }
       }
 
-      // 3. SKY / 아이비리그 올A+ 메테오
       if (state.selectedLifePerks.some(p => p.perk === "올A메테오")) {
         player.skyMeteorTimer = (player.skyMeteorTimer || 0) + dt;
         if (player.skyMeteorTimer >= 4.0) {
@@ -1467,7 +1463,6 @@
         }
       }
 
-      // 4. 해군 함포 지원 포격
       if (state.selectedLifePerks.some(p => p.perk === "해군함포")) {
         player.navyCannonTimer = (player.navyCannonTimer || 0) + dt;
         if (player.navyCannonTimer >= 6.0) {
@@ -1487,7 +1482,6 @@
         }
       }
 
-      // 5. 명문 사립초 오케스트라 음파 감속 (-40%)
       const hasOrchestra = state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
       enemies.forEach(en => {
         if (en.dead) return;
@@ -1499,7 +1493,6 @@
         }
       });
 
-      // 6. 과학고 양자역학 블랙홀
       if (state.selectedLifePerks.some(p => p.perk === "양자블랙홀")) {
         player.blackholeTimer = (player.blackholeTimer || 0) + dt;
         if (player.blackholeTimer >= 5.0) {
@@ -1523,7 +1516,6 @@
         }
       }
 
-      // 7. 공군 F-15K 융단 폭격
       if (state.selectedLifePerks.some(p => p.perk === "공군폭격")) {
         player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
         if (player.airStrikeTimer >= 7.0) {
@@ -1537,7 +1529,6 @@
         }
       }
 
-      // 8. 카투사 레이션 100% 회복
       if (state.selectedLifePerks.some(p => p.perk === "카투사키트")) {
         player.katusaTimer = (player.katusaTimer || 0) + dt;
         if (player.katusaTimer >= 10.0) {
@@ -1548,7 +1539,6 @@
         }
       }
 
-      // 9. 공기업 철밥통 무적 쉴드
       if (state.selectedLifePerks.some(p => p.perk === "철밥통")) {
         if (!player.hasShield) {
           player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
