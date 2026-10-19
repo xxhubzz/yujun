@@ -79,7 +79,6 @@
       transform: scale(0.92);
       filter: brightness(0.9);
     }
-    /* iOS 모달 터치 관통 방지 */
     .modal-overlay {
       background: rgba(15, 23, 42, 0.65);
       backdrop-filter: blur(4px);
@@ -125,21 +124,24 @@
 
   <!-- 상단 HUD 영역 -->
   <div class="hud-layer top-0 left-0 right-0 p-3 flex flex-col gap-2 z-20">
-    <div class="flex items-center justify-between w-full max-w-md mx-auto">
+    <div class="flex items-start justify-between w-full max-w-md mx-auto">
+      <!-- 유준이 프로필 (닉네임 짤림 방지: min-w-0 flex-1 자연 확장) -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-2">
         <div id="hud-avatar" class="text-2xl filter drop-shadow">👶</div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 leading-tight mb-1">
-            <span id="player-name-display" class="font-extrabold text-slate-800 text-sm truncate">유준이</span>
+            <span id="player-name-display" class="font-extrabold text-slate-800 text-sm whitespace-nowrap">유준이</span>
             <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
           </div>
           
+          <!-- 체력 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
             <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
             <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
           </div>
 
+          <!-- 경험치 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
             <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
             <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
@@ -147,19 +149,24 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 shrink-0 z-30">
-        <button id="btn-pending-decision" class="interactive hidden bg-rose-500 text-white font-black text-xs px-2.5 py-2 rounded-2xl shadow-md active:scale-95 animate-pulse flex items-center gap-1 shrink-0">
-          🔔 진로선택
-        </button>
-        <div class="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
-          <span class="text-base">🪙</span>
-          <span id="coin-count" class="font-black text-slate-800 text-sm tracking-tight">0</span>
+      <!-- 우측 상단 코인, 랭킹, 상점 및 상점 밑 진로결정 버튼 컨테이너 -->
+      <div class="flex flex-col items-end gap-1.5 shrink-0 z-30">
+        <div class="flex items-center gap-1.5">
+          <div class="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
+            <span class="text-base">🪙</span>
+            <span id="coin-count" class="font-black text-slate-800 text-sm tracking-tight">0</span>
+          </div>
+          <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
+            🏆
+          </button>
+          <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-2 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer">
+            🛒 상점
+          </button>
         </div>
-        <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
-          🏆
-        </button>
-        <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-2 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer">
-          🛒 상점
+
+        <!-- 상점 바로 밑에 배치된 진로결정 버튼 (보류 시에만 활성화) -->
+        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[11px] px-3 py-1.5 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white">
+          🔔 진로 결정하기
         </button>
       </div>
     </div>
@@ -227,7 +234,7 @@
     </div>
   </div>
 
-  <!-- 상점 모달창 (z-index 및 터치 격리 완비) -->
+  <!-- 상점 모달창 -->
   <div id="shop-modal" class="fixed inset-0 modal-overlay z-40 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
       <div class="bg-gradient-to-r from-amber-400 to-orange-400 p-3.5 text-white flex items-center justify-between shrink-0">
@@ -383,6 +390,21 @@
             gain.gain.setValueAtTime(0.25, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.16);
             osc.start(t); osc.stop(t + 0.16);
+          } else if (type === 'boss_warning') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(550, t);
+            osc.frequency.linearRampToValueAtTime(850, t + 0.2);
+            osc.frequency.linearRampToValueAtTime(450, t + 0.4);
+            gain.gain.setValueAtTime(0.35, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
+            osc.start(t); osc.stop(t + 0.4);
+          } else if (type === 'boss_shoot') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.2);
+            gain.gain.setValueAtTime(0.35, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
           } else if (type === 'event_fanfare') {
             [523, 659, 783, 1046].forEach((freq, idx) => {
               const o = this.ctx.createOscillator();
@@ -812,6 +834,7 @@
       cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
 
+    // 방귀 공격: 플레이어 강제 이동을 없애고 제자리에서 공격 및 넉백만 발동
     function triggerFart() {
       if (state.isPaused || state.isGameOver || cooldowns.fart > 0) return;
       const stats = calcStats();
@@ -850,8 +873,7 @@
         }
       });
 
-      player.x += player.dirX * (fart.tier >= 2 ? 65 : 45);
-      player.y += player.dirY * (fart.tier >= 2 ? 65 : 45);
+      // 플레이어 강제 위치 이동(돌진) 제거 완료!
       cooldowns.fart = 4.0 * (1 - stats.coolReduce);
     }
 
@@ -1379,10 +1401,14 @@
           }
         } else if (pt.type === 'poop-debris') {
           ctx.fillStyle = "#78350f";
-          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
         } else if (pt.type === 'fart-gas') {
           ctx.fillStyle = "rgba(16, 185, 129, 0.45)";
-          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+          ctx.fill();
         } else if (pt.type === 'fart-cloud') {
           if (pt.tier === 3) {
             ctx.strokeStyle = "rgba(16, 185, 129, 0.95)";
@@ -1509,11 +1535,12 @@
       }
       ctx.restore();
 
+      // 유준이 머리 위 닉네임 (짤림 방지: 전체 닉네임 노출)
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0.65)";
       ctx.font = "bold 11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`유준이 (${current.name} ${player.age}세)`, player.x, player.y - 36);
+      ctx.fillText(`${state.playerName} (${current.name} ${player.age}세)`, player.x, player.y - 36);
       ctx.restore();
 
       damageTexts.forEach(dtItem => {
@@ -1530,7 +1557,7 @@
     }
 
     /* ========================================================
-       HUD 업데이트 (아이폰 게이지바 겹침 & 스킬 공격력)
+       HUD 업데이트
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -1685,9 +1712,6 @@
       });
     }
 
-    /* ========================================================
-       아이폰 Safari/웹뷰 모달 터치 먹통 완전 방어 리스너
-       ======================================================== */
     const shopModal = document.getElementById('shop-modal');
     const btnShop = document.getElementById('btn-shop');
     const btnCloseShop = document.getElementById('btn-close-shop');
@@ -1893,6 +1917,7 @@
       state.selectedLifePerks = [];
       state.pendingEventAge = null;
 
+      document.getElementById('btn-pending-decision').classList.add('hidden');
       document.getElementById('gameover-modal').classList.remove('hidden');
     }
 
