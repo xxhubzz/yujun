@@ -324,7 +324,7 @@
     <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center flex flex-col max-h-[80vh] overflow-hidden">
       <div class="text-3xl mb-1">📋</div>
       <h2 class="text-base font-black text-slate-800">미결정 진로 선택</h2>
-      <p class="text-[11px] text-slate-500 mt-0.5 mb-3">결정을 미뤄두었던 인생 이벤트를 지금 선택하세요.</p>
+      <p class="text-[11px] text-slate-500 mt-0.5 mb-3">결정을 미뤄두었던 순서대로 인생 이벤트를 선택하세요.</p>
       <div id="pending-picker-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
       <button id="btn-close-pending-picker" class="w-full mt-2 bg-slate-200 text-slate-700 font-black py-2 rounded-xl text-xs active:scale-95">닫기</button>
     </div>
@@ -405,7 +405,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
+            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -492,9 +492,14 @@
       { minAge: 60, maxAge: 99, name: "황혼기 시니어", icon: "🌅", atkName: "연금펀치", atkIcon: "💰" }
     ];
 
+    /* ========================================================
+       엄격한 순차적 인생 진로 타임라인 (선행 조건 필수 연동)
+       ======================================================== */
+    const STAGE_ORDER = [8, 14, 17, 20, 21, 22, 25, 28, 35, 45, 60];
+
     const LIFE_EVENTS = {
       8: {
-        categoryKey: "elem",
+        categoryKey: "elem", orderIdx: 0,
         icon: "🏫", ageStr: "8세 초등학교 입학", title: "인생의 첫 학교 선택",
         choices: [
           { name: "동네 일반초", cost: 0, desc: "무료! 기본 급식 식판 투척 스킬 획득", perk: "급식어택", pwr: 1.0 },
@@ -503,7 +508,7 @@
         ]
       },
       14: {
-        categoryKey: "middle",
+        categoryKey: "middle", orderIdx: 1,
         icon: "🎒", ageStr: "14세 중학교 입학", title: "질풍노도의 사춘기",
         choices: [
           { name: "일반 중학교", cost: 0, desc: "무료! 중2병 질풍노도 발차기 돌진 넉백", perk: "질풍노도", pwr: 1.0 },
@@ -512,7 +517,7 @@
         ]
       },
       17: {
-        categoryKey: "high",
+        categoryKey: "high", orderIdx: 2,
         icon: "📚", ageStr: "17세 고등학교 진학", title: "입시와 진로의 갈림길",
         choices: [
           { name: "특성화고(실업계)", cost: 0, desc: "무료! 장비 강화비용 20% 영구 할인 & 스패너 투척", perk: "자격증마스터", pwr: 1.0 },
@@ -521,7 +526,7 @@
         ]
       },
       20: {
-        categoryKey: "univ",
+        categoryKey: "univ", orderIdx: 3,
         icon: "🎓", ageStr: "20세 대학 진학", title: "캠퍼스 라이프와 사회 진출",
         choices: [
           { name: "전문대/취업준비", cost: 0, desc: "무료! 칼퇴근 부스터: 이동속도 +35px/s 상시 증가", perk: "칼퇴근", pwr: 1.0 },
@@ -530,7 +535,7 @@
         ]
       },
       21: {
-        categoryKey: "military",
+        categoryKey: "military", orderIdx: 4,
         icon: "🪖", ageStr: "21세 국방의 의무", title: "군대 입대!",
         choices: [
           { name: "대한민국 육군 (보병)", cost: 0, desc: "무료! K2 소총 6점사 폭풍 관통 사격", perk: "육군보병", pwr: 1.0 },
@@ -540,14 +545,14 @@
         ]
       },
       22: {
-        categoryKey: "reserve",
+        categoryKey: "reserve", orderIdx: 5,
         icon: "🎖️", ageStr: "22세 군대 만기전역", title: "빛나는 군필 예비군!",
         choices: [
           { name: "늠름한 예비군 1년차", cost: 0, desc: "전역 축하! 모든 공격력 & 체력 +30% 영구 보너스!", perk: "예비군각성", pwr: 1.3 }
         ]
       },
       25: {
-        categoryKey: "job",
+        categoryKey: "job", orderIdx: 6,
         icon: "💼", ageStr: "25세 사회 진출", title: "본격적인 직장인 생활",
         choices: [
           { name: "중소기업 올라운더", cost: 0, desc: "무료! 야근의 분노: 체력 35% 이하 시 공속 2.5배", perk: "야근분노", pwr: 1.0 },
@@ -556,7 +561,7 @@
         ]
       },
       28: {
-        categoryKey: "marriage",
+        categoryKey: "marriage", orderIdx: 7,
         icon: "💍", ageStr: "28세 결혼 및 가정", title: "안정적인 인생의 동반자",
         choices: [
           { name: "솔로 프리덤", cost: 0, desc: "무료! 홀로 남은 자유: 공격속도 +25% 상시 증가", perk: "솔로프리덤", pwr: 1.2 },
@@ -565,7 +570,7 @@
         ]
       },
       35: {
-        categoryKey: "parenting",
+        categoryKey: "parenting", orderIdx: 8,
         icon: "👨‍👩‍👧", ageStr: "35세 자녀 출산과 육아", title: "부모로서의 책임감",
         choices: [
           { name: "딩크족 커리어 집중", cost: 0, desc: "무료! 치명타율 대폭 상승 (치명타 +30%)", perk: "딩크족", pwr: 1.3 },
@@ -574,7 +579,7 @@
         ]
       },
       45: {
-        categoryKey: "realestate",
+        categoryKey: "realestate", orderIdx: 9,
         icon: "🏢", ageStr: "45세 내 집 마련과 청약", title: "자산 형성의 갈림길",
         choices: [
           { name: "월세 거주 파이어", cost: 0, desc: "무료! 이동속도 극대화 (+50px/s)", perk: "월세파이어", pwr: 1.3 },
@@ -583,7 +588,7 @@
         ]
       },
       60: {
-        categoryKey: "retirement",
+        categoryKey: "retirement", orderIdx: 10,
         icon: "🌅", ageStr: "60세 정년 퇴직과 황혼기", title: "인생의 후반전",
         choices: [
           { name: "치킨집 창업", cost: 0, desc: "무료! 처치 시 코인 획득량 3배 폭증", perk: "치킨집", pwr: 1.5 },
@@ -844,7 +849,6 @@
       if (e.code === 'Space') player.isAttacking = false;
     });
 
-    // 모든 액티브 스킬 버튼에 멀티터치(touchstart) 즉시 반응 바인딩
     const atkBtn = document.getElementById('btn-attack');
     const poopBtn = document.getElementById('btn-skill-poop');
     const fartBtn = document.getElementById('btn-skill-fart');
@@ -1142,12 +1146,30 @@
       updateHUD();
     }
 
+    /* ========================================================
+       엄격한 순차적 진로 타임라인 제어 엔진 (핵심 수정)
+       ======================================================== */
     function checkLifeEvent(age) {
       const eventDef = LIFE_EVENTS[age];
       if (!eventDef) return;
 
+      // 이미 선택 완료된 카테고리인지 확인
       const alreadyChosen = state.selectedLifePerks.some(p => p.category === eventDef.categoryKey);
       if (alreadyChosen) return;
+
+      // 선행 단계가 모두 완료되었는지 검사 (예: 초등학교를 안 끝냈으면 중학교 이벤트가 절대 열리지 않음)
+      const currentOrderIdx = eventDef.orderIdx;
+      for (let i = 0; i < currentOrderIdx; i++) {
+        const requiredAge = STAGE_ORDER[i];
+        const requiredDef = LIFE_EVENTS[requiredAge];
+        if (requiredDef) {
+          const isRequiredDone = state.selectedLifePerks.some(p => p.category === requiredDef.categoryKey);
+          if (!isRequiredDone) {
+            // 선행 진로가 아직 안 끝났으므로 이번 이벤트는 보류 큐에 넣지 않고 대기
+            return;
+          }
+        }
+      }
 
       if (!state.pendingEventAges.includes(age)) {
         state.pendingEventAges.push(age);
@@ -1200,7 +1222,7 @@
             state.currentModalAge = null;
 
             document.getElementById('life-choice-modal').classList.add('hidden');
-            updatePendingButtonBadge();
+            checkAndTriggerNextPendingEvent();
             state.isPaused = false;
             updateHUD();
           });
@@ -1210,6 +1232,35 @@
       });
 
       document.getElementById('life-choice-modal').classList.remove('hidden');
+    }
+
+    // 선행 조건이 충족된 다음 미결정 진로가 있으면 자동 연쇄 오픈
+    function checkAndTriggerNextPendingEvent() {
+      // 나이 순서(오름차순)로 정렬
+      state.pendingEventAges.sort((a, b) => a - b);
+      
+      for (let i = 0; i < state.pendingEventAges.length; i++) {
+        const nextAge = state.pendingEventAges[i];
+        const ev = LIFE_EVENTS[nextAge];
+        if (!ev) continue;
+
+        // 선행 조건 체크
+        let canOpen = true;
+        for (let idx = 0; idx < ev.orderIdx; idx++) {
+          const reqAge = STAGE_ORDER[idx];
+          const reqDef = LIFE_EVENTS[reqAge];
+          if (reqDef) {
+            const done = state.selectedLifePerks.some(p => p.category === reqDef.categoryKey);
+            if (!done) { canOpen = false; break; }
+          }
+        }
+
+        if (canOpen) {
+          openLifeEventModal(nextAge);
+          return;
+        }
+      }
+      updatePendingButtonBadge();
     }
 
     document.getElementById('btn-postpone-decision').addEventListener('click', () => {
@@ -1224,9 +1275,26 @@
       e.stopPropagation();
       if (state.pendingEventAges.length === 0) return;
 
-      if (state.pendingEventAges.length === 1) {
-        openLifeEventModal(state.pendingEventAges[0]);
-      } else {
+      // 가장 순서가 빠른(나이가 낮은) 미결정 진로 오픈
+      state.pendingEventAges.sort((a, b) => a - b);
+      for (let i = 0; i < state.pendingEventAges.length; i++) {
+        const age = state.pendingEventAges[i];
+        const ev = LIFE_EVENTS[age];
+        let canOpen = true;
+        for (let idx = 0; idx < ev.orderIdx; idx++) {
+          const reqAge = STAGE_ORDER[idx];
+          const reqDef = LIFE_EVENTS[reqAge];
+          if (reqDef && !state.selectedLifePerks.some(p => p.category === reqDef.categoryKey)) {
+            canOpen = false; break;
+          }
+        }
+        if (canOpen) {
+          openLifeEventModal(age);
+          return;
+        }
+      }
+
+      if (state.pendingEventAges.length > 1) {
         openPendingPickerModal();
       }
     });
@@ -1240,7 +1308,7 @@
       const list = document.getElementById('pending-picker-list');
       list.innerHTML = "";
 
-      state.pendingEventAges.forEach(age => {
+      state.pendingEventAges.sort((a, b) => a - b).forEach(age => {
         const ev = LIFE_EVENTS[age];
         if (!ev) return;
         const row = document.createElement('div');
