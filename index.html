@@ -113,9 +113,9 @@
 
   <canvas id="game-canvas"></canvas>
 
-  <!-- 진로 보류 시 일시정지 경고 배너 (위치를 낮추고 투명도를 주어 시야 확보) -->
+  <!-- 진로 보류 시 일시정지 경고 배너 -->
   <div id="postpone-warning-banner" class="hud-layer top-24 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
-    <div class="bg-amber-600/85 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[11px] px-3.5 py-1 rounded-full shadow-md flex items-center gap-1.5">
+    <div class="bg-amber-600/85 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[11px] px-3.5 py-1 rounded-full shadow-lg flex items-center gap-1.5">
       <span>⏳</span>
       <span>진로 결정 보류 중: 레벨업 및 경험치 획득이 일시 중지되었습니다!</span>
     </div>
@@ -338,7 +338,7 @@
     </div>
   </div>
 
-  <!-- 게임 오버 모달 (내 점수 및 실시간 랭킹 Top 5 포함) -->
+  <!-- 게임 오버 모달 -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-4 border-4 border-rose-400 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">😢</div>
@@ -2263,7 +2263,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템
+       실시간 랭킹 시스템 (서버 동기화 및 렌더링 안정화)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2294,6 +2294,7 @@
         createdAt: timestamp
       };
 
+      // 즉시 로컬에 강제 기록하여 반영 보장
       recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
 
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
