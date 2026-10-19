@@ -303,7 +303,7 @@
 
       <div class="mt-3 pt-3 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1.5">
-          <span class="flex items-center gap-1">🌐 실시간 랭킹 Top 5</span>
+          <span class="flex items-center gap-1">🌐 서버 실시간 랭킹 Top 5</span>
           <span id="rank-sync-status" class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
         </div>
         <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[145px]"></div>
@@ -353,7 +353,7 @@
 
       <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
-          <span class="flex items-center gap-1">🏆 실시간 랭킹 Top 5</span>
+          <span class="flex items-center gap-1">🏆 서버 실시간 랭킹 Top 5</span>
           <span class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
         </div>
         <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
@@ -2263,111 +2263,60 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       최종 안정화된 로컬 + 서버 하이브리드 랭킹 시스템
+       순정 SimpleBoards 서버 API 전용 랭킹 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
-    function getLocalRankings() {
-      try {
-        const data = localStorage.getItem('yujun_clean_rankings');
-        return data ? JSON.parse(data) : [];
-      } catch(e) {
-        return [];
-      }
-    }
-
-    function saveLocalRankings(list) {
-      try {
-        const uniqueMap = new Map();
-        list.forEach(item => {
-          const scoreNum = Number(item.score) || 0;
-          const key = `${item.name}_${scoreNum}_${item.age}`;
-          if (!uniqueMap.has(key) || new Date(item.createdAt || 0) > new Date(uniqueMap.get(key).createdAt || 0)) {
-            uniqueMap.set(key, { ...item, score: scoreNum });
-          }
-        });
-        const cleaned = Array.from(uniqueMap.values());
-        cleaned.sort((a, b) => Number(b.score) - Number(a.score));
-        localStorage.setItem('yujun_clean_rankings', JSON.stringify(cleaned));
-      } catch(e) {}
-    }
-
     async function submitScoreOnline(finalScore, finalAge, finalStage) {
-      const timestamp = new Date().toISOString();
-      const newEntry = {
-        name: state.playerName,
-        score: Number(finalScore),
-        age: finalAge,
-        stage: finalStage,
-        createdAt: timestamp
-      };
-
-      // 1. 브라우저 로컬 저장소에 즉시 안전 저장 (절대 안 날아감)
-      const localList = getLocalRankings();
-      localList.push(newEntry);
-      saveLocalRankings(localList);
-
-      // 2. 서버 API 전송 시도
-      if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
-        try {
-          await fetch("https://api.simpleboards.dev/api/entries", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": SIMPLEBOARDS_API_KEY
-            },
-            body: JSON.stringify({
-              LeaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
-              PlayerDisplayName: state.playerName,
-              Score: String(finalScore),
-              Metadata: JSON.stringify({
-                age: finalAge,
-                stage: finalStage,
-                createdAt: timestamp
-              })
+      if (!SIMPLEBOARDS_LEADERBOARD_ID || SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) return;
+      try {
+        await fetch("https://api.simpleboards.dev/api/entries", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": SIMPLEBOARDS_API_KEY
+          },
+          body: JSON.stringify({
+            LeaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
+            PlayerDisplayName: state.playerName,
+            Score: String(finalScore),
+            Metadata: JSON.stringify({
+              age: finalAge,
+              stage: finalStage,
+              createdAt: new Date().toISOString()
             })
-          });
-        } catch (err) {}
-      }
+          })
+        });
+      } catch (err) {}
     }
 
     async function fetchOnlineRankings() {
-      let localList = getLocalRankings();
-
-      if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
-        try {
-          const res = await fetch(`https://api.simpleboards.dev/api/leaderboards/${SIMPLEBOARDS_LEADERBOARD_ID}/entries`, {
-            method: "GET",
-            headers: { "x-api-key": SIMPLEBOARDS_API_KEY }
-          });
-          if (res.ok) {
-            const list = await res.json();
-            if (Array.isArray(list) && list.length > 0) {
-              const serverParsed = list.map(item => {
-                let meta = {};
-                try { meta = JSON.parse(item.Metadata || item.metadata || "{}"); } catch(e) {}
-                return {
-                  name: item.PlayerDisplayName || item.playerDisplayName || "익명",
-                  score: parseInt(item.Score || item.score) || 0,
-                  age: meta.age || 0,
-                  stage: meta.stage || "신생아",
-                  createdAt: meta.createdAt || item.CreatedAt || new Date().toISOString()
-                };
-              });
-              const merged = [...localList, ...serverParsed];
-              saveLocalRankings(merged);
-              return getLocalRankings();
-            }
+      if (!SIMPLEBOARDS_LEADERBOARD_ID || SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) return [];
+      try {
+        const res = await fetch(`https://api.simpleboards.dev/api/leaderboards/${SIMPLEBOARDS_LEADERBOARD_ID}/entries`, {
+          method: "GET",
+          headers: { "x-api-key": SIMPLEBOARDS_API_KEY }
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            const parsed = list.map(item => {
+              let meta = {};
+              try { meta = JSON.parse(item.Metadata || item.metadata || "{}"); } catch(e) {}
+              return {
+                name: item.PlayerDisplayName || item.playerDisplayName || "익명",
+                score: parseInt(item.Score || item.score) || 0,
+                age: meta.age || 0,
+                stage: meta.stage || "신생아",
+                createdAt: meta.createdAt || item.CreatedAt || new Date().toISOString()
+              };
+            });
+            parsed.sort((a, b) => Number(b.score) - Number(a.score));
+            return parsed;
           }
-        } catch (err) {}
-      }
-
-      return localList.length > 0 ? localList : [
-        { name: "유준이아빠", score: 50, age: 0, stage: "영유아", createdAt: new Date().toISOString() },
-        { name: "익명의 수호자", score: 0, age: 0, stage: "영유아", createdAt: new Date().toISOString() },
-        { name: "유준맘", score: 0, age: 0, stage: "영유아", createdAt: new Date().toISOString() },
-        { name: "junpapa", score: 0, age: 0, stage: "영유아", createdAt: new Date().toISOString() }
-      ];
+        }
+      } catch (err) {}
+      return [];
     }
 
     function filterRankingsByPeriod(list, period) {
@@ -2395,6 +2344,15 @@
       const filtered = filterRankingsByPeriod(allList, 'daily');
       const displayList = filtered.length > 0 ? filtered : allList;
 
+      if (displayList.length === 0) {
+        preview.innerHTML = `
+          <div class="text-center py-4 text-[10px] text-slate-400">
+            서버에 등록된 랭킹 기록이 없습니다.<br>첫 번째 1등 주인공이 되어보세요!
+          </div>
+        `;
+        return;
+      }
+
       preview.innerHTML = "";
       displayList.slice(0, 5).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
@@ -2417,6 +2375,11 @@
       const allList = await fetchOnlineRankings();
       const filtered = filterRankingsByPeriod(allList, 'daily');
       const displayList = filtered.length > 0 ? filtered : allList;
+
+      if (displayList.length === 0) {
+        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">서버 랭킹 기록이 없습니다.</div>`;
+        return;
+      }
 
       preview.innerHTML = "";
       displayList.slice(0, 5).forEach((r, idx) => {
@@ -2453,8 +2416,8 @@
         listContainer.innerHTML = `
           <div class="text-center py-12">
             <div class="text-4xl mb-2">🏆</div>
-            <div class="text-xs font-bold text-slate-700">해당 기간에 등록된 랭킹 기록이 없습니다.</div>
-            <div class="text-[10px] text-slate-400 mt-1">지금 플레이하고 기간 랭킹 1위를 차지해보세요!</div>
+            <div class="text-xs font-bold text-slate-700">해당 기간에 등록된 서버 랭킹 기록이 없습니다.</div>
+            <div class="text-[10px] text-slate-400 mt-1">지금 플레이하고 서버 1위에 도전해보세요!</div>
           </div>
         `;
         return;
@@ -2506,6 +2469,7 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
+      // 서버에 점수 등록 후 랭킹 목록 갱신
       await submitScoreOnline(finalScore, finalAge, finalStageName);
       await renderGameOverRankPreview();
 
