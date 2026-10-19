@@ -122,7 +122,7 @@
     </div>
   </div>
 
-  <!-- 상단 HUD 영역 -->
+  <!-- 상단 HUD 영역 (텍스트 짤림 방지 레이아웃) -->
   <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-20">
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
       
@@ -130,18 +130,22 @@
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
         <div id="hud-avatar" class="text-3xl filter drop-shadow shrink-0">👶</div>
         <div class="flex-1 min-w-0">
+          <!-- 1줄: 닉네임 -->
           <div class="font-black text-slate-800 text-xs sm:text-sm truncate leading-tight" id="player-name-display">유준이</div>
           
+          <!-- 2줄: 단계 뱃지 + 나이 (한 줄로 깔끔 정렬) -->
           <div class="flex items-center gap-1.5 mt-0.5 mb-1 leading-none">
             <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
           </div>
 
+          <!-- 체력 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
             <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
             <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
           </div>
 
+          <!-- 경험치 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
             <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
             <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
@@ -149,6 +153,7 @@
         </div>
       </div>
 
+      <!-- 우측 상단 코인, 랭킹, 상점 및 진로결정 버튼 -->
       <div class="flex flex-col items-end gap-1 shrink-0 z-30">
         <div class="flex items-center gap-1">
           <div class="bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
@@ -352,9 +357,6 @@
   </div>
 
   <script>
-    /* ========================================================
-       실제 발급받은 SimpleBoards Leaderboard ID 반영
-       ======================================================== */
     const SIMPLEBOARDS_API_KEY = "8dc250c0-5aae-4914-8988-1ab0641b8ff3";
     const SIMPLEBOARDS_LEADERBOARD_ID = "0fb7389c-2786-429b-abe2-08df2d7ebc26";
 
@@ -564,7 +566,8 @@
       equipDrawerOpen: true,
       selectedLifePerks: [],
       pendingEventAges: [],
-      currentModalAge: null
+      currentModalAge: null,
+      spawnedAge8Boss: false // 8세 보스 출현 트리거
     };
 
     const player = {
@@ -629,6 +632,7 @@
 
     function calcStats() {
       const getL = (id) => state.itemLevels[id] || 0;
+      const current = getCurrentStage();
 
       let stats = {
         maxHp: 150 + player.age * 25 + getL('bed') * 55,
@@ -1056,6 +1060,12 @@
           alpha: 1, life: 1.8
         });
 
+        // 8세 도달 시 첫 번째 보스 확정 출현
+        if (player.age >= 8 && !state.spawnedAge8Boss) {
+          state.spawnedAge8Boss = true;
+          spawnBossGuaranteed("불량 젤리왕");
+        }
+
         checkLifeEvent(player.age);
       }
 
@@ -1182,7 +1192,6 @@
         list.appendChild(row);
       });
 
-      pickerModal.classList.add('hidden'); // 충돌 방지
       pickerModal.classList.remove('hidden');
     }
 
@@ -1208,7 +1217,7 @@
       Sound.play('boss_warning');
       const banner = document.getElementById('boss-warning-banner');
       const text = document.getElementById('boss-warning-text');
-      text.innerText = `WARNING! ${name} 출현!`;
+      text.innerText = `WARNING! [${name}] 출현!`;
       banner.classList.remove('hidden');
 
       if (bossWarningTimeout) clearTimeout(bossWarningTimeout);
@@ -1218,26 +1227,55 @@
     }
 
     /* ========================================================
-       다채로운 보스 4종 & 일반 몬스터 스폰 시스템 (난이도 상향 반영)
+       다채로운 보스 4종 & 일반 몬스터 스폰 시스템 (난이도 상향)
        ======================================================== */
     const BOSS_TYPES = [
-      { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3800, spd: 75, dmg: 65, expVal: 2600, coinVal: 400, scoreVal: 3000, size: 48, boss: true, bossType: "jelly" },
-      { name: "충치대마왕", emoji: "👺", minAge: 14, baseHp: 6800, spd: 68, dmg: 95, expVal: 5200, coinVal: 800, scoreVal: 6500, size: 56, boss: true, bossType: "tooth" },
-      { name: "해골군주", emoji: "💀", minAge: 20, baseHp: 11500, spd: 82, dmg: 130, expVal: 8500, coinVal: 1400, scoreVal: 11000, size: 60, boss: true, bossType: "skull" },
-      { name: "세균 황제 드라큘라", emoji: "👑", minAge: 25, baseHp: 19500, spd: 95, dmg: 180, expVal: 15000, coinVal: 2600, scoreVal: 22000, size: 64, boss: true, bossType: "emperor" }
+      { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3200, spd: 70, dmg: 55, expVal: 2200, coinVal: 350, scoreVal: 2500, size: 48, boss: true, bossType: "jelly" },
+      { name: "충치대마왕", emoji: "👺", minAge: 14, baseHp: 5800, spd: 62, dmg: 85, expVal: 4200, coinVal: 650, scoreVal: 5500, size: 56, boss: true, bossType: "tooth" },
+      { name: "해골군주", emoji: "💀", minAge: 20, baseHp: 9500, spd: 75, dmg: 110, expVal: 7000, coinVal: 1100, scoreVal: 9000, size: 60, boss: true, bossType: "skull" },
+      { name: "세균 황제 드라큘라", emoji: "👑", minAge: 25, baseHp: 16000, spd: 88, dmg: 150, expVal: 13000, coinVal: 2200, scoreVal: 18000, size: 64, boss: true, bossType: "emperor" }
     ];
 
     const ENEMY_TYPES = [
-      { name: "세균몬", emoji: "🦠", minAge: 0, baseHp: 65, spd: 88, dmg: 14, expVal: 50, coinVal: 7, scoreVal: 50, size: 24 },
-      { name: "먼지괴물", emoji: "👾", minAge: 3, baseHp: 145, spd: 75, dmg: 20, expVal: 95, coinVal: 18, scoreVal: 90, size: 28 },
-      { name: "사탕악마", emoji: "😈", minAge: 8, baseHp: 290, spd: 102, dmg: 30, expVal: 180, coinVal: 35, scoreVal: 180, size: 32 },
-      { name: "유령 바이러스", emoji: "👻", minAge: 14, baseHp: 460, spd: 138, dmg: 40, expVal: 310, coinVal: 55, scoreVal: 260, size: 26 },
-      { name: "골렘 충치", emoji: "🗿", minAge: 17, baseHp: 1150, spd: 50, dmg: 55, expVal: 580, coinVal: 95, scoreVal: 450, size: 38 },
-      { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 980, spd: 152, dmg: 62, expVal: 780, coinVal: 130, scoreVal: 650, size: 30 },
-      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1950, spd: 82, dmg: 82, expVal: 1200, coinVal: 210, scoreVal: 1050, size: 36, poison: true },
-      { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3800, spd: 92, dmg: 115, expVal: 2300, coinVal: 380, scoreVal: 2200, size: 44, rangedDragon: true }
+      { name: "세균몬", emoji: "🦠", minAge: 0, baseHp: 65, spd: 85, dmg: 12, expVal: 45, coinVal: 6, scoreVal: 50, size: 24 },
+      { name: "먼지괴물", emoji: "👾", minAge: 3, baseHp: 135, spd: 72, dmg: 18, expVal: 85, coinVal: 15, scoreVal: 90, size: 28 },
+      { name: "사탕악마", emoji: "😈", minAge: 8, baseHp: 270, spd: 98, dmg: 26, expVal: 160, coinVal: 30, scoreVal: 180, size: 32 },
+      { name: "유령 바이러스", emoji: "👻", minAge: 14, baseHp: 440, spd: 130, dmg: 36, expVal: 260, coinVal: 45, scoreVal: 260, size: 26 },
+      { name: "골렘 충치", emoji: "🗿", minAge: 17, baseHp: 1100, spd: 48, dmg: 50, expVal: 480, coinVal: 80, scoreVal: 450, size: 38 },
+      { name: "박쥐 병균", emoji: "🦇", minAge: 20, baseHp: 920, spd: 145, dmg: 58, expVal: 650, coinVal: 110, scoreVal: 650, size: 30 },
+      { name: "맹독 변종균", emoji: "☣️", minAge: 22, baseHp: 1900, spd: 78, dmg: 76, expVal: 1000, coinVal: 180, scoreVal: 1050, size: 36, poison: true },
+      { name: "지옥 드래곤", emoji: "🐉", minAge: 25, baseHp: 3800, spd: 90, dmg: 105, expVal: 1900, coinVal: 320, scoreVal: 2200, size: 44, rangedDragon: true }
     ];
 
+    function spawnBossGuaranteed(bossName) {
+      const def = BOSS_TYPES.find(b => b.name === bossName) || BOSS_TYPES[0];
+      const spawnAng = Math.random() * Math.PI * 2;
+      const spawnDist = 480;
+      let ex = Math.max(80, Math.min(WORLD_WIDTH - 80, player.x + Math.cos(spawnAng) * spawnDist));
+      let ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, player.y + Math.sin(spawnAng) * spawnDist));
+
+      const hpScale = Math.pow(1.12, player.age) + player.age * 0.45;
+      const dmgScale = 1 + player.age * 0.25;
+
+      enemies.push({
+        ...def,
+        hp: Math.round(def.baseHp * hpScale),
+        maxHp: Math.round(def.baseHp * hpScale),
+        dmg: Math.round(def.dmg * dmgScale),
+        baseSpd: def.spd,
+        spd: def.spd,
+        expVal: Math.round(def.expVal * hpScale * 0.75),
+        coinVal: Math.round(def.coinVal * (1 + player.age * 0.25)),
+        x: ex, y: ey,
+        dead: false,
+        stunTimer: 0,
+        shootCooldown: 2.2
+      });
+
+      triggerBossWarning(def.name);
+    }
+
+    let spawnTimer = 0;
     function spawnEnemies(dt) {
       if (state.isPaused || state.isGameOver) return;
 
@@ -1245,37 +1283,36 @@
       if (aliveEnemies >= 26) return;
 
       spawnTimer += dt;
-      // 난이도 상향: 적 스폰 주기 약간 더 빠르게 단축
-      const spawnInterval = Math.max(1.1, 2.4 - player.age * 0.04);
+      const spawnInterval = Math.max(1.2, 2.5 - player.age * 0.04);
 
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
         
-        const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge);
+        const hasBossOnField = enemies.some(e => e.boss && !e.dead);
+        const eligibleBosses = BOSS_TYPES.filter(b => player.age >= b.minAge);
         const r = Math.random();
         
         let def;
         let isBossSpawn = false;
-        
-        const hasBossOnField = enemies.some(e => e.boss && !e.dead);
-        const eligibleBosses = BOSS_TYPES.filter(b => player.age >= b.minAge);
 
+        // 필드에 보스가 없고 조건 만족 시 4대 보스 중 하나 출현
         if (!hasBossOnField && eligibleBosses.length > 0 && r < 0.04) {
           def = eligibleBosses[Math.floor(Math.random() * eligibleBosses.length)];
           isBossSpawn = true;
         } else {
+          const pool = ENEMY_TYPES.filter(m => player.age >= m.minAge);
           def = pool[Math.floor(Math.random() * pool.length)];
         }
 
         const spawnAng = Math.random() * Math.PI * 2;
-        const spawnDist = 450 + Math.random() * 200;
+        const spawnDist = 460 + Math.random() * 200;
         let ex = Math.max(80, Math.min(WORLD_WIDTH - 80, player.x + Math.cos(spawnAng) * spawnDist));
         let ey = Math.max(80, Math.min(WORLD_HEIGHT - 80, player.y + Math.sin(spawnAng) * spawnDist));
 
-        // 난이도 상향: 몬스터 체력과 공격력을 더 매섭게 스케일링
-        const hpScale = Math.pow(1.13, player.age) + player.age * 0.45;
+        // 난이도 상향: 적 체력 및 대미지 스케일링 강화
+        const hpScale = Math.pow(1.12, player.age) + player.age * 0.45;
         const dmgScale = 1 + player.age * 0.24;
-        const spdScale = Math.min(1.48, 1 + player.age * 0.02);
+        const spdScale = Math.min(1.45, 1 + player.age * 0.018);
 
         enemies.push({
           ...def,
@@ -1328,7 +1365,7 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      // 1. 사립오케스트라 감속 (-40%)
+      // 1. 사립오케스트라 감속(-40%)
       const hasOrchestra = state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
       enemies.forEach(en => {
         if (en.dead) return;
@@ -1401,6 +1438,7 @@
         }
       }
 
+      // 조이스틱 이동
       let moveX = joyVector.x;
       let moveY = joyVector.y;
       if (keys['w'] || keys['arrowup']) moveY -= 1;
@@ -1509,35 +1547,51 @@
           en.y += (dy / d) * en.spd * dt;
         }
 
+        // 보스별 특수 공격 패턴
         if (en.boss) {
           en.shootCooldown -= dt;
           if (en.shootCooldown <= 0) {
-            en.shootCooldown = Math.max(1.6, 2.4 - player.age * 0.03);
+            en.shootCooldown = 2.2;
             Sound.play('boss_shoot');
-            
-            if (en.bossType === "jelly") {
-              // 젤리왕: 6방향 통통 튀는 탄막
-              for (let k = 0; k < 6; k++) {
-                const ang = (Math.PI * 2 / 6) * k;
-                bossProjectiles.push({ x: en.x, y: en.y, vx: Math.cos(ang) * 180, vy: Math.sin(ang) * 180, damage: en.dmg * 0.7, radius: 10, life: 3.0 });
-              }
-            } else if (en.bossType === "skull") {
-              // 해골군주: 10방향 죽음의 탄막 난사
-              for (let k = 0; k < 10; k++) {
-                const ang = (Math.PI * 2 / 10) * k;
-                bossProjectiles.push({ x: en.x, y: en.y, vx: Math.cos(ang) * 230, vy: Math.sin(ang) * 230, damage: en.dmg * 0.85, radius: 11, life: 3.5 });
-              }
-            } else if (en.bossType === "emperor") {
-              // 황제 드라큘라: 전방위 12방향 대학살 탄막
-              for (let k = 0; k < 12; k++) {
-                const ang = (Math.PI * 2 / 12) * k;
-                bossProjectiles.push({ x: en.x, y: en.y, vx: Math.cos(ang) * 250, vy: Math.sin(ang) * 250, damage: en.dmg * 0.95, radius: 12, life: 3.5 });
-              }
-            } else {
-              // 충치대마왕: 8방향
+
+            if (en.bossType === "tooth" || en.bossType === "emperor") {
+              // 8방향 탄막 난사
               for (let k = 0; k < 8; k++) {
                 const ang = (Math.PI * 2 / 8) * k;
-                bossProjectiles.push({ x: en.x, y: en.y, vx: Math.cos(ang) * 210, vy: Math.sin(ang) * 210, damage: en.dmg * 0.75, radius: 11, life: 3.2 });
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(ang) * 220,
+                  vy: Math.sin(ang) * 220,
+                  damage: en.dmg * 0.8,
+                  radius: 11,
+                  life: 3.2
+                });
+              }
+            } else if (en.bossType === "skull") {
+              // 3방향 맹독 해골탄
+              const fang = Math.atan2(player.y - en.y, player.x - en.x);
+              for (let k = -1; k <= 1; k++) {
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(fang + k * 0.3) * 240,
+                  vy: Math.sin(fang + k * 0.3) * 240,
+                  damage: en.dmg * 0.9,
+                  radius: 12,
+                  life: 2.8
+                });
+              }
+            } else {
+              // 젤리왕: 4방향 튀는 파편
+              for (let k = 0; k < 4; k++) {
+                const ang = (Math.PI / 2) * k + Math.random() * 0.3;
+                bossProjectiles.push({
+                  x: en.x, y: en.y,
+                  vx: Math.cos(ang) * 190,
+                  vy: Math.sin(ang) * 190,
+                  damage: en.dmg * 0.7,
+                  radius: 10,
+                  life: 2.5
+                });
               }
             }
           }
@@ -1546,13 +1600,13 @@
         if (en.rangedDragon) {
           en.shootCooldown -= dt;
           if (en.shootCooldown <= 0) {
-            en.shootCooldown = 2.0;
+            en.shootCooldown = 2.2;
             Sound.play('boss_shoot');
             const fang = Math.atan2(player.y - en.y, player.x - en.x);
             bossProjectiles.push({
               x: en.x, y: en.y,
-              vx: Math.cos(fang) * 260,
-              vy: Math.sin(fang) * 260,
+              vx: Math.cos(fang) * 240,
+              vy: Math.sin(fang) * 240,
               damage: en.dmg * 0.85,
               radius: 12,
               life: 2.5
@@ -1569,7 +1623,7 @@
 
           let incomingDmg = en.dmg * (1 - stats.dmgReduction) - stats.def;
           incomingDmg = Math.max(5, incomingDmg);
-          player.hp -= incomingDmg * dt * 2.8;
+          player.hp -= incomingDmg * dt * 2.6;
 
           if (player.hp <= 0) gameOver();
         }
@@ -1648,6 +1702,7 @@
       const stats = calcStats();
       const current = getCurrentStage();
 
+      // 사립오케스트라 음파 감속 장판
       if (state.selectedLifePerks.some(p => p.perk === "사립오케스트라")) {
         ctx.save();
         ctx.beginPath();
@@ -1662,6 +1717,7 @@
         ctx.restore();
       }
 
+      // 철밥통 쉴드
       if (player.hasShield) {
         ctx.save();
         ctx.beginPath();
@@ -1851,7 +1907,7 @@
     }
 
     /* ========================================================
-       HUD 업데이트 (2줄 닉네임 + 게이지 바 겹침 완벽 보장)
+       HUD 업데이트 (2줄 프로필 & 스킬 공격력)
        ======================================================== */
     function updateHUD() {
       const stats = calcStats();
@@ -2144,8 +2200,6 @@
           const list = getLocalRankings();
           const exists = list.some(r => r.name === sharedName && r.score === sharedScore);
           if (!exists) {
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
             list.push({
               name: sharedName,
               score: sharedScore,
@@ -2306,6 +2360,7 @@
 
       localStorage.setItem('yujun_remembered_name', state.playerName);
 
+      // 환생 초기화
       player.age = 0;
       player.exp = 0;
       player.maxExp = 100;
@@ -2316,6 +2371,7 @@
       state.selectedLifePerks = [];
       state.pendingEventAges = [];
       state.currentModalAge = null;
+      state.spawnedAge8Boss = false;
       player.hasShield = false;
 
       document.getElementById('btn-pending-decision').classList.add('hidden');
