@@ -2263,7 +2263,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       순정 SimpleBoards 서버 API 전용 랭킹 시스템
+       서버 순정 API 전용 + 중복 제거 필터 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2311,8 +2311,19 @@
                 createdAt: meta.createdAt || item.CreatedAt || new Date().toISOString()
               };
             });
-            parsed.sort((a, b) => Number(b.score) - Number(a.score));
-            return parsed;
+
+            // 닉네임 + 점수가 완전히 동일할 경우 최신 기록 1개만 남기도록 중복 제거
+            const uniqueMap = new Map();
+            parsed.forEach(item => {
+              const key = `${item.name}_${item.score}`;
+              if (!uniqueMap.has(key) || new Date(item.createdAt || 0) > new Date(uniqueMap.get(key).createdAt || 0)) {
+                uniqueMap.set(key, item);
+              }
+            });
+
+            const uniqueList = Array.from(uniqueMap.values());
+            uniqueList.sort((a, b) => Number(b.score) - Number(a.score));
+            return uniqueList;
           }
         }
       } catch (err) {}
@@ -2469,7 +2480,6 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      // 서버에 점수 등록 후 랭킹 목록 갱신
       await submitScoreOnline(finalScore, finalAge, finalStageName);
       await renderGameOverRankPreview();
 
