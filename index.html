@@ -126,7 +126,7 @@
   <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-20">
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
       
-      <!-- 유준이 프로필 (현재 점수 실시간 표시) -->
+      <!-- 유준이 프로필 -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
         <div id="hud-avatar" class="text-3xl filter drop-shadow shrink-0">👶</div>
         <div class="flex-1 min-w-0">
@@ -405,7 +405,7 @@
             osc.start(t); osc.stop(t + 0.32);
           } else if (type === 'cry') {
             osc.frequency.setValueAtTime(600, t);
-            osc.frequency.exponentialRampToValueAtTime(950, t + 0.25);
+            osc.frequency.linearRampToValueAtTime(950, t + 0.25);
             osc.frequency.linearRampToValueAtTime(450, t + 0.5);
             gain.gain.setValueAtTime(0.4, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.5);
@@ -624,6 +624,9 @@
       katusaTimer: 0,
       ironShieldTimer: 0,
       meteorTimer: 0,
+      skyMeteorTimer: 0,
+      navyCannonTimer: 0,
+      lawMoneyTimer: 0,
       hasShield: false
     };
 
@@ -636,6 +639,7 @@
     let enemies = [];
     let projectiles = [];
     let bossProjectiles = [];
+    let meteors = [];
     let particles = [];
     let damageTexts = [];
     let worldCoins = [];
@@ -904,6 +908,7 @@
       const isArmyK2 = state.selectedLifePerks.some(p => p.perk === "육군보병");
       const isExamPen = state.selectedLifePerks.some(p => p.perk === "컴싸난사");
       const isBigBaby = state.selectedLifePerks.some(p => p.perk === "육아전쟁");
+      const isPowerShot = state.selectedLifePerks.some(p => p.perk === "파워슛");
 
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : ((player.age >= 17 ? 2 : 0));
@@ -912,12 +917,12 @@
         x: player.x, y: player.y,
         vx: Math.cos(ang) * speed,
         vy: Math.sin(ang) * speed,
-        damage: stats.atk * (1 + stats.dmgAmp),
+        damage: stats.atk * (1 + stats.dmgAmp) * (isPowerShot ? 1.5 : 1.0),
         critRate: stats.critRate,
         critDmg: stats.critDmg,
         pierce: pierceBonus + extraPierce,
-        type: pIcon,
-        radius: projSize,
+        type: isPowerShot ? "⚽" : pIcon,
+        radius: isPowerShot ? 18 : projSize,
         life: 1.6
       });
 
@@ -985,7 +990,8 @@
         if (d <= rad) applyDamage(en, stats.atk * poop.pwr * (1 + stats.dmgAmp), false, poop.icon);
       });
 
-      cooldowns.poop = (5.0 * (1 - stats.coolReduce));
+      const coolMult = (1 - stats.coolReduce);
+      cooldowns.poop = 5.0 * coolMult;
     }
 
     function triggerFart() {
@@ -1026,7 +1032,8 @@
         }
       });
 
-      cooldowns.fart = (4.0 * (1 - stats.coolReduce));
+      const coolMult = (1 - stats.coolReduce);
+      cooldowns.fart = 4.0 * coolMult;
     }
 
     function triggerCry() {
@@ -1049,7 +1056,8 @@
         en.stunTimer = cry.stun;
       });
 
-      cooldowns.cry = (8.0 * (1 - stats.coolReduce));
+      const coolMult = (1 - stats.coolReduce);
+      cooldowns.cry = 8.0 * coolMult;
     }
 
     function applyDamage(enemy, baseDmg, isCritBonus, icon) {
@@ -1078,8 +1086,9 @@
 
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
+        const coinMultiplier = state.selectedLifePerks.some(p => p.perk === "치킨집") ? 3.0 : 1.0;
         const coinBase = enemy.coinVal || 6;
-        const earnedCoin = Math.max(1, Math.round(coinBase * (1 + stats.coinBonus)));
+        const earnedCoin = Math.max(1, Math.round(coinBase * (1 + stats.coinBonus) * coinMultiplier));
         const expBase = enemy.expVal || 35;
         const earnedExp = Math.max(20, Math.round(expBase * (1 + stats.expBonus)));
 
@@ -1377,7 +1386,7 @@
     }
 
     /* ========================================================
-       게임 루프
+       게임 루프 (모든 진로별 특수 스킬 엔진 완전 연동)
        ======================================================== */
     let lastTime = 0;
 
@@ -1406,6 +1415,31 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
+      // 1. 대기업/스타트업 법카 골드 폭격
+      if (state.selectedLifePerks.some(p => p.perk === "법카폭격")) {
+        player.lawMoneyTimer = (player.lawMoneyTimer || 0) + dt;
+        if (player.lawMoneyTimer >= 3.0) {
+          player.lawMoneyTimer = 0;
+          Sound.play('coin');
+          for (let k = 0; k < 6; k++) {
+            const ang = (Math.PI * 2 / 6) * k;
+            projectiles.push({
+              x: player.x, y: player.y,
+              vx: Math.cos(ang) * 350,
+              vy: Math.sin(ang) * 350,
+              damage: stats.atk * 2.5,
+              critRate: stats.critRate,
+              critDmg: stats.critDmg,
+              pierce: 5,
+              type: "💳",
+              radius: 14,
+              life: 1.2
+            });
+          }
+        }
+      }
+
+      // 2. 다자녀 다둥이 패밀리 메테오 오라
       if (state.selectedLifePerks.some(p => p.perk === "다둥이패밀리")) {
         player.meteorTimer = (player.meteorTimer || 0) + dt;
         if (player.meteorTimer >= 4.0) {
@@ -1419,6 +1453,41 @@
         }
       }
 
+      // 3. SKY / 아이비리그 올A+ 메테오
+      if (state.selectedLifePerks.some(p => p.perk === "올A메테오")) {
+        player.skyMeteorTimer = (player.skyMeteorTimer || 0) + dt;
+        if (player.skyMeteorTimer >= 4.0) {
+          player.skyMeteorTimer = 0;
+          Sound.play('boss_warning');
+          enemies.forEach(en => {
+            if (en.dead) return;
+            applyDamage(en, stats.atk * 4.5, true, "🅰️");
+            damageTexts.push({ text: "올A+ 메테오 폭격!", x: en.x, y: en.y - 30, color: "#eab308", scale: 1.3, alpha: 1, life: 0.8 });
+          });
+        }
+      }
+
+      // 4. 해군 함포 지원 포격
+      if (state.selectedLifePerks.some(p => p.perk === "해군함포")) {
+        player.navyCannonTimer = (player.navyCannonTimer || 0) + dt;
+        if (player.navyCannonTimer >= 6.0) {
+          player.navyCannonTimer = 0;
+          Sound.play('air_strike');
+          const target = getNearestEnemy();
+          const hx = target ? target.x : player.x;
+          const hy = target ? target.y : player.y;
+          enemies.forEach(en => {
+            if (en.dead) return;
+            const ed = Math.hypot(en.x - hx, en.y - hy);
+            if (ed <= 220) {
+              applyDamage(en, stats.atk * 5.0, true, "🌊");
+              damageTexts.push({ text: "함포 지원 폭발!", x: hx, y: hy - 25, color: "#2563eb", scale: 1.4, alpha: 1, life: 0.9 });
+            }
+          });
+        }
+      }
+
+      // 5. 명문 사립초 오케스트라 음파 감속 (-40%)
       const hasOrchestra = state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
       enemies.forEach(en => {
         if (en.dead) return;
@@ -1430,6 +1499,7 @@
         }
       });
 
+      // 6. 과학고 양자역학 블랙홀
       if (state.selectedLifePerks.some(p => p.perk === "양자블랙홀")) {
         player.blackholeTimer = (player.blackholeTimer || 0) + dt;
         if (player.blackholeTimer >= 5.0) {
@@ -1453,9 +1523,10 @@
         }
       }
 
+      // 7. 공군 F-15K 융단 폭격
       if (state.selectedLifePerks.some(p => p.perk === "공군폭격")) {
         player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
-        if (player.airStrikeTimer >= 8.0) {
+        if (player.airStrikeTimer >= 7.0) {
           player.airStrikeTimer = 0;
           Sound.play('air_strike');
           enemies.forEach(en => {
@@ -1466,6 +1537,7 @@
         }
       }
 
+      // 8. 카투사 레이션 100% 회복
       if (state.selectedLifePerks.some(p => p.perk === "카투사키트")) {
         player.katusaTimer = (player.katusaTimer || 0) + dt;
         if (player.katusaTimer >= 10.0) {
@@ -1476,6 +1548,7 @@
         }
       }
 
+      // 9. 공기업 철밥통 무적 쉴드
       if (state.selectedLifePerks.some(p => p.perk === "철밥통")) {
         if (!player.hasShield) {
           player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
@@ -2128,7 +2201,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (숫자 크기 순 내림차순 정렬 엄격 적용)
+       실시간 랭킹 시스템
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2147,7 +2220,6 @@
         }
       });
       const cleaned = Array.from(uniqueMap.values());
-      // [핵심] 점수 숫자 크기 기준 내림차순 정렬 (높은 점수가 무조건 1등)
       cleaned.sort((a, b) => Number(b.score) - Number(a.score));
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(cleaned));
     }
