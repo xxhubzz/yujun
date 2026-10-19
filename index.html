@@ -338,25 +338,33 @@
     </div>
   </div>
 
-  <!-- 게임 오버 모달 -->
+  <!-- 게임 오버 모달 (내 점수 및 실시간 랭킹 Top 5 포함) -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center">
-      <div class="text-5xl mb-2">😢</div>
-      <h2 class="text-xl font-black text-slate-800">모험이 끝났습니다</h2>
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-4 border-4 border-rose-400 text-center flex flex-col max-h-[90vh] overflow-hidden">
+      <div class="text-4xl mb-1">😢</div>
+      <h2 class="text-lg font-black text-slate-800">모험이 끝났습니다</h2>
       <p id="over-stage-text" class="text-xs text-slate-500 mt-0.5"></p>
       
-      <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 my-3">
-        <div class="text-[11px] text-rose-700 font-bold">최종 획득 점수</div>
-        <div id="final-score" class="text-2xl font-black text-slate-800">0 P</div>
-        <div id="final-stats" class="text-[10px] text-slate-500 mt-1"></div>
-        <div class="text-[10px] text-rose-500 font-bold mt-1.5 pt-1 border-t border-rose-200">※ 나이(0세), 코인, 장비가 초기화되었습니다!</div>
+      <div class="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 my-2 shrink-0">
+        <div class="text-[10px] text-rose-700 font-bold">최종 획득 점수</div>
+        <div id="final-score" class="text-xl font-black text-slate-800">0 P</div>
+        <div id="final-stats" class="text-[10px] text-slate-500 mt-0.5"></div>
       </div>
 
-      <button id="btn-kakao-share" class="w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-2">
-        <span class="text-sm">💬</span> 결과 & 게임 링크 카톡 공유하기
+      <!-- 게임 오버 창 내 실시간 랭킹 Top 5 프리뷰 -->
+      <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
+        <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
+          <span class="flex items-center gap-1">🏆 실시간 랭킹 Top 5</span>
+          <span class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
+        </div>
+        <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
+      </div>
+
+      <button id="btn-kakao-share" class="w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-1.5 shrink-0">
+        <span class="text-sm">💬</span> 결과 & 랭킹 카톡 공유하기
       </button>
 
-      <button id="btn-restart" class="w-full bg-slate-800 text-white font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs">
+      <button id="btn-restart" class="w-full bg-slate-800 text-white font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs shrink-0">
         🔄 0세부터 다시 환생하기
       </button>
     </div>
@@ -1363,7 +1371,7 @@
     }
 
     /* ========================================================
-       몬스터 스폰 (30세 이후 비약적 하드코어 난이도 폭증)
+       몬스터 스폰
        ======================================================== */
     const BOSS_TYPES = [
       { name: "불량 젤리왕", emoji: "👹", minAge: 8, baseHp: 3800, spd: 75, dmg: 65, expVal: 2600, coinVal: 400, scoreVal: 3000, size: 48, boss: true, bossType: "jelly" },
@@ -1450,7 +1458,7 @@
     }
 
     /* ========================================================
-       게임 루프 (서버 랭킹 동기화 안전장치 적용)
+       게임 루프
        ======================================================== */
     let lastTime = 0;
 
@@ -2256,7 +2264,7 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 랭킹 시스템 (서버 통신 오류 방지 및 데이터 동기화 최적화)
+       실시간 랭킹 시스템 (서버 동기화 우선 반영)
        ======================================================== */
     let currentRankPeriod = 'daily';
 
@@ -2269,7 +2277,7 @@
       const uniqueMap = new Map();
       list.forEach(item => {
         const scoreNum = Number(item.score) || 0;
-        const key = `${item.name}_${scoreNum}`;
+        const key = `${item.name}_${scoreNum}_${item.age}`;
         if (!uniqueMap.has(key) || new Date(item.createdAt || 0) > new Date(uniqueMap.get(key).createdAt || 0)) {
           uniqueMap.set(key, { ...item, score: scoreNum });
         }
@@ -2287,7 +2295,6 @@
         createdAt: timestamp
       };
 
-      // 먼저 로컬에 즉시 안전 저장하여 초기화 방지
       recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
 
       if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
@@ -2402,6 +2409,34 @@
       });
     }
 
+    async function renderGameOverRankPreview() {
+      const preview = document.getElementById('gameover-rank-preview');
+      const allList = await fetchOnlineRankings();
+      const filtered = filterRankingsByPeriod(allList, 'daily');
+      const displayList = filtered.length > 0 ? filtered : allList;
+
+      if (displayList.length === 0) {
+        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">랭킹 기록이 없습니다.</div>`;
+        return;
+      }
+
+      preview.innerHTML = "";
+      displayList.slice(0, 5).forEach((r, idx) => {
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
+        item.innerHTML = `
+          <div class="flex items-center gap-1 min-w-0 pr-1">
+            <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
+            <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
+            <span class="text-[9px] text-amber-700 shrink-0">${r.stage}(${r.age}세)</span>
+          </div>
+          <span class="font-black text-amber-600 shrink-0">${Number(r.score).toLocaleString()} P</span>
+        `;
+        preview.appendChild(item);
+      });
+    }
+
     async function showRankings(period = 'daily') {
       currentRankPeriod = period;
       const listContainer = document.getElementById('rank-list');
@@ -2474,6 +2509,7 @@
       const finalScore = state.score;
 
       await submitScoreOnline(finalScore, finalAge, finalStageName);
+      await renderGameOverRankPreview();
 
       document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${finalStageName} ${finalAge}세]까지 성장했습니다!`;
       document.getElementById('final-score').innerText = `${finalScore.toLocaleString()} P`;
