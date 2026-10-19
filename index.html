@@ -114,16 +114,16 @@
 
   <canvas id="game-canvas"></canvas>
 
-  <!-- 진로 보류 시 일시정지 경고 배너 -->
-  <div id="postpone-warning-banner" class="hud-layer top-24 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
-    <div class="bg-amber-600/85 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[11px] px-3.5 py-1 rounded-full shadow-lg flex items-center gap-1.5">
+  <!-- 진로 보류 시 일시정지 경고 배너 (겹침 방지를 위해 아래로 배치) -->
+  <div id="postpone-warning-banner" class="hud-layer top-36 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
+    <div class="bg-amber-600/80 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
       <span>⏳</span>
       <span>진로 결정 보류 중: 레벨업 및 경험치 획득이 일시 중지되었습니다!</span>
     </div>
   </div>
 
   <!-- 보스 경고 배너 -->
-  <div id="boss-warning-banner" class="hud-layer top-32 left-0 right-0 z-30 hidden flex justify-center">
+  <div id="boss-warning-banner" class="hud-layer top-44 left-0 right-0 z-30 hidden flex justify-center">
     <div class="boss-alert bg-rose-600/95 border-2 border-amber-300 text-white font-black text-xs md:text-sm px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-2">
       <span class="text-base">⚠️</span>
       <span id="boss-warning-text">WARNING! 보스 출현!</span>
@@ -135,13 +135,13 @@
   <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-25 pointer-events-none">
     
     <!-- 최상단 독립 점수 표시 배지 (짤림 방지) -->
-    <div class="flex justify-center w-full">
+    <div class="flex justify-center w-full pt-0.5">
       <div id="live-score-display" class="pointer-events-auto text-xs sm:text-sm font-black text-rose-600 bg-white/95 backdrop-blur-md px-4 py-1 rounded-2xl border-2 border-rose-300 shadow-lg shrink-0">
         🎯 0 P
       </div>
     </div>
 
-    <div class="flex items-start justify-between w-full max-w-md mx-auto">
+    <div class="flex items-start justify-between w-full max-w-md mx-auto mt-1">
       
       <!-- 유준이 프로필 -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
@@ -168,7 +168,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-end gap-1 shrink-0 z-30">
+      <div class="flex flex-col items-end gap-1.5 shrink-0 z-30">
         <div class="flex items-center gap-1">
           <div class="bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
             <span class="text-sm">🪙</span>
@@ -182,23 +182,23 @@
           </button>
         </div>
 
-        <!-- 전체 미니맵 (레이더) -->
-        <div class="interactive bg-slate-900/85 border-2 border-amber-300 rounded-2xl shadow-lg w-20 h-20 overflow-hidden relative mt-1 shrink-0">
+        <!-- 전체 미니맵 (투명도 대폭 상향으로 시야 확보) -->
+        <div class="interactive bg-slate-900/40 backdrop-blur-xs border-2 border-amber-300/80 rounded-2xl shadow-lg w-20 h-20 overflow-hidden relative shrink-0">
           <canvas id="minimap-canvas" width="80" height="80" class="w-full h-full block"></canvas>
-          <div class="absolute inset-0 pointer-events-none border border-white/20 rounded-2xl"></div>
+          <div class="absolute inset-0 pointer-events-none border border-white/10 rounded-2xl"></div>
         </div>
 
-        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[10px] px-2.5 py-1 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white mt-0.5">
+        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[10px] px-2.5 py-1 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white">
           <span id="pending-count-badge">🔔 미결정 진로</span>
         </button>
       </div>
     </div>
 
-    <div id="passive-skills-bar" class="flex flex-wrap gap-1 justify-center max-w-md mx-auto pointer-events-none"></div>
+    <div id="passive-skills-bar" class="flex flex-wrap gap-1 justify-center max-w-md mx-auto pointer-events-none mt-1"></div>
   </div>
 
   <!-- 왼쪽 세로형 장비 바 -->
-  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 130px; left: 8px;">
+  <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 140px; left: 8px;">
     <div class="flex items-start">
       <div class="interactive rounded-2xl p-2 shadow-xl border border-slate-600/50 flex flex-col gap-1 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(30, 41, 59, 0.78); backdrop-filter: blur(8px);">
         <div class="flex items-center justify-between pb-1 border-b border-slate-600/60 text-white text-[10px] font-bold">
@@ -325,7 +325,7 @@
     </div>
   </div>
 
-  <!-- 나이별 인생 진로 선택 모달창 (아이폰 터치 오류 완전 수정) -->
+  <!-- 나이별 인생 진로 선택 모달창 -->
   <div id="life-choice-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 border-4 border-amber-400 text-center flex flex-col max-h-[88vh] overflow-hidden relative z-50">
       <div id="life-modal-icon" class="text-4xl mb-1">🏫</div>
@@ -1055,7 +1055,7 @@
         });
       }
 
-      // 방귀 스킬: 유준이는 가만히 있고, 적들만 나로부터 바깥쪽으로 밀려남 (순수 넉백)
+      // 방귀 스킬: 유준이는 제자리에 정지, 적들만 나로부터 바깥쪽으로 확실하게 넉백
       enemies.forEach(en => {
         const d = Math.hypot(en.x - player.x, en.y - player.y);
         if (d < fart.rad + 50) {
@@ -2104,7 +2104,7 @@
     }
 
     /* ========================================================
-       미니맵(전체 맵 레이더) 렌더링
+       미니맵(전체 맵 레이더) 렌더링 (투명도 개선)
        ======================================================== */
     function renderMiniMap() {
       const mCanvas = document.getElementById('minimap-canvas');
@@ -2115,7 +2115,8 @@
 
       mCtx.clearRect(0, 0, mw, mh);
 
-      mCtx.fillStyle = "rgba(30, 41, 59, 0.9)";
+      // 반투명 다크 배경으로 게임 시야 확보
+      mCtx.fillStyle = "rgba(15, 23, 42, 0.5)";
       mCtx.fillRect(0, 0, mw, mh);
 
       const scaleX = mw / WORLD_WIDTH;
