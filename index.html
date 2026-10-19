@@ -125,7 +125,6 @@
   <!-- 상단 HUD 영역 -->
   <div class="hud-layer top-0 left-0 right-0 p-3 flex flex-col gap-2 z-20">
     <div class="flex items-start justify-between w-full max-w-md mx-auto">
-      <!-- 유준이 프로필 (닉네임 짤림 방지: min-w-0 flex-1 자연 확장) -->
       <div class="interactive bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-2">
         <div id="hud-avatar" class="text-2xl filter drop-shadow">👶</div>
         <div class="flex-1 min-w-0">
@@ -135,13 +134,11 @@
             <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
           </div>
           
-          <!-- 체력 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
             <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
             <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
           </div>
 
-          <!-- 경험치 게이지 바 -->
           <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
             <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
             <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
@@ -149,7 +146,6 @@
         </div>
       </div>
 
-      <!-- 우측 상단 코인, 랭킹, 상점 및 상점 밑 진로결정 버튼 컨테이너 -->
       <div class="flex flex-col items-end gap-1.5 shrink-0 z-30">
         <div class="flex items-center gap-1.5">
           <div class="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
@@ -164,7 +160,6 @@
           </button>
         </div>
 
-        <!-- 상점 바로 밑에 배치된 진로결정 버튼 (보류 시에만 활성화) -->
         <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[11px] px-3 py-1.5 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white">
           🔔 진로 결정하기
         </button>
@@ -254,14 +249,27 @@
     </div>
   </div>
 
-  <!-- 랭킹 모달창 -->
+  <!-- 랭킹 모달창 (일간/주간/월간/전체 탭 & 50위 스크롤 지원) -->
   <div id="rank-modal" class="fixed inset-0 modal-overlay z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col max-h-[75vh] overflow-hidden border-4 border-amber-300 relative z-50">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
       <div class="bg-amber-400 p-3.5 text-white flex items-center justify-between shrink-0">
-        <h2 class="font-black text-base flex items-center gap-1.5">🏆 실시간 명예의 전당</h2>
+        <div>
+          <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 랭킹</h2>
+          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">최대 50위까지 실시간 집계됩니다</p>
+        </div>
         <button id="btn-close-rank" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
       </div>
-      <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-4 flex flex-col gap-2"></div>
+
+      <!-- 랭킹 기간 필터 탭 -->
+      <div class="flex p-2 gap-1 bg-amber-100/70 border-b border-amber-200 shrink-0 text-xs font-bold">
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors" data-period="daily">오늘(일간)</button>
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="weekly">이번 주</button>
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="monthly">이번 달</button>
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="all">전체</button>
+      </div>
+
+      <!-- 랭킹 목록 (50개 스크롤) -->
+      <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-1.5"></div>
     </div>
   </div>
 
@@ -332,6 +340,13 @@
   </div>
 
   <script>
+    /* ========================================================
+       SimpleBoards API 온라인 랭킹 설정
+       ======================================================== */
+    const SIMPLEBOARDS_API_KEY = "8dc250c0-5aae-4914-8988-1ab0641b8ff3";
+    // 실제 발급받은 보드 ID로 교체하시면 즉시 온라인 연동됩니다.
+    const SIMPLEBOARDS_LEADERBOARD_ID = "00000000-0000-0000-0000-000000000000";
+
     const Sound = {
       ctx: null,
       init() {
@@ -834,7 +849,6 @@
       cooldowns.poop = 5.0 * (1 - stats.coolReduce);
     }
 
-    // 방귀 공격: 플레이어 강제 이동을 없애고 제자리에서 공격 및 넉백만 발동
     function triggerFart() {
       if (state.isPaused || state.isGameOver || cooldowns.fart > 0) return;
       const stats = calcStats();
@@ -873,7 +887,6 @@
         }
       });
 
-      // 플레이어 강제 위치 이동(돌진) 제거 완료!
       cooldowns.fart = 4.0 * (1 - stats.coolReduce);
     }
 
@@ -1401,14 +1414,10 @@
           }
         } else if (pt.type === 'poop-debris') {
           ctx.fillStyle = "#78350f";
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'fart-gas') {
           ctx.fillStyle = "rgba(16, 185, 129, 0.45)";
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'fart-cloud') {
           if (pt.tier === 3) {
             ctx.strokeStyle = "rgba(16, 185, 129, 0.95)";
@@ -1535,7 +1544,6 @@
       }
       ctx.restore();
 
-      // 유준이 머리 위 닉네임 (짤림 방지: 전체 닉네임 노출)
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0.65)";
       ctx.font = "bold 11px sans-serif";
@@ -1747,7 +1755,7 @@
       state.isPaused = true;
       player.isMoving = false;
       player.isAttacking = false;
-      showRankings();
+      showRankings(currentRankPeriod);
       rankModal.classList.remove('hidden');
     }
 
@@ -1765,8 +1773,10 @@
     btnCloseRank.addEventListener('click', closeRank);
 
     /* ========================================================
-       실시간 점수 연동
+       일간/주간/월간/전체 실시간 온라인 랭킹 (SimpleBoards 연동)
        ======================================================== */
+    let currentRankPeriod = 'daily';
+
     function getLocalRankings() {
       const data = localStorage.getItem('yujun_clean_rankings');
       return data ? JSON.parse(data) : [];
@@ -1774,6 +1784,68 @@
 
     function saveLocalRankings(list) {
       localStorage.setItem('yujun_clean_rankings', JSON.stringify(list));
+    }
+
+    // SimpleBoards API 연동: 점수 온라인 업로드
+    async function submitScoreOnline(finalScore, finalAge, finalStage) {
+      const timestamp = new Date().toISOString();
+      const metaObj = {
+        age: finalAge,
+        stage: finalStage,
+        createdAt: timestamp
+      };
+
+      if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
+        try {
+          await fetch("https://api.simpleboards.dev/api/entries", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": SIMPLEBOARDS_API_KEY
+            },
+            body: JSON.stringify({
+              leaderboardId: SIMPLEBOARDS_LEADERBOARD_ID,
+              playerDisplayName: state.playerName,
+              score: String(finalScore),
+              metadata: JSON.stringify(metaObj)
+            })
+          });
+        } catch (err) {
+          console.warn("온라인 랭킹 서버 통신 실패 (로컬 저장 유지):", err);
+        }
+      }
+      recordCurrentScore(finalScore, finalAge, finalStage, timestamp);
+    }
+
+    // SimpleBoards API 연동: 실시간 랭킹 목록 가져오기
+    async function fetchOnlineRankings() {
+      if (SIMPLEBOARDS_LEADERBOARD_ID && !SIMPLEBOARDS_LEADERBOARD_ID.startsWith("0000")) {
+        try {
+          const res = await fetch(`https://api.simpleboards.dev/api/leaderboards/${SIMPLEBOARDS_LEADERBOARD_ID}/entries`, {
+            method: "GET",
+            headers: { "x-api-key": SIMPLEBOARDS_API_KEY }
+          });
+          if (res.ok) {
+            const list = await res.json();
+            if (Array.isArray(list)) {
+              return list.map(item => {
+                let meta = {};
+                try { meta = JSON.parse(item.metadata || "{}"); } catch(e) {}
+                return {
+                  name: item.playerDisplayName || item.playerName || "익명",
+                  score: parseInt(item.score) || 0,
+                  age: meta.age || 0,
+                  stage: meta.stage || "신생아",
+                  createdAt: meta.createdAt || item.createdAt || new Date().toISOString()
+                };
+              });
+            }
+          }
+        } catch (err) {
+          console.warn("온라인 랭킹 로드 실패, 로컬 데이터 사용:", err);
+        }
+      }
+      return getLocalRankings();
     }
 
     function parseSharedScoreFromURL() {
@@ -1788,44 +1860,62 @@
           const list = getLocalRankings();
           const exists = list.some(r => r.name === sharedName && r.score === sharedScore);
           if (!exists) {
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
             list.push({
               name: sharedName,
               score: sharedScore,
               age: sharedAge,
               stage: sharedStage,
-              date: dateStr
+              createdAt: new Date().toISOString()
             });
             list.sort((a, b) => b.score - a.score);
-            saveLocalRankings(list.slice(0, 15));
+            saveLocalRankings(list.slice(0, 50));
           }
         }
       } catch (e) {}
     }
 
-    function recordCurrentScore(newScore, finalAge, finalStage) {
+    function recordCurrentScore(newScore, finalAge, finalStage, timestamp) {
       const list = getLocalRankings();
-      const now = new Date();
-      const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-
       list.push({
         name: state.playerName,
         score: newScore,
         age: finalAge,
         stage: finalStage,
-        date: dateStr
+        createdAt: timestamp || new Date().toISOString()
       });
 
       list.sort((a, b) => b.score - a.score);
-      saveLocalRankings(list.slice(0, 15));
+      saveLocalRankings(list.slice(0, 50));
     }
 
-    function renderStartRankPreview() {
-      const preview = document.getElementById('start-rank-preview');
-      const rankings = getLocalRankings();
+    // 기간별(일간, 주간, 월간, 전체) 필터링 함수
+    function filterRankingsByPeriod(list, period) {
+      const now = new Date();
+      return list.filter(item => {
+        if (period === 'all') return true;
+        const itemDate = new Date(item.createdAt || item.date || now);
+        if (isNaN(itemDate.getTime())) return true;
 
-      if (rankings.length === 0) {
+        if (period === 'daily') {
+          return itemDate.toDateString() === now.toDateString();
+        } else if (period === 'weekly') {
+          const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
+          return diffDays >= 0 && diffDays <= 7;
+        } else if (period === 'monthly') {
+          return itemDate.getFullYear() === now.getFullYear() && itemDate.getMonth() === now.getMonth();
+        }
+        return true;
+      });
+    }
+
+    // 첫 화면 실시간 Top 5 미리보기
+    async function renderStartRankPreview() {
+      const preview = document.getElementById('start-rank-preview');
+      const allList = await fetchOnlineRankings();
+      const filtered = filterRankingsByPeriod(allList, 'daily');
+      const displayList = filtered.length > 0 ? filtered : allList; // 오늘 데이터가 없으면 전체 fallback
+
+      if (displayList.length === 0) {
         preview.innerHTML = `
           <div class="text-center py-4 text-[10px] text-slate-400">
             아직 등록된 랭킹 기록이 없습니다.<br>첫 번째 1등 주인공이 되어보세요!
@@ -1835,7 +1925,7 @@
       }
 
       preview.innerHTML = "";
-      rankings.slice(0, 5).forEach((r, idx) => {
+      displayList.slice(0, 5).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const item = document.createElement('div');
         item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
@@ -1843,7 +1933,7 @@
           <div class="flex items-center gap-1.5 min-w-0 pr-1">
             <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
             <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage} (${r.age !== undefined ? r.age : r.level}세)</span>
+            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage} (${r.age !== undefined ? r.age : 0}세)</span>
           </div>
           <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${r.score.toLocaleString()} P</span>
         `;
@@ -1851,32 +1941,51 @@
       });
     }
 
-    function showRankings() {
+    // 랭킹 팝업 모달창 (일간/주간/월간/전체 탭 & 50개 렌더링)
+    async function showRankings(period = 'daily') {
+      currentRankPeriod = period;
       const listContainer = document.getElementById('rank-list');
-      const rankings = getLocalRankings();
+      const allList = await fetchOnlineRankings();
+      const filtered = filterRankingsByPeriod(allList, period);
 
-      if (rankings.length === 0) {
+      // 탭 스타일 갱신
+      document.querySelectorAll('.rank-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-period') === period) {
+          btn.className = "rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors";
+        } else {
+          btn.className = "rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors";
+        }
+      });
+
+      if (filtered.length === 0) {
         listContainer.innerHTML = `
-          <div class="text-center py-10">
+          <div class="text-center py-12">
             <div class="text-4xl mb-2">🏆</div>
-            <div class="text-xs font-bold text-slate-700">등록된 랭킹 기록이 없습니다.</div>
-            <div class="text-[10px] text-slate-400 mt-1">게임을 플레이하고 첫 번째 명예의 전당 주인공이 되어보세요!</div>
+            <div class="text-xs font-bold text-slate-700">해당 기간에 등록된 랭킹 기록이 없습니다.</div>
+            <div class="text-[10px] text-slate-400 mt-1">지금 플레이하고 기간 랭킹 1위를 차지해보세요!</div>
           </div>
         `;
         return;
       }
 
       listContainer.innerHTML = "";
-      rankings.forEach((r, idx) => {
+      filtered.slice(0, 50).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const row = document.createElement('div');
-        row.className = "flex items-center justify-between bg-amber-50/80 p-2.5 rounded-2xl border border-amber-200 text-xs";
+        row.className = "flex items-center justify-between bg-amber-50/90 p-2.5 rounded-2xl border border-amber-200 text-xs";
+        
+        let dateFormatted = "";
+        try {
+          const d = new Date(r.createdAt || Date.now());
+          dateFormatted = `${d.getMonth()+1}.${d.getDate()}`;
+        } catch(e) {}
+
         row.innerHTML = `
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 min-w-0 pr-2">
             <span class="font-black text-sm w-8 text-center shrink-0 whitespace-nowrap">${medal}</span>
-            <div>
-              <div class="font-black text-slate-800">${r.name}</div>
-              <div class="text-[9px] text-slate-400 font-semibold">${r.stage} (${r.age !== undefined ? r.age : r.level}세) · ${r.date}</div>
+            <div class="min-w-0">
+              <div class="font-black text-slate-800 truncate">${r.name}</div>
+              <div class="text-[9px] text-slate-400 font-semibold truncate">${r.stage} (${r.age !== undefined ? r.age : 0}세) · ${dateFormatted}</div>
             </div>
           </div>
           <span class="font-black text-amber-600 text-sm whitespace-nowrap">${r.score.toLocaleString()} P</span>
@@ -1885,10 +1994,19 @@
       });
     }
 
+    // 랭킹 탭 클릭 이벤트 바인딩
+    document.querySelectorAll('.rank-tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const p = btn.getAttribute('data-period');
+        showRankings(p);
+      });
+    });
+
     /* ========================================================
        게임 오버
        ======================================================== */
-    function gameOver() {
+    async function gameOver() {
       state.isGameOver = true;
       state.isPaused = true;
 
@@ -1897,7 +2015,8 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      recordCurrentScore(finalScore, finalAge, finalStageName);
+      // 점수 온라인 & 로컬 제출
+      await submitScoreOnline(finalScore, finalAge, finalStageName);
 
       document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${finalStageName} ${finalAge}세]까지 성장했습니다!`;
       document.getElementById('final-score').innerText = `${finalScore.toLocaleString()} P`;
