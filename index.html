@@ -381,10 +381,25 @@
   </div>
 
   <script>
+    // 🔗 공유 링크 파라미터 자동 등록 (다른 사람이 링크를 누르고 들어오면 즉시 랭킹에 등록됨)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sName = urlParams.get('name');
+      const sScore = urlParams.get('score');
+      const sStage = urlParams.get('stage');
+      const sAge = urlParams.get('age');
+
+      if (sName && sScore && sStage) {
+        saveScoreLocally(sScore, sAge || 0, sStage);
+        // 파라미터 정리하여 깔끔하게 주소창 변경
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
     // 🏆 로컬 저장소 기반 랭킹 및 시간 기록 시스템
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v3');
+        const data = localStorage.getItem('yujun_local_rankings_v4');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -398,7 +413,7 @@
         const timeString = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
         const newRecord = {
-          name: state.playerName,
+          name: state.playerName !== "익명의 수호자" ? state.playerName : (new URLSearchParams(window.location.search).get('name') || "공유받은 유저"),
           score: Number(score),
           stage: stage,
           age: Number(age),
@@ -407,17 +422,17 @@
 
         list.push(newRecord);
 
-        // 중복 방지 (이름, 점수, 나이, 스테이지, 시간이 동일한 연속 기록 필터링)
+        // 중복 방지 정렬 및 필터링
         const uniqueMap = new Map();
         list.forEach(item => {
-          const key = `${item.name}_${item.score}_${item.age}_${item.stage}_${item.createdAt}`;
+          const key = `${item.name}_${item.score}_${item.age}_${item.stage}`;
           uniqueMap.set(key, item);
         });
 
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v3', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v4', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -830,18 +845,16 @@
       return LIFE_STAGES[LIFE_STAGES.length - 1];
     }
 
-    // 선택한 진로(퍽)에 따른 무기 아이콘 및 이름 가져오기
+    // 선택한 진로(퍽)에 따른 무기 아이콘 및 이름 실시간 판정
     function getActiveWeaponInfo() {
       const currentStage = getCurrentStage();
-      // 가장 최근에 선택한 진로 퍽 확인
-      const perks = state.selectedLifePerks;
-      if (perks && perks.length > 0) {
-        const latestPerk = perks[perks.length - 1];
+      if (state.selectedLifePerks && state.selectedLifePerks.length > 0) {
+        const latestPerk = state.selectedLifePerks[state.selectedLifePerks.length - 1];
         if (latestPerk && latestPerk.icon && latestPerk.name) {
-          return { icon: latestPerk.icon, name: latestPerk.name };
+          return { icon: latestPerk.icon, name: latestPerk.name, perk: latestPerk.perk };
         }
       }
-      return { icon: currentStage.atkIcon, name: currentStage.atkName };
+      return { icon: currentStage.atkIcon, name: currentStage.atkName, perk: null };
     }
 
     function calcStats() {
@@ -1053,6 +1066,7 @@
       return nearest;
     }
 
+    // 진로에 따른 특수 스킬 발사 루프 (완벽 보정)
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
@@ -1068,19 +1082,19 @@
       Sound.play('shoot');
 
       const speed = stats.projSpeed;
-      const hasPerk = (pName) => state.selectedLifePerks.some(p => p.perk === pName);
+      const perkName = weaponInfo.perk;
 
-      const isFreeTalking = hasPerk("프리토킹");
-      const isArmyK2 = hasPerk("육군보병");
-      const isExamPen = hasPerk("컴싸난사");
-      const isBigBaby = hasPerk("육아전쟁");
-      const isPowerShot = hasPerk("파워슛");
-      const isMarriage = hasPerk("신혼부부");
+      const isFreeTalking = (perkName === "프리토킹");
+      const isArmyK2 = (perkName === "육군보병");
+      const isExamPen = (perkName === "컴싸난사");
+      const isBigBaby = (perkName === "육아전쟁");
+      const isPowerShot = (perkName === "파워슛");
+      const isMarriage = (perkName === "신혼부부");
 
       const projSize = isBigBaby ? 24 : 13;
-      const pierceBonus = isBigBaby ? 3 : ((player.age >= 17 ? 2 : 0));
+      const pierceBonus = isBigBaby ? 3 : 1;
 
-      const createProj = (ang, extraPierce = 0, pIcon = weaponInfo.icon) => ({
+      const createProj = (ang, extraPierce = 0, pType = weaponInfo.icon) => ({
         x: player.x, y: player.y,
         vx: Math.cos(ang) * speed,
         vy: Math.sin(ang) * speed,
@@ -1088,7 +1102,7 @@
         critRate: stats.critRate,
         critDmg: stats.critDmg,
         pierce: pierceBonus + extraPierce,
-        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : (isFreeTalking ? "🔤" : (isExamPen ? "🖍️" : pIcon))),
+        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : (isFreeTalking ? "🔤" : (isExamPen ? "🖍️" : pType))),
         radius: isPowerShot ? 18 : projSize,
         life: 1.6
       });
@@ -1115,16 +1129,12 @@
         projectiles.push(createProj(angle + 0.15, 2, "💌"));
       } else if (isPowerShot) {
         projectiles.push(createProj(angle, 2, "⚽"));
-      } else if (player.age >= 14 || weaponInfo.icon !== "🍼") {
-        projectiles.push(createProj(angle - 0.22));
-        projectiles.push(createProj(angle));
-        projectiles.push(createProj(angle + 0.22));
       } else {
         projectiles.push(createProj(angle));
       }
 
-      const soloFast = hasPerk("솔로프리덤") ? 0.75 : 1.0;
-      const yagenFast = (hasPerk("야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      const soloFast = (perkName === "솔로프리덤") ? 0.75 : 1.0;
+      const yagenFast = (perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = yagenFast * soloFast;
     }
 
@@ -2287,7 +2297,6 @@
       document.getElementById('coin-count').innerText = state.coins;
       document.getElementById('modal-coin').innerText = state.coins;
 
-      // 진로 선택에 따른 무기 아이콘 및 이름 실시간 반영
       document.getElementById('atk-btn-icon').innerText = weaponInfo.icon;
       document.getElementById('atk-btn-text').innerText = weaponInfo.name;
 
@@ -2489,8 +2498,10 @@
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}시 ${String(now.getMinutes()).padStart(2, '0')}분`;
 
-      // 💬 요청하신 시간 및 정보가 포함된 맞춤형 공유 멘트
-      window.lastShareText = `[유준이 키우기]\n${state.playerName} 님이 오늘 ${timeStr}에 유준이를 [${finalStageName} ${finalAge}세]까지 키워내어 최종 점수 ${finalScore.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 도전해보세요!\nhttps://xxhubzz.github.io/yujun/`;
+      // 공유 링크에 점수, 닉네임, 나이, 스테이지 정보를 포함하여 다른 사람이 누르면 랭킹에 자동 등록되도록 설정
+      const shareUrl = `https://xxhubzz.github.io/yujun/?name=${encodeURIComponent(state.playerName)}&score=${finalScore}&stage=${encodeURIComponent(finalStageName)}&age=${finalAge}`;
+
+      window.lastShareText = `[유준이 키우기]\n${state.playerName} 님이 오늘 ${timeStr}에 유준이를 [${finalStageName} ${finalAge}세]까지 키워내어 최종 점수 ${finalScore.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 도전해보세요!\n${shareUrl}`;
 
       localStorage.setItem('yujun_remembered_name', state.playerName);
 
@@ -2525,7 +2536,7 @@
         tempInput.select();
         document.execCommand('copy');
         document.body.removeChild(tempInput);
-        alert("성장 결과와 시간 기록이 포함된 공유 문구가 복사되었습니다!\n카카오톡 채팅방에 [붙여넣기] 해주세요!");
+        alert("성장 결과와 시간 기록, 그리고 랭킹 연동 링크가 복사되었습니다!\n카카오톡 채팅방에 [붙여넣기] 해주세요!");
       }
     });
 
