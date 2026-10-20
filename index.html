@@ -398,7 +398,7 @@
     // 🏆 로컬 저장소 기반 랭킹 및 시간 기록 시스템
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v5');
+        const data = localStorage.getItem('yujun_local_rankings_v6');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -433,7 +433,7 @@
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v5', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v6', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -846,30 +846,25 @@
       return LIFE_STAGES[LIFE_STAGES.length - 1];
     }
 
-    // 진로 보류 중인지 확인하는 함수 (보류 중이면 특수 무기 미적용)
+    // 진로 보류 중인지 엄격하게 판정
     function isDecisionPendingForCurrentStage() {
-      const currentStage = getCurrentStage();
-      // 현재 나이대에 해당하는 진로 이벤트 나이 찾기
       const matchingAge = STAGE_ORDER.find(age => {
         const ev = LIFE_EVENTS[age];
         if (!ev) return false;
-        // 플레이어 나이가 이벤트 나이 이상이고 다음 이벤트 나이 미만일 때 해당 이벤트 구간임
         const nextEventAge = STAGE_ORDER[STAGE_ORDER.indexOf(age) + 1] || 999;
         return player.age >= age && player.age < nextEventAge;
       });
 
-      // 만약 해당 나이 이벤트가 대기열(pendingEventAges)에 있거나 아직 선택되지 않았다면 보류/미결정 상태
       if (matchingAge && state.pendingEventAges.includes(matchingAge)) {
         return true;
       }
       return false;
     }
 
-    // 실제로 확정된 진로의 무기 정보만 반환 (보류 중이면 기본 무기 유지)
+    // 확정된 최신 진로 무기 정보 가져오기 (보류 중이면 무조건 나이별 기본 무기)
     function getActiveWeaponInfo() {
       const currentStage = getCurrentStage();
       
-      // 진로를 보류 중인 상태라면 무조건 나이별 기본 무기를 반환
       if (isDecisionPendingForCurrentStage()) {
         return { icon: currentStage.atkIcon, name: currentStage.atkName, perk: null };
       }
@@ -1094,10 +1089,11 @@
       return nearest;
     }
 
-    // 진로 확정 시에만 특수 탄환 발사 (보류 중엔 절대 안 나감)
+    // 발사 함수: 진로 보류 중에는 무조건 기본 무기만 발사되도록 완벽 분기 처리
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
+      const current = getCurrentStage();
       const weaponInfo = getActiveWeaponInfo();
 
       const target = getNearestEnemy();
@@ -1111,13 +1107,15 @@
 
       const speed = stats.projSpeed;
       const perkName = weaponInfo.perk;
+      const isPending = isDecisionPendingForCurrentStage();
 
-      const isFreeTalking = (perkName === "프리토킹");
-      const isArmyK2 = (perkName === "육군보병");
-      const isExamPen = (perkName === "컴싸난사");
-      const isBigBaby = (perkName === "육아전쟁");
-      const isPowerShot = (perkName === "파워슛");
-      const isMarriage = (perkName === "신혼부부");
+      // 진로 보류 중이면 특수 스킬 적용 안 함 (무조건 기본 탄환 1발)
+      const isFreeTalking = (!isPending && perkName === "프리토킹");
+      const isArmyK2 = (!isPending && perkName === "육군보병");
+      const isExamPen = (!isPending && perkName === "컴싸난사");
+      const isBigBaby = (!isPending && perkName === "육아전쟁");
+      const isPowerShot = (!isPending && perkName === "파워슛");
+      const isMarriage = (!isPending && perkName === "신혼부부");
 
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : 1;
@@ -1161,8 +1159,8 @@
         projectiles.push(createProj(angle));
       }
 
-      const soloFast = (perkName === "솔로프리덤") ? 0.75 : 1.0;
-      const yagenFast = (perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      const soloFast = (!isPending && perkName === "솔로프리덤") ? 0.75 : 1.0;
+      const yagenFast = (!isPending && perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = yagenFast * soloFast;
     }
 
@@ -1297,7 +1295,7 @@
 
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
-        const coinMultiplier = state.selectedLifePerks.some(p => p.perk === "치킨집") ? 3.0 : 1.0;
+        const coinMultiplier = (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "치킨집")) ? 3.0 : 1.0;
         const coinBase = enemy.coinVal || 6;
         const earnedCoin = Math.max(1, Math.round(coinBase * (1 + stats.coinBonus) * coinMultiplier));
         const expBase = enemy.expVal || 35;
