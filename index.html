@@ -384,8 +384,25 @@
   </div>
 
   <script>
-    // 🔗 구글 시트 웹 앱 URL 적용 완료
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzTKmN1dkZLEmxb0H0mEZW5jRUrPWQPeD-3hQJskMoJZ3FUAZL1sbtOgQIciVDOOcSj/exec";
+    // 🌐 LootLocker 전용 클라우드 랭킹 서버 (API Key 적용 완료)
+    const LL_API_KEY = "dev_d93f473ef578408182dc357814c0514f";
+    const LL_BOARD_ID = "yujun_rankings";
+    let llSessionId = null;
+
+    async function initLootLocker() {
+      try {
+        const res = await fetch("https://api.lootlocker.io/game/v2/guest-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ game_key: LL_API_KEY, development_mode: true })
+        });
+        const data = await res.json();
+        if (data && data.session_id) {
+          llSessionId = data.session_id;
+        }
+      } catch(e) {}
+    }
+    initLootLocker();
 
     const Sound = {
       ctx: null,
