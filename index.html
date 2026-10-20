@@ -384,8 +384,8 @@
   </div>
 
   <script>
-    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동
-    const LL_API_KEY = "dev_d93f473ef578408182dc357814c0514f";
+    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동 (새로운 API Key 반영)
+    const LL_API_KEY = "dev_9598b693d6ad49548435888c1b971ace";
     const LL_BOARD_ID = "yujun_rankings";
     let llSessionId = null;
 
@@ -2533,7 +2533,7 @@
     }
 
     btnRank.addEventListener('touchend', openRank, { passive: false });
-    btnRank.addEventListener('click', openRank);
+    btnRank.addEventListener('click', 'click');
 
     btnCloseRank.addEventListener('touchend', closeRank, { passive: false });
     btnCloseRank.addEventListener('click', closeRank);
@@ -2578,7 +2578,7 @@
     document.getElementById('btn-kakao-share').addEventListener('click', async () => {
       const shareText = window.lastShareText || `[유준이 키우기]\n${state.playerName} 님이 유준이를 멋지게 키워냈습니다!\nhttps://xxhubzz.github.io/yujun/`;
 
-      if (navigator.share) {
+      if (navigator.show) {
         try {
           await navigator.share({ title: '유준이 키우기', text: shareText });
         } catch(e) {}
@@ -2605,6 +2605,7 @@
 
       Sound.init();
       document.getElementById('start-modal').classList.add('hidden');
+      state.isPaused, state.isPaused = false;
       state.isPaused = false;
       updateHUD();
       resize();
