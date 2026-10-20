@@ -381,10 +381,10 @@
   </div>
 
   <script>
-    // 🏆 스마트폰/PC 내부 저장소(Local Storage) 기반 랭킹 및 시간 기록 시스템
+    // 🏆 로컬 저장소 기반 랭킹 및 시간 기록 시스템
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v2');
+        const data = localStorage.getItem('yujun_local_rankings_v3');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -407,17 +407,17 @@
 
         list.push(newRecord);
 
-        // 중복 방지 정렬 및 동일 기록 필터링 (점수가 같고 이름과 나이가 같으면 최신 시간으로 갱신)
+        // 중복 방지 (이름, 점수, 나이, 스테이지, 시간이 동일한 연속 기록 필터링)
         const uniqueMap = new Map();
         list.forEach(item => {
-          const key = `${item.name}_${item.score}_${item.age}_${item.stage}`;
+          const key = `${item.name}_${item.score}_${item.age}_${item.stage}_${item.createdAt}`;
           uniqueMap.set(key, item);
         });
 
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v2', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v3', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -655,98 +655,98 @@
         categoryKey: "elem", orderIdx: 0,
         icon: "🏫", ageStr: "8세 초등학교 입학", title: "인생의 첫 학교 선택",
         choices: [
-          { name: "동네 일반초", cost: 0, desc: "무료! 기본 급식 식판 투척 스킬 획득", perk: "급식어택", pwr: 1.0 },
-          { name: "명문 사립초", cost: 250, desc: "250🪙 오케스트라 음파: 주변 적 이동속도 -40% 지속 감속", perk: "사립오케스트라", pwr: 1.4 },
-          { name: "국제학교 / 조기유학", cost: 600, desc: "600🪙 프리토킹 알파벳 3방향 관통 연사 탄환!", perk: "프리토킹", pwr: 2.0 }
+          { name: "동네 일반초", cost: 0, desc: "무료! 기본 급식 식판 투척 스킬 획득", perk: "급식어택", pwr: 1.0, icon: "🍱" },
+          { name: "명문 사립초", cost: 250, desc: "250🪙 오케스트라 음파: 주변 적 이동속도 -40% 지속 감속", perk: "사립오케스트라", pwr: 1.4, icon: "🎻" },
+          { name: "국제학교 / 조기유학", cost: 600, desc: "600🪙 프리토킹 알파벳 3방향 관통 연사 탄환!", perk: "프리토킹", pwr: 2.0, icon: "🔤" }
         ]
       },
       14: {
         categoryKey: "middle", orderIdx: 1,
         icon: "🎒", ageStr: "14세 중학교 입학", title: "질풍노도의 사춘기",
         choices: [
-          { name: "일반 중학교", cost: 0, desc: "무료! 중2병 질풍노도 발차기 돌진 넉백", perk: "질풍노도", pwr: 1.0 },
-          { name: "특목고 대비반", cost: 450, desc: "450🪙 오답노트 배리어: 받는 모든 피해 25% 상시 흡수", perk: "오답노트", pwr: 1.5 },
-          { name: "체육/예술 중학교", cost: 1100, desc: "1100🪙 파워 축구공 슛: 벽을 튕기며 적 관통", perk: "파워슛", pwr: 2.2 }
+          { name: "일반 중학교", cost: 0, desc: "무료! 중2병 질풍노도 발차기 돌진 넉백", perk: "질풍노도", pwr: 1.0, icon: "🥋" },
+          { name: "특목고 대비반", cost: 450, desc: "450🪙 오답노트 배리어: 받는 모든 피해 25% 상시 흡수", perk: "오답노트", pwr: 1.5, icon: "📖" },
+          { name: "체육/예술 중학교", cost: 1100, desc: "1100🪙 파워 축구공 슛: 벽을 튕기며 적 관통", perk: "파워슛", pwr: 2.2, icon: "⚽" }
         ]
       },
       17: {
         categoryKey: "high", orderIdx: 2,
         icon: "📚", ageStr: "17세 고등학교 진학", title: "입시와 진로의 갈림길",
         choices: [
-          { name: "특성화고(실업계)", cost: 0, desc: "무료! 장비 강화비용 20% 영구 할인 & 스패너 투척", perk: "자격증마스터", pwr: 1.0 },
-          { name: "일반 인문계고", cost: 700, desc: "700🪙 수능 컴싸 난사: 부채꼴 7연발 탄환", perk: "컴싸난사", pwr: 1.6 },
-          { name: "과학고/영재고", cost: 1800, desc: "1800🪙 양자역학 블랙홀: 주기적으로 적들을 중심부로 흡인", perk: "양자블랙홀", pwr: 2.5 }
+          { name: "특성화고(실업계)", cost: 0, desc: "무료! 장비 강화비용 20% 영구 할인 & 스패너 투척", perk: "자격증마스터", pwr: 1.0, icon: "🔧" },
+          { name: "일반 인문계고", cost: 700, desc: "700🪙 수능 컴싸 난사: 부채꼴 7연발 탄환", perk: "컴싸난사", pwr: 1.6, icon: "🖍️" },
+          { name: "과학고/영재고", cost: 1800, desc: "1800🪙 양자역학 블랙홀: 주기적으로 적들을 중심부로 흡인", perk: "양자블랙홀", pwr: 2.5, icon: "⚛️" }
         ]
       },
       20: {
         categoryKey: "univ", orderIdx: 3,
         icon: "🎓", ageStr: "20세 대학 진학", title: "캠퍼스 라이프와 사회 진출",
         choices: [
-          { name: "전문대/취업준비", cost: 0, desc: "무료! 칼퇴근 부스터: 이동속도 +35px/s 상시 증가", perk: "칼퇴근", pwr: 1.0 },
-          { name: "국립대학교", cost: 1200, desc: "1200🪙 든든한 등록금: 최대 체력 +300 & 공격력 증폭", perk: "국립대장학", pwr: 1.7 },
-          { name: "명문 SKY / 아이비리그", cost: 3200, desc: "3200🪙 올A+ 메테오: 거대한 황금 A+ 비석 소환", perk: "올A메테오", pwr: 2.8 }
+          { name: "전문대/취업준비", cost: 0, desc: "무료! 칼퇴근 부스터: 이동속도 +35px/s 상시 증가", perk: "칼퇴근", pwr: 1.0, icon: "🏃" },
+          { name: "국립대학교", cost: 1200, desc: "1200🪙 든든한 등록금: 최대 체력 +300 & 공격력 증폭", perk: "국립대장학", pwr: 1.7, icon: "📜" },
+          { name: "명문 SKY / 아이비리그", cost: 3200, desc: "3200🪙 올A+ 메테오: 거대한 황금 A+ 비석 소환", perk: "올A메테오", pwr: 2.8, icon: "🅰️" }
         ]
       },
       21: {
         categoryKey: "military", orderIdx: 4,
         icon: "🪖", ageStr: "21세 국방의 의무", title: "군대 입대!",
         choices: [
-          { name: "대한민국 육군 (보병)", cost: 0, desc: "무료! K2 소총 6점사 폭풍 관통 사격", perk: "육군보병", pwr: 1.0 },
-          { name: "해군 (함정근무)", cost: 800, desc: "800🪙 함포 지원 포격: 지정 지점 거대 물기둥 폭발", perk: "해군함포", pwr: 1.8 },
-          { name: "공군 (기술행정)", cost: 1500, desc: "1500🪙 전투기 F-15K 출격: 전 필드 주기적 융단 폭격", perk: "공군폭격", pwr: 2.4 },
-          { name: "카투사 / 어학병", cost: 2800, desc: "2800🪙 미군 레이션 박스: 주기적으로 체력 100% 완전회복 키트 소환", perk: "카투사키트", pwr: 2.8 }
+          { name: "대한민국 육군 (보병)", cost: 0, desc: "무료! K2 소총 6점사 폭풍 관통 사격", perk: "육군보병", pwr: 1.0, icon: "💥" },
+          { name: "해군 (함정근무)", cost: 800, desc: "800🪙 함포 지원 포격: 지정 지점 거대 물기둥 폭발", perk: "해군함포", pwr: 1.8, icon: "🌊" },
+          { name: "공군 (기술행정)", cost: 1500, desc: "1500🪙 전투기 F-15K 출격: 전 필드 주기적 융단 폭격", perk: "공군폭격", pwr: 2.4, icon: "✈️" },
+          { name: "카투사 / 어학병", cost: 2800, desc: "2800🪙 미군 레이션 박스: 주기적으로 체력 100% 완전회복 키트 소환", perk: "카투사키트", pwr: 2.8, icon: "📦" }
         ]
       },
       22: {
         categoryKey: "reserve", orderIdx: 5,
         icon: "🎖️", ageStr: "22세 군대 만기전역", title: "빛나는 군필 예비군!",
         choices: [
-          { name: "늠름한 예비군 1년차", cost: 0, desc: "전역 축하! 모든 공격력 & 체력 +30% 영구 보너스!", perk: "예비군각성", pwr: 1.3 }
+          { name: "늠름한 예비군 1년차", cost: 0, desc: "전역 축하! 모든 공격력 & 체력 +30% 영구 보너스!", perk: "예비군각성", pwr: 1.3, icon: "🎖️" }
         ]
       },
       25: {
         categoryKey: "job", orderIdx: 6,
         icon: "💼", ageStr: "25세 사회 진출", title: "본격적인 직장인 생활",
         choices: [
-          { name: "중소기업 올라운더", cost: 0, desc: "무료! 야근의 분노: 체력 35% 이하 시 공속 2.5배", perk: "야근분노", pwr: 1.0 },
-          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 피해 무효화 쉴드 생성", perk: "철밥통", pwr: 1.8 },
-          { name: "대기업 / 스타트업 대표", cost: 4000, desc: "4000🪙 법카 골드 폭격: 황금 골드를 난사해 싹쓸이", perk: "법카폭격", pwr: 3.0 }
+          { name: "중소기업 올라운더", cost: 0, desc: "무료! 야근의 분노: 체력 35% 이하 시 공속 2.5배", perk: "야근분노", pwr: 1.0, icon: "☕" },
+          { name: "공기업 / 공무원", cost: 1500, desc: "1500🪙 철밥통 쉴드: 6초마다 피해 무효화 쉴드 생성", perk: "철밥통", pwr: 1.8, icon: "🛡️" },
+          { name: "대기업 / 스타트업 대표", cost: 4000, desc: "4000🪙 법카 골드 폭격: 황금 골드를 난사해 싹쓸이", perk: "법카폭격", pwr: 3.0, icon: "💳" }
         ]
       },
       28: {
         categoryKey: "marriage", orderIdx: 7,
         icon: "💍", ageStr: "28세 결혼 및 가정", title: "안정적인 인생의 동반자",
         choices: [
-          { name: "솔로 프리덤", cost: 0, desc: "무료! 홀로 남은 자유: 공격속도 +25% 상시 증가", perk: "솔로프리덤", pwr: 1.2 },
-          { name: "알콩달콩 신혼", cost: 2000, desc: "2000🪙 최대 체력 +500 & 매초 체력 대량 재생", perk: "신혼부부", pwr: 1.8 },
-          { name: "맞벌이 부부 부자", cost: 4500, desc: "4500🪙 코인 획득량 2배 폭증 부스터", perk: "맞벌이부부", pwr: 2.5 }
+          { name: "솔로 프리덤", cost: 0, desc: "무료! 홀로 남은 자유: 공격속도 +25% 상시 증가", perk: "솔로프리덤", pwr: 1.2, icon: "🕊️" },
+          { name: "알콩달콩 신혼", cost: 2000, desc: "2000🪙 최대 체력 +500 & 매초 체력 대량 재생", perk: "신혼부부", pwr: 1.8, icon: "💌" },
+          { name: "맞벌이 부부 부자", cost: 4500, desc: "4500🪙 코인 획득량 2배 폭증 부스터", perk: "맞벌이부부", pwr: 2.5, icon: "💰" }
         ]
       },
       35: {
         categoryKey: "parenting", orderIdx: 8,
         icon: "👨‍👩‍👧", ageStr: "35세 자녀 출산과 육아", title: "부모로서의 책임감",
         choices: [
-          { name: "딩크족 커리어 집중", cost: 0, desc: "무료! 치명타율 대폭 상승 (치명타 +30%)", perk: "딩크족", pwr: 1.3 },
-          { name: "첫째 아이 육아 전쟁", cost: 3500, desc: "3500🪙 분유 탄환 투사체 크기 2배 확대 & 관통력 강화", perk: "육아전쟁", pwr: 2.2 },
-          { name: "다자녀 다둥이 패밀리", cost: 7000, desc: "7000🪙 전 필드를 쓸어버리는 메테오 오라 주기적 발동", perk: "다둥이패밀리", pwr: 3.5 }
+          { name: "딩크족 커리어 집중", cost: 0, desc: "무료! 치명타율 대폭 상승 (치명타 +30%)", perk: "딩크족", pwr: 1.3, icon: "🎯" },
+          { name: "첫째 아이 육아 전쟁", cost: 3500, desc: "3500🪙 분유 탄환 투사체 크기 2배 확대 & 관통력 강화", perk: "육아전쟁", pwr: 2.2, icon: "🍼" },
+          { name: "다자녀 다둥이 패밀리", cost: 7000, desc: "7000🪙 전 필드를 쓸어버리는 메테오 오라 주기적 발동", perk: "다둥이패밀리", pwr: 3.5, icon: "☄️" }
         ]
       },
       45: {
         categoryKey: "realestate", orderIdx: 9,
         icon: "🏢", ageStr: "45세 내 집 마련과 청약", title: "자산 형성의 갈림길",
         choices: [
-          { name: "월세 거주 파이어", cost: 0, desc: "무료! 이동속도 극대화 (+50px/s)", perk: "월세파이어", pwr: 1.3 },
-          { name: "구축 아파트 대출", cost: 5000, desc: "5000🪙 방어력 대폭 상승 & 받는 피해 30% 추가 감소", perk: "구축대출", pwr: 2.4 },
-          { name: "강남 재건축 대박", cost: 12000, desc: "12000🪙 보유한 코인 수에 비례하여 공격력이 무한 폭증", perk: "재건축대박", pwr: 4.0 }
+          { name: "월세 거주 파이어", cost: 0, desc: "무료! 이동속도 극대화 (+50px/s)", perk: "월세파이어", pwr: 1.3, icon: "🏃" },
+          { name: "구축 아파트 대출", cost: 5000, desc: "5000🪙 방어력 대폭 상승 & 받는 피해 30% 추가 감소", perk: "구축대출", pwr: 2.4, icon: "🏢" },
+          { name: "강남 재건축 대박", cost: 12000, desc: "12000🪙 보유한 코인 수에 비례하여 공격력이 무한 폭증", perk: "재건축대박", pwr: 4.0, icon: "🏙️" }
         ]
       },
       60: {
         categoryKey: "retirement", orderIdx: 10,
         icon: "🌅", ageStr: "60세 정년 퇴직과 황혼기", title: "인생의 후반전",
         choices: [
-          { name: "치킨집 창업", cost: 0, desc: "무료! 처치 시 코인 획득량 3배 폭증", perk: "치킨집", pwr: 1.5 },
-          { name: "세계 일주 은퇴 이민", cost: 10000, desc: "10000🪙 모든 스킬 쿨타임 50% 단축", perk: "세계일주", pwr: 3.0 },
-          { name: "실버 세대 대부호", cost: 25000, desc: "25000🪙 궁극의 크리티컬 영웅 각성 (크리티컬 피해 2배)", perk: "실버대부호", pwr: 5.0 }
+          { name: "치킨집 창업", cost: 0, desc: "무료! 처치 시 코인 획득량 3배 폭증", perk: "치킨집", pwr: 1.5, icon: "🍗" },
+          { name: "세계 일주 은퇴 이민", cost: 10000, desc: "10000🪙 모든 스킬 쿨타임 50% 단축", perk: "세계일주", pwr: 3.0, icon: "🚢" },
+          { name: "실버 세대 대부호", cost: 25000, desc: "25000🪙 궁극의 크리티컬 영웅 각성 (크리티컬 피해 2배)", perk: "실버대부호", pwr: 5.0, icon: "💎" }
         ]
       }
     };
@@ -828,6 +828,20 @@
         if (age >= st.minAge && age <= st.maxAge) return st;
       }
       return LIFE_STAGES[LIFE_STAGES.length - 1];
+    }
+
+    // 선택한 진로(퍽)에 따른 무기 아이콘 및 이름 가져오기
+    function getActiveWeaponInfo() {
+      const currentStage = getCurrentStage();
+      // 가장 최근에 선택한 진로 퍽 확인
+      const perks = state.selectedLifePerks;
+      if (perks && perks.length > 0) {
+        const latestPerk = perks[perks.length - 1];
+        if (latestPerk && latestPerk.icon && latestPerk.name) {
+          return { icon: latestPerk.icon, name: latestPerk.name };
+        }
+      }
+      return { icon: currentStage.atkIcon, name: currentStage.atkName };
     }
 
     function calcStats() {
@@ -1042,7 +1056,7 @@
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
-      const current = getCurrentStage();
+      const weaponInfo = getActiveWeaponInfo();
 
       const target = getNearestEnemy();
       let angle = target ? Math.atan2(target.y - player.y, target.x - player.x) : Math.atan2(player.dirY, player.dirX);
@@ -1066,7 +1080,7 @@
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : ((player.age >= 17 ? 2 : 0));
 
-      const createProj = (ang, extraPierce = 0, pIcon = current.atkIcon) => ({
+      const createProj = (ang, extraPierce = 0, pIcon = weaponInfo.icon) => ({
         x: player.x, y: player.y,
         vx: Math.cos(ang) * speed,
         vy: Math.sin(ang) * speed,
@@ -1074,7 +1088,7 @@
         critRate: stats.critRate,
         critDmg: stats.critDmg,
         pierce: pierceBonus + extraPierce,
-        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : pIcon),
+        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : (isFreeTalking ? "🔤" : (isExamPen ? "🖍️" : pIcon))),
         radius: isPowerShot ? 18 : projSize,
         life: 1.6
       });
@@ -1101,7 +1115,7 @@
         projectiles.push(createProj(angle + 0.15, 2, "💌"));
       } else if (isPowerShot) {
         projectiles.push(createProj(angle, 2, "⚽"));
-      } else if (player.age >= 14) {
+      } else if (player.age >= 14 || weaponInfo.icon !== "🍼") {
         projectiles.push(createProj(angle - 0.22));
         projectiles.push(createProj(angle));
         projectiles.push(createProj(angle + 0.22));
@@ -2248,12 +2262,12 @@
     function updateHUD() {
       const stats = calcStats();
       const current = getCurrentStage();
+      const weaponInfo = getActiveWeaponInfo();
       const { fart, poop, cry } = getSkillEvolutions();
 
       document.getElementById('hud-avatar').innerText = current.icon;
       document.getElementById('player-name-display').innerText = state.playerName;
       document.getElementById('grow-stage-badge').innerText = current.name;
-      document.getElementById('level-badge', `${player.age}세`);
       document.getElementById('level-badge').innerText = `${player.age}세`;
       document.getElementById('live-score-display').innerText = `🎯 ${state.score.toLocaleString()} P`;
 
@@ -2273,8 +2287,9 @@
       document.getElementById('coin-count').innerText = state.coins;
       document.getElementById('modal-coin').innerText = state.coins;
 
-      document.getElementById('atk-btn-icon').innerText = current.atkIcon;
-      document.getElementById('atk-btn-text').innerText = current.atkName;
+      // 진로 선택에 따른 무기 아이콘 및 이름 실시간 반영
+      document.getElementById('atk-btn-icon').innerText = weaponInfo.icon;
+      document.getElementById('atk-btn-text').innerText = weaponInfo.name;
 
       const baseAtk = Math.round(stats.atk * (1 + stats.dmgAmp));
       document.getElementById('dmg-atk-btn').innerText = `ATK ${baseAtk}`;
@@ -2463,7 +2478,7 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      // 🏆 내 기기 명예의 전당 저장 (시간 포함, 중복 방지)
+      // 로컬 명예의 전당 저장
       saveScoreLocally(finalScore, finalAge, finalStageName);
       renderGameOverRankPreview();
 
@@ -2474,7 +2489,7 @@
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}시 ${String(now.getMinutes()).padStart(2, '0')}분`;
 
-      // 💬 요청하신 시간 포함 맞춤형 공유 문구
+      // 💬 요청하신 시간 및 정보가 포함된 맞춤형 공유 멘트
       window.lastShareText = `[유준이 키우기]\n${state.playerName} 님이 오늘 ${timeStr}에 유준이를 [${finalStageName} ${finalAge}세]까지 키워내어 최종 점수 ${finalScore.toLocaleString()}P를 달성했습니다!\n지금 링크를 눌러 도전해보세요!\nhttps://xxhubzz.github.io/yujun/`;
 
       localStorage.setItem('yujun_remembered_name', state.playerName);
@@ -2497,7 +2512,7 @@
     }
 
     document.getElementById('btn-kakao-share').addEventListener('click', async () => {
-      const shareText = window.lastShareTest || `[유준이 키우기] 유준이를 멋지게 키워냈습니다!\nhttps://xxhubzz.github.io/yujun/`;
+      const shareText = window.lastShareText || `[유준이 키우기] 유준이를 멋지게 키워냈습니다!\nhttps://xxhubzz.github.io/yujun/`;
 
       if (navigator.share) {
         try {
