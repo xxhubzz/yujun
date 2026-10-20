@@ -398,7 +398,7 @@
     // 🏆 로컬 저장소 기반 랭킹 및 시간 기록 시스템
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v6');
+        const data = localStorage.getItem('yujun_local_rankings_v7');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -433,7 +433,7 @@
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v6', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v7', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -643,7 +643,7 @@
 
     function getItemCost(item, level) {
       let cost = Math.round(item.baseCost * Math.pow(item.costScale, level));
-      if (state.selectedLifePerks.some(p => p.perk === "자격증마스터")) {
+      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "자격증마스터")) {
         cost = Math.round(cost * 0.8);
       }
       return cost;
@@ -861,20 +861,25 @@
       return false;
     }
 
-    // 확정된 최신 진로 무기 정보 가져오기 (보류 중이면 무조건 나이별 기본 무기)
+    // 활성 무기 정보 판정 (보류 중일 때 무조건 '이미 확정된 가장 최근의 진로' 또는 '초기 기본 무기'를 유지하도록 수정)
     function getActiveWeaponInfo() {
       const currentStage = getCurrentStage();
-      
-      if (isDecisionPendingForCurrentStage()) {
-        return { icon: currentStage.atkIcon, name: currentStage.atkName, perk: null };
-      }
 
-      if (state.selectedLifePerks && state.selectedLifePerks.length > 0) {
-        const latestPerk = state.selectedLifePerks[state.selectedLifePerks.length - 1];
+      // 만약 현재 나이대에 새 진로 선택창이 떠서 보류 중이라면, 이전에 확정했던 퍽들을 뒤로 미루고 직전 확정된 무기를 찾아냄
+      // 이미 확정된 퍽들 중 가장 마지막에 선택된 퍽을 가져옴
+      const confirmedPerks = state.selectedLifePerks.filter(p => {
+        // 현재 보류 중인 이벤트의 카테고리가 아니라면 확정된 것임
+        return !isDecisionPendingForCurrentStage();
+      });
+
+      if (confirmedPerks.length > 0) {
+        const latestPerk = confirmedPerks[confirmedPerks.length - 1];
         if (latestPerk && latestPerk.icon && latestPerk.name) {
           return { icon: latestPerk.icon, name: latestPerk.name, perk: latestPerk.perk };
         }
       }
+
+      // 확정된 진로가 아예 없다면 현재 스테이지의 기본 무기 반환
       return { icon: currentStage.atkIcon, name: currentStage.atkName, perk: null };
     }
 
@@ -900,50 +905,50 @@
         clothColor: "#fde047"
       };
 
-      if (!isDecisionPendingForCurrentStage()) {
-        if (state.selectedLifePerks.some(p => p.perk === "예비군각성")) {
-          stats.atk *= 1.3;
-          stats.maxHp *= 1.3;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "국립대장학")) {
-          stats.maxHp += 300;
-          stats.atk += 35;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "칼퇴근")) {
-          stats.speedBonus += 35;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "오답노트")) {
-          stats.dmgReduction = Math.min(0.85, stats.dmgReduction + 0.25);
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) {
-          stats.atk *= 1.6;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "신혼부부")) {
-          stats.maxHp += 500;
-          stats.hpRegen += 15;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "맞벌이부부")) {
-          stats.coinBonus += 1.0;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "딩크족")) {
-          stats.critRate = Math.min(0.95, stats.critRate + 0.3);
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "구축대출")) {
-          stats.def += 15;
-          stats.dmgReduction = Math.min(0.9, stats.dmgReduction + 0.3);
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "재건축대박")) {
-          stats.atk += Math.round(state.coins * 0.15);
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "치킨집")) {
-          stats.coinBonus += 3.0;
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "세계일주")) {
-          stats.coolReduce = Math.min(0.85, stats.coolReduce + 0.5);
-        }
-        if (state.selectedLifePerks.some(p => p.perk === "실버대부호")) {
-          stats.critDmg *= 2.0;
-        }
+      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+
+      if (confirmedPerks.some(p => p.perk === "예비군각성")) {
+        stats.atk *= 1.3;
+        stats.maxHp *= 1.3;
+      }
+      if (confirmedPerks.some(p => p.perk === "국립대장학")) {
+        stats.maxHp += 300;
+        stats.atk += 35;
+      }
+      if (confirmedPerks.some(p => p.perk === "칼퇴근")) {
+        stats.speedBonus += 35;
+      }
+      if (confirmedPerks.some(p => p.perk === "오답노트")) {
+        stats.dmgReduction = Math.min(0.85, stats.dmgReduction + 0.25);
+      }
+      if (confirmedPerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) {
+        stats.atk *= 1.6;
+      }
+      if (confirmedPerks.some(p => p.perk === "신혼부부")) {
+        stats.maxHp += 500;
+        stats.hpRegen += 15;
+      }
+      if (confirmedPerks.some(p => p.perk === "맞벌이부부")) {
+        stats.coinBonus += 1.0;
+      }
+      if (confirmedPerks.some(p => p.perk === "딩크족")) {
+        stats.critRate = Math.min(0.95, stats.critRate + 0.3);
+      }
+      if (confirmedPerks.some(p => p.perk === "구축대출")) {
+        stats.def += 15;
+        stats.dmgReduction = Math.min(0.9, stats.dmgReduction + 0.3);
+      }
+      if (confirmedPerks.some(p => p.perk === "재건축대박")) {
+        stats.atk += Math.round(state.coins * 0.15);
+      }
+      if (confirmedPerks.some(p => p.perk === "치킨집")) {
+        stats.coinBonus += 3.0;
+      }
+      if (confirmedPerks.some(p => p.perk === "세계일주")) {
+        stats.coolReduce = Math.min(0.85, stats.coolReduce + 0.5);
+      }
+      if (confirmedPerks.some(p => p.perk === "실버대부호")) {
+        stats.critDmg *= 2.0;
       }
 
       if (getL('clothes') >= 5) stats.clothColor = "#a7f3d0";
@@ -1089,11 +1094,10 @@
       return nearest;
     }
 
-    // 발사 함수: 진로 보류 중에는 무조건 기본 무기만 발사되도록 완벽 분기 처리
+    // 발사 함수: 확정된 진로의 스킬만 정확히 발사 (보류 중엔 이전 스킬 유지)
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
-      const current = getCurrentStage();
       const weaponInfo = getActiveWeaponInfo();
 
       const target = getNearestEnemy();
@@ -1107,15 +1111,13 @@
 
       const speed = stats.projSpeed;
       const perkName = weaponInfo.perk;
-      const isPending = isDecisionPendingForCurrentStage();
 
-      // 진로 보류 중이면 특수 스킬 적용 안 함 (무조건 기본 탄환 1발)
-      const isFreeTalking = (!isPending && perkName === "프리토킹");
-      const isArmyK2 = (!isPending && perkName === "육군보병");
-      const isExamPen = (!isPending && perkName === "컴싸난사");
-      const isBigBaby = (!isPending && perkName === "육아전쟁");
-      const isPowerShot = (!isPending && perkName === "파워슛");
-      const isMarriage = (!isPending && perkName === "신혼부부");
+      const isFreeTalking = (perkName === "프리토킹");
+      const isArmyK2 = (perkName === "육군보병");
+      const isExamPen = (perkName === "컴싸난사");
+      const isBigBaby = (perkName === "육아전쟁");
+      const isPowerShot = (perkName === "파워슛");
+      const isMarriage = (perkName === "신혼부부");
 
       const projSize = isBigBaby ? 24 : 13;
       const pierceBonus = isBigBaby ? 3 : 1;
@@ -1159,8 +1161,8 @@
         projectiles.push(createProj(angle));
       }
 
-      const soloFast = (!isPending && perkName === "솔로프리덤") ? 0.75 : 1.0;
-      const yagenFast = (!isPending && perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      const soloFast = (perkName === "솔로프리덤") ? 0.75 : 1.0;
+      const yagenFast = (perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = yagenFast * soloFast;
     }
 
@@ -1295,7 +1297,8 @@
 
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
-        const coinMultiplier = (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "치킨집")) ? 3.0 : 1.0;
+        const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+        const coinMultiplier = confirmedPerks.some(p => p.perk === "치킨집") ? 3.0 : 1.0;
         const coinBase = enemy.coinVal || 6;
         const earnedCoin = Math.max(1, Math.round(coinBase * (1 + stats.coinBonus) * coinMultiplier));
         const expBase = enemy.expVal || 35;
@@ -1705,7 +1708,9 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "법카폭격")) {
+      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+
+      if (confirmedPerks.some(p => p.perk === "법카폭격")) {
         player.lawMoneyTimer = (player.lawMoneyTimer || 0) + dt;
         if (player.lawMoneyTimer >= 3.0) {
           player.lawMoneyTimer = 0;
@@ -1728,7 +1733,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "다둥이패밀리")) {
+      if (confirmedPerks.some(p => p.perk === "다둥이패밀리")) {
         player.meteorTimer = (player.meteorTimer || 0) + dt;
         if (player.meteorTimer >= 4.0) {
           player.meteorTimer = 0;
@@ -1741,7 +1746,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "올A메테오")) {
+      if (confirmedPerks.some(p => p.perk === "올A메테오")) {
         player.skyMeteorTimer = (player.skyMeteorTimer || 0) + dt;
         if (player.skyMeteorTimer >= 4.0) {
           player.skyMeteorTimer = 0;
@@ -1754,7 +1759,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "해군함포")) {
+      if (confirmedPerks.some(p => p.perk === "해군함포")) {
         player.navyCannonTimer = (player.navyCannonTimer || 0) + dt;
         if (player.navyCannonTimer >= 6.0) {
           player.navyCannonTimer = 0;
@@ -1773,7 +1778,7 @@
         }
       }
 
-      const hasOrchestra = !isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "사립오케스트라");
+      const hasOrchestra = confirmedPerks.some(p => p.perk === "사립오케스트라");
       enemies.forEach(en => {
         if (en.dead) return;
         const d = Math.hypot(en.x - player.x, en.y - player.y);
@@ -1784,7 +1789,7 @@
         }
       });
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "양자블랙홀")) {
+      if (confirmedPerks.some(p => p.perk === "양자블랙홀")) {
         player.blackholeTimer = (player.blackholeTimer || 0) + dt;
         if (player.blackholeTimer >= 5.0) {
           player.blackholeTimer = 0;
@@ -1807,7 +1812,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "공군폭격")) {
+      if (confirmedPerks.some(p => p.perk === "공군폭격")) {
         player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
         if (player.airStrikeTimer >= 7.0) {
           player.airStrikeTimer = 0;
@@ -1820,7 +1825,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "카투사키트")) {
+      if (confirmedPerks.some(p => p.perk === "카투사키트")) {
         player.katusaTimer = (player.katusaTimer || 0) + dt;
         if (player.katusaTimer >= 10.0) {
           player.katusaTimer = 0;
@@ -1830,7 +1835,7 @@
         }
       }
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "철밥통")) {
+      if (confirmedPerks.some(p => p.perk === "철밥통")) {
         if (!player.hasShield) {
           player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
           if (player.ironShieldTimer >= 6.0) {
@@ -1851,7 +1856,7 @@
       const moveLen = Math.hypot(moveX, moveY);
       if (moveLen > 0.1) {
         player.isMoving = true;
-        const addSpeed = (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "월세파이어")) ? 50 : 0;
+        const addSpeed = confirmedPerks.some(p => p.perk === "월세파이어") ? 50 : 0;
         const finalSpeed = (player.baseSpeed + stats.speedBonus + addSpeed);
         player.x += (moveX / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
         player.y += (moveY / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
@@ -2071,8 +2076,9 @@
 
       const stats = calcStats();
       const current = getCurrentStage();
+      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
 
-      if (!isDecisionPendingForCurrentStage() && state.selectedLifePerks.some(p => p.perk === "사립오케스트라")) {
+      if (confirmedPerks.some(p => p.perk === "사립오케스트라")) {
         ctx.save();
         ctx.beginPath();
         ctx.arc(player.x, player.y, 180, 0, Math.PI * 2);
@@ -2513,7 +2519,6 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      // 로컬 명예의 전당 저장
       saveScoreLocally(finalScore, finalAge, finalStageName);
       renderGameOverRankPreview();
 
