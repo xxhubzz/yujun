@@ -384,7 +384,7 @@
   </div>
 
   <script>
-    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동 (새로운 API Key 반영)
+    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동 (API Key 적용 완료)
     const LL_API_KEY = "dev_9598b693d6ad49548435888c1b971ace";
     const LL_BOARD_ID = "yujun_rankings";
     let llSessionId = null;
@@ -2419,6 +2419,7 @@
     function showItemTooltip(e, itemDef, curLv) {
       const tt = document.getElementById('item-tooltip');
       document.getElementById('tt-title').innerHTML = `${itemDef.icon} ${itemDef.name} <span class="text-amber-400 text-[10px]">(현재 Lv.${curLv})</span>`;
+      document.getElementById('tt-stat', itemDef.desc);
       document.getElementById('tt-stat').innerText = `✨ ${itemDef.desc}`;
       document.getElementById('tt-type').innerText = `속성: ${itemDef.attr}`;
 
@@ -2533,7 +2534,7 @@
     }
 
     btnRank.addEventListener('touchend', openRank, { passive: false });
-    btnRank.addEventListener('click', 'click');
+    btnRank.addEventListener('click', openRank);
 
     btnCloseRank.addEventListener('touchend', closeRank, { passive: false });
     btnCloseRank.addEventListener('click', closeRank);
@@ -2578,7 +2579,7 @@
     document.getElementById('btn-kakao-share').addEventListener('click', async () => {
       const shareText = window.lastShareText || `[유준이 키우기]\n${state.playerName} 님이 유준이를 멋지게 키워냈습니다!\nhttps://xxhubzz.github.io/yujun/`;
 
-      if (navigator.show) {
+      if (navigator.share) {
         try {
           await navigator.share({ title: '유준이 키우기', text: shareText });
         } catch(e) {}
@@ -2605,7 +2606,6 @@
 
       Sound.init();
       document.getElementById('start-modal').classList.add('hidden');
-      state.isPaused, state.isPaused = false;
       state.isPaused = false;
       updateHUD();
       resize();
