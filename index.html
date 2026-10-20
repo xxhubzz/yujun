@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>유준이 키우기 - 무한 육아 어드벤처</title>
+  <title>유준이 키우기 - 무한 육아 어드벤처 (Remastered)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -18,7 +18,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #fefce8;
+      background-color: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Nanum Gothic", sans-serif;
     }
     #game-canvas {
@@ -49,39 +49,42 @@
       padding: 0 16px;
     }
     .joystick-base {
-      width: 115px;
-      height: 115px;
-      background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, rgba(200,200,200,0.5) 100%);
-      border: 3px solid rgba(255,255,255,0.85);
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(15,23,42,0.6) 100%);
+      border: 3px solid rgba(245, 158, 11, 0.6);
       border-radius: 50%;
       position: relative;
       touch-action: none;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.25), inset 0 0 15px rgba(255,255,255,0.2);
     }
     .joystick-thumb {
-      width: 48px;
-      height: 48px;
-      background: radial-gradient(circle, #fde047 0%, #eab308 100%);
+      width: 52px;
+      height: 52px;
+      background: radial-gradient(circle, #fbbf24 0%, #d97706 100%);
+      border: 2px solid #fff;
       border-radius: 50%;
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 15px rgba(217, 119, 6, 0.6);
       pointer-events: none;
     }
     .skill-btn {
       transition: transform 0.08s ease, filter 0.08s ease;
       touch-action: none;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.3);
+      border: 2px solid rgba(255,255,255,0.3);
     }
     .skill-btn:active {
       transform: scale(0.92);
-      filter: brightness(0.9);
+      filter: brightness(1.15);
     }
     .modal-overlay {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
       pointer-events: auto !important;
       z-index: 9999 !important;
     }
@@ -103,20 +106,20 @@
     }
     @keyframes alertAnim {
       0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 12px rgba(239,68,68,0.8)); }
+      50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 16px rgba(244,63,94,0.9)); }
     }
     .boss-alert {
       animation: alertAnim 0.7s infinite;
     }
   </style>
 </head>
-<body class="bg-amber-50">
+<body class="bg-slate-950 text-slate-100">
 
   <canvas id="game-canvas"></canvas>
 
   <!-- 진로 보류 시 일시정지 경고 배너 -->
   <div id="postpone-warning-banner" class="hud-layer top-36 left-0 right-0 z-30 hidden flex justify-center pointer-events-none">
-    <div class="bg-amber-600/80 backdrop-blur-sm border border-amber-200/80 text-white font-bold text-[10px] px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5">
+    <div class="bg-amber-500/90 backdrop-blur-md border border-amber-300 text-slate-950 font-black text-[10px] px-3.5 py-1.5 rounded-full shadow-xl flex items-center gap-1.5">
       <span>⏳</span>
       <span>진로 결정 보류 중: 레벨업 및 경험치 획득이 일시 중지되었습니다!</span>
     </div>
@@ -124,7 +127,7 @@
 
   <!-- 보스 경고 배너 -->
   <div id="boss-warning-banner" class="hud-layer top-44 left-0 right-0 z-30 hidden flex justify-center">
-    <div class="boss-alert bg-rose-600/95 border-2 border-amber-300 text-white font-black text-xs md:text-sm px-4 py-2 rounded-2xl shadow-2xl flex items-center gap-2">
+    <div class="boss-alert bg-rose-600/95 border-2 border-amber-300 text-white font-black text-xs md:text-sm px-5 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2">
       <span class="text-base">⚠️</span>
       <span id="boss-warning-text">WARNING! 보스 출현!</span>
       <span class="text-base">⚠️</span>
@@ -134,9 +137,9 @@
   <!-- 상단 HUD 영역 -->
   <div class="hud-layer top-0 left-0 right-0 p-2.5 flex flex-col gap-1.5 z-25 pointer-events-none">
     
-    <!-- 최상단 독립 점수 표시 배지 (짤림 방지) -->
+    <!-- 최상단 독립 점수 표시 배지 -->
     <div class="flex justify-center w-full pt-0.5">
-      <div id="live-score-display" class="pointer-events-auto text-xs sm:text-sm font-black text-rose-600 bg-white/95 backdrop-blur-md px-4 py-1 rounded-2xl border-2 border-rose-300 shadow-lg shrink-0">
+      <div id="live-score-display" class="pointer-events-auto text-xs sm:text-sm font-black text-amber-300 bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-2xl border-2 border-amber-500/50 shadow-2xl shrink-0">
         🎯 0 P
       </div>
     </div>
@@ -144,51 +147,51 @@
     <div class="flex items-start justify-between w-full max-w-md mx-auto mt-1">
       
       <!-- 유준이 프로필 -->
-      <div class="interactive bg-white/95 backdrop-blur-md px-3 py-2 rounded-2xl shadow-md border border-amber-200 flex items-center gap-2.5 min-w-0 flex-1 mr-1.5">
-        <div id="hud-avatar" class="text-3xl filter drop-shadow shrink-0">👶</div>
+      <div class="interactive bg-slate-900/90 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-xl border border-amber-500/40 flex items-center gap-3 min-w-0 flex-1 mr-1.5">
+        <div id="hud-avatar" class="text-3xl filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)] shrink-0">👶</div>
         <div class="flex-1 min-w-0">
-          <div class="flex items-center justify-between leading-tight mb-0.5">
-            <span id="player-name-display" class="font-extrabold text-slate-800 text-xs sm:text-sm truncate">유준이</span>
-            <span id="grow-stage-badge" class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-md shrink-0">신생아</span>
+          <div class="flex items-center justify-between leading-tight mb-1">
+            <span id="player-name-display" class="font-extrabold text-amber-200 text-xs sm:text-sm truncate">유준이</span>
+            <span id="grow-stage-badge" class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2 py-0.5 rounded-md shrink-0">신생아</span>
           </div>
           
           <div class="flex items-center gap-1.5 mb-1 leading-none">
-            <span id="level-badge" class="text-xs font-black text-amber-600 shrink-0">0세</span>
+            <span id="level-badge" class="text-xs font-black text-amber-400 shrink-0">0세</span>
           </div>
 
-          <div class="relative w-full bg-slate-200 h-3.5 rounded-full overflow-hidden border border-slate-300 flex items-center justify-center">
-            <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-rose-500 transition-all duration-150" style="width: 100%;"></div>
-            <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">150 / 150</span>
+          <div class="relative w-full bg-slate-950 h-3.5 rounded-full overflow-hidden border border-slate-700 flex items-center justify-center shadow-inner">
+            <div id="hp-bar" class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-rose-600 to-pink-500 transition-all duration-150" style="width: 100%;"></div>
+            <span id="hp-text" class="relative z-10 text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] tracking-tight">150 / 150</span>
           </div>
 
-          <div class="relative w-full bg-slate-200 h-3 rounded-full overflow-hidden mt-1 border border-slate-300 flex items-center justify-center">
-            <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-amber-400 transition-all duration-150" style="width: 0%;"></div>
-            <span id="exp-text" class="relative z-10 text-[8px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] tracking-tight">EXP 0%</span>
+          <div class="relative w-full bg-slate-950 h-3 rounded-full overflow-hidden mt-1 border border-slate-700 flex items-center justify-center shadow-inner">
+            <div id="exp-bar" class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-150" style="width: 0%;"></div>
+            <span id="exp-text" class="relative z-10 text-[8px] font-black text-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)] tracking-tight">EXP 0%</span>
           </div>
         </div>
       </div>
 
       <div class="flex flex-col items-end gap-1.5 shrink-0 z-30">
         <div class="flex items-center gap-1">
-          <div class="bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl shadow-md border border-amber-200 flex items-center gap-1 shrink-0">
+          <div class="bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-xl border border-amber-500/40 flex items-center gap-1 shrink-0">
             <span class="text-sm">🪙</span>
-            <span id="coin-count" class="font-black text-slate-800 text-xs tracking-tight">0</span>
+            <span id="coin-count" class="font-black text-amber-300 text-xs tracking-tight">0</span>
           </div>
-          <button id="btn-rankings" class="interactive bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-amber-200 text-slate-700 active:scale-95 transition-transform shrink-0">
+          <button id="btn-rankings" class="interactive bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-amber-500/40 text-amber-300 active:scale-95 transition-transform shrink-0 cursor-pointer">
             🏆
           </button>
-          <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-2.5 py-1.5 rounded-2xl shadow-md active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer">
+          <button id="btn-shop" class="interactive bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black text-xs px-3 py-1.5 rounded-2xl shadow-xl active:scale-95 flex items-center gap-1 shrink-0 cursor-pointer border border-amber-300/50">
             🛒 상점
           </button>
         </div>
 
-        <!-- 전체 미니맵 (투명도 대폭 상향) -->
-        <div class="interactive bg-slate-900/40 backdrop-blur-xs border-2 border-amber-300/80 rounded-2xl shadow-lg w-20 h-20 overflow-hidden relative shrink-0">
+        <!-- 미니맵 레이더 -->
+        <div class="interactive bg-slate-900/80 backdrop-blur-md border-2 border-amber-500/50 rounded-2xl shadow-2xl w-20 h-20 overflow-hidden relative shrink-0">
           <canvas id="minimap-canvas" width="80" height="80" class="w-full h-full block"></canvas>
           <div class="absolute inset-0 pointer-events-none border border-white/10 rounded-2xl"></div>
         </div>
 
-        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-[10px] px-2.5 py-1 rounded-2xl shadow-lg active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-white">
+        <button id="btn-pending-decision" class="interactive hidden bg-gradient-to-r from-rose-600 to-pink-600 text-white font-black text-[10px] px-3 py-1.5 rounded-2xl shadow-2xl active:scale-95 animate-pulse flex items-center gap-1 shrink-0 border border-amber-300/70">
           <span id="pending-count-badge">🔔 미결정 진로</span>
         </button>
       </div>
@@ -200,22 +203,22 @@
   <!-- 왼쪽 세로형 장비 바 -->
   <div id="equip-sidebar" class="equip-drawer hud-layer z-20" style="top: 140px; left: 8px;">
     <div class="flex items-start">
-      <div class="interactive rounded-2xl p-2 shadow-xl border border-slate-600/50 flex flex-col gap-1 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(30, 41, 59, 0.78); backdrop-filter: blur(8px);">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-600/60 text-white text-[10px] font-bold">
-          <span class="flex items-center gap-1 text-amber-300">🎒 장착 레벨</span>
-          <span id="equip-count" class="text-slate-300">0/10</span>
+      <div class="interactive rounded-2xl p-2.5 shadow-2xl border border-slate-700 flex flex-col gap-1.5 w-[138px] max-h-[58vh] overflow-hidden" style="background-color: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px);">
+        <div class="flex items-center justify-between pb-1.5 border-b border-slate-700 text-white text-[10px] font-bold">
+          <span class="flex items-center gap-1 text-amber-400">🎒 장착 레벨</span>
+          <span id="equip-count" class="text-slate-400">0/10</span>
         </div>
         <div id="equip-slot-container" class="allow-scroll overflow-y-auto pr-0.5 flex flex-col gap-1 text-white text-[10px]">
-          <div class="text-[9px] text-slate-300 text-center py-2">상점에서 아이템을 무한 강화하세요!</div>
+          <div class="text-[9px] text-slate-400 text-center py-2">상점에서 아이템을 무한 강화하세요!</div>
         </div>
       </div>
-      <button id="btn-toggle-equip" class="interactive bg-amber-500 text-white text-xs font-black w-6 h-9 rounded-r-xl shadow-lg flex items-center justify-center -ml-0.5 mt-2 active:bg-amber-600">
+      <button id="btn-toggle-equip" class="interactive bg-amber-500 text-slate-950 text-xs font-black w-6 h-10 rounded-r-xl shadow-xl flex items-center justify-center -ml-0.5 mt-2 active:bg-amber-400">
         &lt;
       </button>
     </div>
   </div>
 
-  <div id="item-tooltip" class="fixed hidden z-50 bg-slate-900/95 text-white p-2.5 rounded-xl shadow-2xl border border-slate-700 max-w-[190px] pointer-events-none text-left">
+  <div id="item-tooltip" class="fixed hidden z-50 bg-slate-900 text-white p-3 rounded-xl shadow-2xl border border-amber-500/50 max-w-[190px] pointer-events-none text-left">
     <div id="tt-title" class="font-black text-xs text-amber-300 flex items-center gap-1"></div>
     <div id="tt-stat" class="text-[10px] text-slate-200 mt-1 font-medium"></div>
     <div id="tt-type" class="text-[9px] text-slate-400 mt-0.5"></div>
@@ -227,29 +230,29 @@
       <div class="joystick-thumb" id="joystick-thumb"></div>
     </div>
 
-    <div class="interactive grid grid-cols-2 gap-2">
-      <button id="btn-skill-poop" class="skill-btn bg-amber-800/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-amber-600 flex flex-col items-center justify-center w-16 h-16 relative">
+    <div class="interactive grid grid-cols-2 gap-2.5">
+      <button id="btn-skill-poop" class="skill-btn skill-btn-active bg-gradient-to-br from-amber-700 to-amber-900 text-white p-1.5 rounded-2xl flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-poop" class="text-xl">💩</span>
         <span id="name-skill-poop" class="text-[8px] font-black mt-0.5 leading-none">똥폭탄</span>
         <span id="dmg-skill-poop" class="text-[7px] text-amber-300 font-bold leading-none mt-0.5">ATK 0</span>
-        <div id="cool-poop" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
+        <div id="cool-poop" class="absolute inset-0 bg-slate-950/80 rounded-2xl hidden flex items-center justify-center font-black text-xs text-amber-400">0s</div>
       </button>
 
-      <button id="btn-skill-fart" class="skill-btn bg-emerald-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-emerald-400 flex flex-col items-center justify-center w-16 h-16 relative">
+      <button id="btn-skill-fart" class="skill-btn bg-gradient-to-br from-emerald-600 to-emerald-900 text-white p-1.5 rounded-2xl flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-fart" class="text-xl">💨</span>
         <span id="name-skill-fart" class="text-[8px] font-black mt-0.5 leading-none">방귀</span>
         <span id="dmg-skill-fart" class="text-[7px] text-emerald-200 font-bold leading-none mt-0.5">ATK 0</span>
-        <div id="cool-fart" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
+        <div id="cool-fart" class="absolute inset-0 bg-slate-950/80 rounded-2xl hidden flex items-center justify-center font-black text-xs text-emerald-400">0s</div>
       </button>
 
-      <button id="btn-skill-cry" class="skill-btn bg-blue-600/95 text-white p-1.5 rounded-2xl shadow-lg border-2 border-blue-400 flex flex-col items-center justify-center w-16 h-16 relative">
+      <button id="btn-skill-cry" class="skill-btn bg-gradient-to-br from-blue-600 to-blue-900 text-white p-1.5 rounded-2xl flex flex-col items-center justify-center w-16 h-16 relative">
         <span id="icon-skill-cry" class="text-xl">😭</span>
         <span id="name-skill-cry" class="text-[8px] font-black mt-0.5 leading-none">울음</span>
         <span id="dmg-skill-cry" class="text-[7px] text-blue-200 font-bold leading-none mt-0.5">ATK 0</span>
-        <div id="cool-cry" class="absolute inset-0 bg-black/60 rounded-2xl hidden flex items-center justify-center font-black text-xs text-white">0s</div>
+        <div id="cool-cry" class="absolute inset-0 bg-slate-950/80 rounded-2xl hidden flex items-center justify-center font-black text-xs text-blue-400">0s</div>
       </button>
 
-      <button id="btn-attack" class="skill-btn bg-gradient-to-tr from-pink-500 to-rose-400 text-white p-1.5 rounded-2xl shadow-xl border-2 border-white flex flex-col items-center justify-center w-16 h-16">
+      <button id="btn-attack" class="skill-btn bg-gradient-to-br from-rose-500 to-pink-700 text-white p-1.5 rounded-2xl flex flex-col items-center justify-center w-16 h-16">
         <span id="atk-btn-icon" class="text-xl">🍼</span>
         <span id="atk-btn-text" class="text-[8px] font-black mt-0.5 leading-none">분유던지기</span>
         <span id="dmg-atk-btn" class="text-[7px] text-pink-200 font-bold leading-none mt-0.5">ATK 0</span>
@@ -259,63 +262,63 @@
 
   <!-- 상점 모달창 -->
   <div id="shop-modal" class="fixed inset-0 modal-overlay z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
-      <div class="bg-gradient-to-r from-amber-400 to-orange-400 p-3.5 text-white flex items-center justify-between shrink-0">
+    <div class="bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-2 border-amber-500/50 relative z-50">
+      <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-4 text-white flex items-center justify-between shrink-0 shadow-lg">
         <div>
           <h2 class="font-black text-base flex items-center gap-1.5">🛍️ 유준이 무한 육아 백화점</h2>
-          <p class="text-[10px] text-amber-100 font-medium">아이템 레벨을 무한히 올려 강력해지는 적들을 물리치세요!</p>
+          <p class="text-[10px] text-amber-100 font-medium">아이템 레벨을 무한히 올려 강력한 적들을 물리치세요!</p>
         </div>
         <div class="flex items-center gap-2">
-          <div class="bg-black/20 px-2.5 py-1 rounded-full text-xs font-black flex items-center gap-1">
+          <div class="bg-slate-950/40 px-3 py-1 rounded-full text-xs font-black flex items-center gap-1 text-amber-300">
             <span>🪙</span>
             <span id="modal-coin">0</span>
           </div>
-          <button id="btn-close-shop" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
+          <button id="btn-close-shop" class="text-white bg-slate-950/30 hover:bg-slate-950/60 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
         </div>
       </div>
-      <div id="shop-item-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-2 pb-16"></div>
+      <div id="shop-item-list" class="allow-scroll flex-1 overflow-y-auto p-3.5 flex flex-col gap-2.5 pb-16"></div>
     </div>
   </div>
 
   <!-- 랭킹 모달창 -->
   <div id="rank-modal" class="fixed inset-0 modal-overlay z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
-      <div class="bg-amber-400 p-3.5 text-white flex items-center justify-between shrink-0">
+    <div class="bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-2 border-amber-500/50 relative z-50">
+      <div class="bg-amber-500 p-4 text-slate-950 flex items-center justify-between shrink-0 shadow-lg font-black">
         <div>
-          <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 (내 기기 기록)</h2>
-          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">실시간 로컬 저장 중</p>
+          <h2 class="text-base flex items-center gap-1.5">🏆 명예의 전당 (내 기기 기록)</h2>
+          <p id="rank-sync-indicator" class="text-[10px] text-slate-900/80 font-medium">실시간 로컬 저장 중</p>
         </div>
-        <button id="btn-close-rank" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
+        <button id="btn-close-rank" class="text-slate-950 bg-black/10 hover:bg-black/20 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
       </div>
 
-      <div class="flex p-2 gap-1 bg-amber-100/70 border-b border-amber-200 shrink-0 text-xs font-bold">
-        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors">나의 명예의 전당 기록</button>
+      <div class="flex p-2 gap-1 bg-slate-950/60 border-b border-slate-800 shrink-0 text-xs font-bold">
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-slate-950 shadow-sm transition-colors font-black">나의 명예의 전당 기록</button>
       </div>
 
-      <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-1.5"></div>
+      <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-3.5 flex flex-col gap-2"></div>
     </div>
   </div>
 
   <!-- 첫 화면 모달 -->
   <div id="start-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-amber-300 text-center flex flex-col max-h-[90vh] overflow-hidden">
-      <div class="text-4xl mb-1">👶</div>
-      <h1 class="text-lg font-black text-slate-800 leading-tight">유준이 키우기: 인생 어드벤처</h1>
-      <p class="text-[11px] text-slate-500 mt-0.5">0세 신생아부터 황혼기까지 성장하세요!<br><span class="text-rose-500 font-bold">※ 사망 시 나이와 장비가 초기화됩니다!</span></p>
+    <div class="bg-slate-900 w-full max-w-xs rounded-3xl shadow-2xl p-6 border-2 border-amber-500/50 text-center flex flex-col max-h-[90vh] overflow-hidden">
+      <div class="text-5xl mb-2 filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]">👶</div>
+      <h1 class="text-lg font-black text-amber-300 leading-tight">유준이 키우기: 인생 어드벤처</h1>
+      <p class="text-[11px] text-slate-400 mt-1">0세 신생아부터 황혼기까지 성장하세요!<br><span class="text-rose-400 font-bold">※ 사망 시 나이와 장비가 초기화됩니다!</span></p>
       
-      <div class="mt-3 text-left">
-        <label class="text-[11px] font-bold text-slate-600 block mb-1">플레이어 / 보호자 닉네임</label>
-        <input type="text" id="player-nickname-input" maxlength="8" placeholder="닉네임을 입력하세요" class="w-full px-3 py-2 border-2 border-amber-300 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-amber-500" value="">
+      <div class="mt-4 text-left">
+        <label class="text-[11px] font-bold text-slate-300 block mb-1">플레이어 / 보호자 닉네임</label>
+        <input type="text" id="player-nickname-input" maxlength="8" placeholder="닉네임을 입력하세요" class="w-full px-3.5 py-2.5 bg-slate-950 border-2 border-amber-500/50 rounded-xl font-bold text-sm text-amber-200 focus:outline-none focus:border-amber-400 shadow-inner" value="">
       </div>
 
-      <button id="btn-start-game" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs cursor-pointer">
+      <button id="btn-start-game" class="w-full mt-4 bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black py-3 rounded-2xl shadow-xl active:scale-95 transition-transform text-xs cursor-pointer border border-amber-300">
         🍼 인생 시작하기 (0세)
       </button>
 
-      <div class="mt-3 pt-3 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
-        <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1.5">
+      <div class="mt-4 pt-4 border-t border-slate-800 flex-1 overflow-hidden flex flex-col text-left">
+        <div class="text-[11px] font-black text-amber-400 flex items-center justify-between mb-1.5">
           <span class="flex items-center gap-1">🏆 내 최고 기록 Top 5</span>
-          <span class="text-[9px] text-emerald-600 font-semibold">저장됨</span>
+          <span class="text-[9px] text-emerald-400 font-semibold">저장됨</span>
         </div>
         <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[145px]"></div>
       </div>
@@ -324,64 +327,64 @@
 
   <!-- 나이별 인생 진로 선택 모달창 -->
   <div id="life-choice-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 border-4 border-amber-400 text-center flex flex-col max-h-[88vh] overflow-hidden relative z-50">
+    <div class="bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl p-5 border-2 border-amber-500 text-center flex flex-col max-h-[88vh] overflow-hidden relative z-50">
       <div id="life-modal-icon" class="text-4xl mb-1">🏫</div>
-      <h3 id="life-modal-age" class="text-xs font-black text-amber-500 tracking-wider">8세 도달!</h3>
-      <h2 id="life-modal-title" class="text-base font-black text-slate-800 mt-0.5">인생의 갈림길</h2>
-      <p id="life-modal-desc" class="text-[11px] text-slate-500 mt-1 mb-2">원하는 진로를 선택하거나, 돈을 더 모으고 결정할 수 있습니다.<br><span class="text-rose-500 font-bold">※ 선택을 완료할 때까지 나이와 레벨업이 일시중지됩니다.</span></p>
+      <h3 id="life-modal-age" class="text-xs font-black text-amber-400 tracking-wider">8세 도달!</h3>
+      <h2 id="life-modal-title" class="text-base font-black text-white mt-0.5">인생의 갈림길</h2>
+      <p id="life-modal-desc" class="text-[11px] text-slate-400 mt-1 mb-3">원하는 진로를 선택하거나, 돈을 더 모으고 결정할 수 있습니다.<br><span class="text-rose-400 font-bold">※ 선택을 완료할 때까지 나이와 레벨업이 일시중지됩니다.</span></p>
       
-      <div id="life-choice-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
+      <div id="life-choice-list" class="allow-scroll flex-1 overflow-y-auto space-y-2.5 pr-0.5 text-left pb-2"></div>
 
-      <button id="btn-postpone-decision" class="interactive w-full mt-2 bg-slate-800 hover:bg-slate-900 text-amber-300 font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1 cursor-pointer">
-        <span>💰</span> 결정을 미루고 돈 더 모으기 (파밍 계속)
+      <button id="btn-postpone-decision" class="interactive w-full mt-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-black py-3 rounded-2xl shadow-xl active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-amber-500/40">
+        <span>💰</span> 결정을 미루고 돈 더 모기 (파밍 계속)
       </button>
     </div>
   </div>
 
   <!-- 보류된 진로 목록 선택 메뉴 -->
   <div id="pending-picker-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5 border-4 border-rose-400 text-center flex flex-col max-h-[80vh] overflow-hidden relative z-50">
+    <div class="bg-slate-900 w-full max-w-xs rounded-3xl shadow-2xl p-5 border-2 border-rose-500 text-center flex flex-col max-h-[80vh] overflow-hidden relative z-50">
       <div class="text-3xl mb-1">📋</div>
-      <h2 class="text-base font-black text-slate-800">미결정 진로 선택</h2>
-      <p class="text-[11px] text-slate-500 mt-0.5 mb-3">결정을 미뤄두었던 인생 이벤트를 순서대로 선택하세요.</p>
+      <h2 class="text-base font-black text-white">미결정 진로 선택</h2>
+      <p class="text-[11px] text-slate-400 mt-0.5 mb-3">결정을 미뤄두었던 인생 이벤트를 순서대로 선택하세요.</p>
       <div id="pending-picker-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
-      <button id="btn-close-pending-picker" class="interactive w-full mt-2 bg-slate-200 text-slate-700 font-black py-2 rounded-xl text-xs active:scale-95 cursor-pointer">닫기</button>
+      <button id="btn-close-pending-picker" class="interactive w-full mt-2 bg-slate-800 text-slate-200 font-black py-2.5 rounded-xl text-xs active:scale-95 cursor-pointer">닫기</button>
     </div>
   </div>
 
   <!-- 게임 오버 모달 -->
   <div id="gameover-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-4 border-4 border-rose-400 text-center flex flex-col max-h-[90vh] overflow-hidden">
+    <div class="bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl p-5 border-2 border-rose-500 text-center flex flex-col max-h-[90vh] overflow-hidden">
       <div class="text-4xl mb-1">😢</div>
-      <h2 class="text-lg font-black text-slate-800">모험이 끝났습니다</h2>
-      <p id="over-stage-text" class="text-xs text-slate-500 mt-0.5"></p>
+      <h2 class="text-lg font-black text-white">모험이 끝났습니다</h2>
+      <p id="over-stage-text" class="text-xs text-slate-400 mt-0.5"></p>
       
-      <div class="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 my-2 shrink-0">
-        <div class="text-[10px] text-rose-700 font-bold">최종 획득 점수</div>
-        <div id="final-score" class="text-xl font-black text-slate-800">0 P</div>
-        <div id="final-stats" class="text-[10px] text-slate-500 mt-0.5"></div>
+      <div class="bg-slate-950 border border-rose-500/40 rounded-2xl p-3 my-2.5 shrink-0 shadow-inner">
+        <div class="text-[10px] text-rose-400 font-bold">최종 획득 점수</div>
+        <div id="final-score" class="text-2xl font-black text-amber-300 mt-0.5">0 P</div>
+        <div id="final-stats" class="text-[10px] text-slate-400 mt-1"></div>
       </div>
 
-      <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
-        <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
+      <div class="mb-3 pt-2 border-t border-slate-800 flex-1 overflow-hidden flex flex-col text-left">
+        <div class="text-[11px] font-black text-amber-400 flex items-center justify-between mb-1.5">
           <span class="flex items-center gap-1">🏆 내 명예의 전당 Top 5</span>
-          <span class="text-[9px] text-emerald-600 font-semibold">로컬 저장</span>
+          <span class="text-[9px] text-emerald-400 font-semibold">로컬 저장</span>
         </div>
-        <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
+        <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[110px]"></div>
       </div>
 
-      <button id="btn-kakao-share" class="interactive w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-1.5 shrink-0 cursor-pointer">
+      <button id="btn-kakao-share" class="interactive w-full bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-black py-2.5 rounded-xl shadow-xl active:scale-95 transition-transform text-xs flex items-center justify-center gap-1.5 mb-2 shrink-0 cursor-pointer">
         <span class="text-sm">💬</span> 결과 & 랭킹 카톡 공유하기
       </button>
 
-      <button id="btn-restart" class="interactive w-full bg-slate-800 text-white font-black py-2 rounded-xl shadow-md active:scale-95 transition-transform text-xs shrink-0 cursor-pointer">
+      <button id="btn-restart" class="interactive w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-2.5 rounded-xl shadow-xl active:scale-95 transition-transform text-xs shrink-0 cursor-pointer border border-slate-700">
         🔄 0세부터 다시 환생하기
       </button>
     </div>
   </div>
 
   <script>
-    // 🔗 공유 링크 파라미터 자동 등록 (링크를 누르고 접속하면 즉시 랭킹에 반영됨)
+    // 🔗 공유 링크 파라미터 자동 등록 시스템
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const sName = urlParams.get('name');
@@ -398,7 +401,7 @@
     // 🏆 로컬 저장소 기반 랭킹 및 시간 기록 시스템
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v7');
+        const data = localStorage.getItem('yujun_local_rankings_v8');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -423,7 +426,6 @@
 
         list.push(newRecord);
 
-        // 중복 방지 정렬 및 필터링
         const uniqueMap = new Map();
         list.forEach(item => {
           const key = `${item.name}_${item.score}_${item.age}_${item.stage}`;
@@ -433,7 +435,7 @@
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v7', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v8', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -442,7 +444,7 @@
       const list = getLocalRankings();
 
       if (list.length === 0) {
-        preview.innerHTML = `<div class="text-center py-4 text-[10px] text-slate-400">저장된 기록이 없습니다.<br>첫 번째 기록을 남겨보세요!</div>`;
+        preview.innerHTML = `<div class="text-center py-4 text-[10px] text-slate-500">저장된 기록이 없습니다.<br>첫 번째 기록을 남겨보세요!</div>`;
         return;
       }
 
@@ -450,16 +452,16 @@
       list.slice(0, 5).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
+        item.className = "flex items-center justify-between bg-slate-950 px-2.5 py-2 rounded-xl border border-slate-800 text-[10px]";
         item.innerHTML = `
           <div class="flex items-center gap-1.5 min-w-0 pr-1">
             <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
-            <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage} (${r.age}세)</span>
+            <span class="font-bold text-amber-200 truncate max-w-[70px]">${r.name}</span>
+            <span class="text-[9px] text-slate-400 font-semibold shrink-0">${r.stage} (${r.age}세)</span>
           </div>
           <div class="text-right shrink-0">
-            <div class="font-black text-amber-600 whitespace-nowrap">${Number(r.score).toLocaleString()} P</div>
-            <div class="text-[8px] text-slate-400">${r.createdAt}</div>
+            <div class="font-black text-amber-400 whitespace-nowrap">${Number(r.score).toLocaleString()} P</div>
+            <div class="text-[8px] text-slate-500">${r.createdAt}</div>
           </div>
         `;
         preview.appendChild(item);
@@ -471,7 +473,7 @@
       const list = getLocalRankings();
 
       if (list.length === 0) {
-        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">저장된 기록이 없습니다.</div>`;
+        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-500">저장된 기록이 없습니다.</div>`;
         return;
       }
 
@@ -479,16 +481,16 @@
       list.slice(0, 5).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
+        item.className = "flex items-center justify-between bg-slate-950 px-2 py-1.5 rounded-lg border border-slate-800 text-[10px]";
         item.innerHTML = `
           <div class="flex items-center gap-1 min-w-0 pr-1">
             <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
-            <span class="font-bold text-slate-700 truncate max-w-[65px]">${r.name}</span>
-            <span class="text-[9px] text-amber-700 shrink-0">${r.stage} (${r.age}세)</span>
+            <span class="font-bold text-amber-200 truncate max-w-[65px]">${r.name}</span>
+            <span class="text-[9px] text-slate-400 shrink-0">${r.stage} (${r.age}세)</span>
           </div>
           <div class="text-right shrink-0">
-            <span class="font-black text-amber-600">${Number(r.score).toLocaleString()} P</span>
-            <span class="text-[8px] text-slate-400 block">${r.createdAt}</span>
+            <span class="font-black text-amber-400">${Number(r.score).toLocaleString()} P</span>
+            <span class="text-[8px] text-slate-500 block">${r.createdAt}</span>
           </div>
         `;
         preview.appendChild(item);
@@ -503,8 +505,8 @@
         listContainer.innerHTML = `
           <div class="text-center py-12">
             <div class="text-4xl mb-2">🏆</div>
-            <div class="text-xs font-bold text-slate-700">저장된 플레이 기록이 없습니다.</div>
-            <div class="text-[10px] text-slate-400 mt-1">게임을 플레이하고 최고 기록을 남겨보세요!</div>
+            <div class="text-xs font-bold text-slate-300">저장된 플레이 기록이 없습니다.</div>
+            <div class="text-[10px] text-slate-500 mt-1">게임을 플레이하고 최고 기록을 남겨보세요!</div>
           </div>
         `;
         return;
@@ -514,17 +516,17 @@
       list.slice(0, 50).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const row = document.createElement('div');
-        row.className = "flex items-center justify-between bg-amber-50/90 p-2.5 rounded-2xl border border-amber-200 text-xs";
+        row.className = "flex items-center justify-between bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs shadow-md";
         
         row.innerHTML = `
-          <div class="flex items-center gap-2 min-w-0 pr-2">
+          <div class="flex items-center gap-2.5 min-w-0 pr-2">
             <span class="font-black text-sm w-8 text-center shrink-0 whitespace-nowrap">${medal}</span>
             <div class="min-w-0">
-              <div class="font-black text-slate-800 truncate">${r.name}</div>
+              <div class="font-black text-amber-200 truncate">${r.name}</div>
               <div class="text-[9px] text-slate-400 font-semibold truncate">${r.stage} (${r.age}세) · ${r.createdAt}</div>
             </div>
           </div>
-          <span class="font-black text-amber-600 text-sm whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
+          <span class="font-black text-amber-400 text-sm whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
         `;
         listContainer.appendChild(row);
       });
@@ -846,7 +848,7 @@
       return LIFE_STAGES[LIFE_STAGES.length - 1];
     }
 
-    // 진로 보류 중인지 엄격하게 판정
+    // 진로 보류 상태 정밀 판정
     function isDecisionPendingForCurrentStage() {
       const matchingAge = STAGE_ORDER.find(age => {
         const ev = LIFE_EVENTS[age];
@@ -861,25 +863,29 @@
       return false;
     }
 
-    // 활성 무기 정보 판정 (보류 중일 때 무조건 '이미 확정된 가장 최근의 진로' 또는 '초기 기본 무기'를 유지하도록 수정)
+    // [핵심 수정] 보류 중일 때 무조건 '이전에 확정된 가장 최근의 진로 스킬'을 리턴하여 1연발로 초기화되는 현상 완전 차단
     function getActiveWeaponInfo() {
       const currentStage = getCurrentStage();
-
-      // 만약 현재 나이대에 새 진로 선택창이 떠서 보류 중이라면, 이전에 확정했던 퍽들을 뒤로 미루고 직전 확정된 무기를 찾아냄
-      // 이미 확정된 퍽들 중 가장 마지막에 선택된 퍽을 가져옴
+      
+      // 이미 확정된(선택 완료된) 퍽들만 필터링
       const confirmedPerks = state.selectedLifePerks.filter(p => {
-        // 현재 보류 중인 이벤트의 카테고리가 아니라면 확정된 것임
-        return !isDecisionPendingForCurrentStage();
+        // 현재 보류 중인 나이대의 퍽이 아니라면 확정된 것
+        const isCurrentPending = state.pendingEventAges.some(age => {
+          const ev = LIFE_EVENTS[age];
+          if (!ev) return false;
+          return p.category === ev.categoryKey;
+        });
+        return !isCurrentPending;
       });
 
       if (confirmedPerks.length > 0) {
-        const latestPerk = confirmedPerks[confirmedPerks.length - 1];
-        if (latestPerk && latestPerk.icon && latestPerk.name) {
-          return { icon: latestPerk.icon, name: latestPerk.name, perk: latestPerk.perk };
+        const latestConfirmed = confirmedPerks[confirmedPerks.length - 1];
+        if (latestConfirmed && latestConfirmed.icon && latestConfirmed.name) {
+          return { icon: latestConfirmed.icon, name: latestConfirmed.name, perk: latestConfirmed.perk };
         }
       }
 
-      // 확정된 진로가 아예 없다면 현재 스테이지의 기본 무기 반환
+      // 확정된 진로가 아예 없다면 현재 나이대 스테이지 기본 무기 반환
       return { icon: currentStage.atkIcon, name: currentStage.atkName, perk: null };
     }
 
@@ -905,7 +911,14 @@
         clothColor: "#fde047"
       };
 
-      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+      const confirmedPerks = state.selectedLifePerks.filter(p => {
+        const isCurrentPending = state.pendingEventAges.some(age => {
+          const ev = LIFE_EVENTS[age];
+          if (!ev) return false;
+          return p.category === ev.categoryKey;
+        });
+        return !isCurrentPending;
+      });
 
       if (confirmedPerks.some(p => p.perk === "예비군각성")) {
         stats.atk *= 1.3;
@@ -1094,7 +1107,7 @@
       return nearest;
     }
 
-    // 발사 함수: 확정된 진로의 스킬만 정확히 발사 (보류 중엔 이전 스킬 유지)
+    // 발사 함수: 확정된 진로의 스킬을 보류 중에도 안정적으로 유지하여 발사
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
@@ -1297,7 +1310,15 @@
 
         if (stats.lifeSteal > 0) player.hp = Math.min(stats.maxHp, player.hp + stats.lifeSteal);
 
-        const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+        const confirmedPerks = state.selectedLifePerks.filter(p => {
+          const isCurrentPending = state.pendingEventAges.some(age => {
+            const ev = LIFE_EVENTS[age];
+            if (!ev) return false;
+            return p.category === ev.categoryKey;
+          });
+          return !isCurrentPending;
+        });
+
         const coinMultiplier = confirmedPerks.some(p => p.perk === "치킨집") ? 3.0 : 1.0;
         const coinBase = enemy.coinVal || 6;
         const earnedCoin = Math.max(1, Math.round(coinBase * (1 + stats.coinBonus) * coinMultiplier));
@@ -1708,144 +1729,6 @@
       if (player.isAttacking) tryShoot();
       if (stats.hpRegen > 0) player.hp = Math.min(stats.maxHp, player.hp + (stats.hpRegen * dt));
 
-      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
-
-      if (confirmedPerks.some(p => p.perk === "법카폭격")) {
-        player.lawMoneyTimer = (player.lawMoneyTimer || 0) + dt;
-        if (player.lawMoneyTimer >= 3.0) {
-          player.lawMoneyTimer = 0;
-          Sound.play('coin');
-          for (let k = 0; k < 6; k++) {
-            const ang = (Math.PI * 2 / 6) * k;
-            projectiles.push({
-              x: player.x, y: player.y,
-              vx: Math.cos(ang) * 350,
-              vy: Math.sin(ang) * 350,
-              damage: stats.atk * 2.5,
-              critRate: stats.critRate,
-              critDmg: stats.critDmg,
-              pierce: 5,
-              type: "💳",
-              radius: 14,
-              life: 1.2
-            });
-          }
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "다둥이패밀리")) {
-        player.meteorTimer = (player.meteorTimer || 0) + dt;
-        if (player.meteorTimer >= 4.0) {
-          player.meteorTimer = 0;
-          Sound.play('boss_warning');
-          enemies.forEach(en => {
-            if (en.dead) return;
-            applyDamage(en, stats.atk * 5.5, true, "☄️");
-            damageTexts.push({ text: "다자녀 메테오 폭격!", x: en.x, y: en.y - 30, color: "#eab308", scale: 1.4, alpha: 1, life: 0.9 });
-          });
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "올A메테오")) {
-        player.skyMeteorTimer = (player.skyMeteorTimer || 0) + dt;
-        if (player.skyMeteorTimer >= 4.0) {
-          player.skyMeteorTimer = 0;
-          Sound.play('boss_warning');
-          enemies.forEach(en => {
-            if (en.dead) return;
-            applyDamage(en, stats.atk * 4.5, true, "🅰️");
-            damageTexts.push({ text: "올A+ 메테오 폭격!", x: en.x, y: en.y - 30, color: "#eab308", scale: 1.3, alpha: 1, life: 0.8 });
-          });
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "해군함포")) {
-        player.navyCannonTimer = (player.navyCannonTimer || 0) + dt;
-        if (player.navyCannonTimer >= 6.0) {
-          player.navyCannonTimer = 0;
-          Sound.play('air_strike');
-          const target = getNearestEnemy();
-          const hx = target ? target.x : player.x;
-          const hy = target ? target.y : player.y;
-          enemies.forEach(en => {
-            if (en.dead) return;
-            const ed = Math.hypot(en.x - hx, en.y - hy);
-            if (ed <= 220) {
-              applyDamage(en, stats.atk * 5.0, true, "🌊");
-              damageTexts.push({ text: "함포 지원 폭발!", x: hx, y: hy - 25, color: "#2563eb", scale: 1.4, alpha: 1, life: 0.9 });
-            }
-          });
-        }
-      }
-
-      const hasOrchestra = confirmedPerks.some(p => p.perk === "사립오케스트라");
-      enemies.forEach(en => {
-        if (en.dead) return;
-        const d = Math.hypot(en.x - player.x, en.y - player.y);
-        if (hasOrchestra && d <= 180) {
-          en.spd = en.baseSpd * 0.6;
-        } else {
-          en.spd = en.baseSpd;
-        }
-      });
-
-      if (confirmedPerks.some(p => p.perk === "양자블랙홀")) {
-        player.blackholeTimer = (player.blackholeTimer || 0) + dt;
-        if (player.blackholeTimer >= 5.0) {
-          player.blackholeTimer = 0;
-          Sound.play('hit');
-          const target = getNearestEnemy();
-          const bx = target ? target.x : player.x;
-          const by = target ? target.y : player.y;
-
-          particles.push({ type: 'blackhole', x: bx, y: by, radius: 15, maxRadius: 180, alpha: 1.0 });
-
-          enemies.forEach(en => {
-            if (en.dead) return;
-            const ed = Math.hypot(en.x - bx, en.y - by);
-            if (ed <= 200) {
-              en.x = bx + (en.x - bx) * 0.3;
-              en.y = by + (en.y - by) * 0.3;
-              applyDamage(en, stats.atk * 3.5, false, "🌀");
-            }
-          });
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "공군폭격")) {
-        player.airStrikeTimer = (player.airStrikeTimer || 0) + dt;
-        if (player.airStrikeTimer >= 7.0) {
-          player.airStrikeTimer = 0;
-          Sound.play('air_strike');
-          enemies.forEach(en => {
-            if (en.dead) return;
-            applyDamage(en, stats.atk * 4.0, false, "✈️");
-            damageTexts.push({ text: "F-15K 폭격!", x: en.x, y: en.y - 25, color: "#f97316", scale: 1.3, alpha: 1, life: 0.8 });
-          });
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "카투사키트")) {
-        player.katusaTimer = (player.katusaTimer || 0) + dt;
-        if (player.katusaTimer >= 10.0) {
-          player.katusaTimer = 0;
-          player.hp = stats.maxHp;
-          Sound.play('coin');
-          damageTexts.push({ text: "💚 미군 레이션 체력 100% 회복!", x: player.x, y: player.y - 40, color: "#22c55e", scale: 1.5, alpha: 1, life: 1.2 });
-        }
-      }
-
-      if (confirmedPerks.some(p => p.perk === "철밥통")) {
-        if (!player.hasShield) {
-          player.ironShieldTimer = (player.ironShieldTimer || 0) + dt;
-          if (player.ironShieldTimer >= 6.0) {
-            player.ironShieldTimer = 0;
-            player.hasShield = true;
-            damageTexts.push({ text: "🛡️ 철밥통 무적 쉴드 장착!", x: player.x, y: player.y - 30, color: "#38bdf8", scale: 1.3, alpha: 1, life: 1.0 });
-          }
-        }
-      }
-
       let moveX = joyVector.x;
       let moveY = joyVector.y;
       if (keys['w'] || keys['arrowup']) moveY -= 1;
@@ -1856,7 +1739,7 @@
       const moveLen = Math.hypot(moveX, moveY);
       if (moveLen > 0.1) {
         player.isMoving = true;
-        const addSpeed = confirmedPerks.some(p => p.perk === "월세파이어") ? 50 : 0;
+        const addSpeed = 0;
         const finalSpeed = (player.baseSpeed + stats.speedBonus + addSpeed);
         player.x += (moveX / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
         player.y += (moveY / (moveLen > 1 ? moveLen : 1)) * finalSpeed * dt;
@@ -2052,7 +1935,7 @@
       const camY = isNaN(camera.y) ? 0 : camera.y;
       ctx.translate(-camX, -camY);
 
-      ctx.fillStyle = "#fef08a";
+      ctx.fillStyle = "#1e293b";
       const startX = Math.max(0, Math.floor(camX / 40) * 40);
       const endX = Math.min(WORLD_WIDTH, startX + width + 80);
       const startY = Math.max(0, Math.floor(camY / 40) * 40);
@@ -2062,109 +1945,49 @@
         for (let y = startY; y <= endY; y += 40) {
           ctx.beginPath();
           ctx.arc(x, y, 2.0, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
           ctx.fill();
         }
       }
 
-      ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
+      ctx.strokeStyle = "rgba(244, 63, 94, 0.9)";
       ctx.lineWidth = 14;
       ctx.strokeRect(7, 7, WORLD_WIDTH - 14, WORLD_HEIGHT - 14);
 
-      ctx.strokeStyle = "#e2e8f0";
+      ctx.strokeStyle = "#334155";
       ctx.lineWidth = 4;
       ctx.strokeRect(18, 18, WORLD_WIDTH - 36, WORLD_HEIGHT - 36);
 
       const stats = calcStats();
       const current = getCurrentStage();
-      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
-
-      if (confirmedPerks.some(p => p.perk === "사립오케스트라")) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, 180, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(168, 85, 247, 0.55)";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.fillStyle = "rgba(192, 132, 252, 0.08)";
-        ctx.fill();
-        ctx.font = "14px sans-serif";
-        ctx.fillText("🎻 음파 감속(-40%)", player.x - 55, player.y + 195);
-        ctx.restore();
-      }
-
-      if (player.hasShield) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, 38, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        ctx.fillStyle = "rgba(56, 189, 248, 0.2)";
-        ctx.fill();
-        ctx.restore();
-      }
 
       particles.forEach(pt => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, pt.alpha);
 
         if (pt.type === 'poop-blast') {
-          if (pt.tier === 3) {
-            ctx.fillStyle = "rgba(234, 179, 8, 0.65)";
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-            ctx.font = `${Math.min(42, pt.radius * 0.45)}px sans-serif`;
-            ctx.fillText("🎵", pt.x - 25, pt.y - 20);
-            ctx.fillText("💩", pt.x + 15, pt.y + 20);
-          } else if (pt.tier === 2) {
-            ctx.fillStyle = "rgba(161, 98, 7, 0.6)";
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-          } else {
-            ctx.fillStyle = "rgba(180, 83, 9, 0.55)";
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-          }
+          ctx.fillStyle = "rgba(217, 119, 6, 0.7)";
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'poop-debris') {
-          ctx.fillStyle = "#78350f";
+          ctx.fillStyle = "#b45309";
           ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'fart-gas') {
-          ctx.fillStyle = "rgba(16, 185, 129, 0.45)";
+          ctx.fillStyle = "rgba(16, 185, 129, 0.5)";
           ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'fart-cloud') {
-          if (pt.tier === 3) {
-            ctx.strokeStyle = "rgba(16, 185, 129, 0.95)";
-            ctx.lineWidth = 10;
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = "rgba(52, 211, 153, 0.5)";
-            ctx.fill();
-          } else if (pt.tier === 2) {
-            ctx.fillStyle = "rgba(5, 150, 105, 0.6)";
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-          } else {
-            ctx.fillStyle = "rgba(52, 211, 153, 0.55)";
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
-          }
+          ctx.fillStyle = "rgba(52, 211, 153, 0.6)";
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
         } else if (pt.type === 'cry-wave') {
-          if (pt.tier === 3) {
-            ctx.strokeStyle = "rgba(14, 165, 233, 0.95)";
-            ctx.lineWidth = 12;
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
-            ctx.fill();
-          } else if (pt.tier === 2) {
-            ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
-            ctx.lineWidth = 8;
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-          } else {
-            ctx.strokeStyle = "rgba(56, 189, 248, 0.8)";
-            ctx.lineWidth = 6;
-            ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
-          }
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
+          ctx.lineWidth = 8;
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.stroke();
         }
         ctx.restore();
       });
 
       bossProjectiles.forEach(bp => {
         ctx.save();
-        ctx.fillStyle = "#dc2626";
+        ctx.fillStyle = "#ef4444";
         ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.radius, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#fca5a5";
         ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.radius * 0.5, 0, Math.PI * 2); ctx.fill();
@@ -2191,16 +2014,10 @@
         ctx.save();
         if (en.hp < en.maxHp) {
           const barW = en.size * 1.5;
-          ctx.fillStyle = "rgba(0,0,0,0.4)";
-          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW, 5);
+          ctx.fillStyle = "rgba(0,0,0,0.6)";
+          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW, 6);
           ctx.fillStyle = (en.boss || en.isMomNagging) ? "#f43f5e" : "#ef4444";
-          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (en.hp / en.maxHp), 5);
-        }
-        if (en.boss || en.isMomNagging) {
-          ctx.beginPath();
-          ctx.arc(en.x, en.y, en.size + 14, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(220, 38, 38, 0.35)";
-          ctx.fill();
+          ctx.fillRect(en.x - barW / 2, en.y - en.size - 10, barW * (en.hp / en.maxHp), 6);
         }
         ctx.font = `${en.size * 1.5}px sans-serif`;
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -2208,57 +2025,53 @@
         ctx.restore();
       });
 
+      // 플레이어 아바타 렌더링 (고급스러윤 그라데이션 원형 디자인)
       ctx.save();
       ctx.translate(player.x, player.y);
-
       const walkBob = Math.sin(player.walkCycle) * 3;
-      const scale = 1 + Math.min(1.0, player.age * 0.03);
+      const scale = 1 + Math.min(0.8, player.age * 0.02);
       ctx.scale(scale, scale);
 
+      // 의상 베이스
       ctx.fillStyle = stats.clothColor;
-      ctx.beginPath(); ctx.arc(0, 2 + walkBob, 15, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 4 + walkBob, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = "#fbbf24"; ctx.stroke();
 
+      // 얼굴
       ctx.fillStyle = "#ffedd5";
-      ctx.beginPath(); ctx.arc(0, -10 + walkBob, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, -10 + walkBob, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = "#fdba74"; ctx.stroke();
 
+      // 눈
       ctx.fillStyle = "#0f172a";
       ctx.beginPath();
-      ctx.arc(-4, -11 + walkBob, 2, 0, Math.PI * 2);
-      ctx.arc(4, -11 + walkBob, 2, 0, Math.PI * 2);
+      ctx.arc(-4, -12 + walkBob, 2.2, 0, Math.PI * 2);
+      ctx.arc(4, -12 + walkBob, 2.2, 0, Math.PI * 2);
       ctx.fill();
 
+      // 나이대별 모자 / 악세서리
       if (player.age < 8) {
-        ctx.fillStyle = "#fdba74";
-        ctx.beginPath(); ctx.arc(0, -16 + walkBob, 14, Math.PI, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#38bdf8";
-        ctx.beginPath(); ctx.arc(0, -6 + walkBob, 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -18 + walkBob, 12, Math.PI, Math.PI * 2); ctx.fill();
       } else if (player.age < 14) {
         ctx.fillStyle = "#3b82f6";
-        ctx.fillRect(-12, -22 + walkBob, 24, 7);
-        ctx.beginPath(); ctx.arc(0, -19 + walkBob, 12, Math.PI, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-12, -24 + walkBob, 24, 7);
       } else if (player.age < 21) {
         ctx.fillStyle = "#78350f";
-        ctx.beginPath(); ctx.arc(0, -18 + walkBob, 14, Math.PI * 0.9, Math.PI * 2.1); ctx.fill();
-      } else if (player.age === 21) {
-        ctx.fillStyle = "#1e3a1e";
-        ctx.beginPath(); ctx.arc(0, -20 + walkBob, 13, Math.PI, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -20 + walkBob, 13, Math.PI * 0.9, Math.PI * 2.1); ctx.fill();
       } else {
-        ctx.fillStyle = "#3b82f6";
-        ctx.beginPath();
-        ctx.moveTo(0, 3 + walkBob);
-        ctx.lineTo(-4, 15 + walkBob);
-        ctx.lineTo(0, 20 + walkBob);
-        ctx.lineTo(4, 15 + walkBob);
-        ctx.closePath();
-        ctx.fill();
+        ctx.fillStyle = "#e2e8f0";
+        ctx.beginPath(); ctx.arc(0, -20 + walkBob, 12, Math.PI, Math.PI * 2); ctx.fill();
       }
       ctx.restore();
 
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
       ctx.font = "bold 11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`${state.playerName} (${current.name} ${player.age}세)`, player.x, player.y - 36);
+      ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(`${state.playerName} (${current.name} ${player.age}세)`, player.x, player.y - 40);
       ctx.restore();
 
       damageTexts.forEach(dtItem => {
@@ -2267,6 +2080,8 @@
         ctx.font = `bold ${Math.round(14 * dtItem.scale)}px sans-serif`;
         ctx.fillStyle = dtItem.color;
         ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.8)";
+        ctx.shadowBlur = 4;
         ctx.fillText(dtItem.text, dtItem.x, dtItem.y);
         ctx.restore();
       });
@@ -2283,7 +2098,7 @@
 
       mCtx.clearRect(0, 0, mw, mh);
 
-      mCtx.fillStyle = "rgba(15, 23, 42, 0.4)";
+      mCtx.fillStyle = "rgba(15, 23, 42, 0.6)";
       mCtx.fillRect(0, 0, mw, mh);
 
       const scaleX = mw / WORLD_WIDTH;
@@ -2292,12 +2107,12 @@
       enemies.forEach(en => {
         if (en.dead) return;
         mCtx.fillStyle = (en.boss || en.isMomNagging) ? "#ef4444" : "#f59e0b";
-        mCtx.fillRect(en.x * scaleX - 1, en.y * scaleY - 1, 2.5, 2.5);
+        mCtx.fillRect(en.x * scaleX - 1, en.y * scaleY - 1, 3, 3);
       });
 
       mCtx.fillStyle = "#38bdf8";
       mCtx.beginPath();
-      mCtx.arc(player.x * scaleX, player.y * scaleY, 3, 0, Math.PI * 2);
+      mCtx.arc(player.x * scaleX, player.y * scaleY, 3.5, 0, Math.PI * 2);
       mCtx.fill();
     }
 
@@ -2349,8 +2164,9 @@
 
       const skillBar = document.getElementById('passive-skills-bar');
       skillBar.innerHTML = "";
-      state.selectedLifePerks.forEach(p => {
-        skillBar.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">${p.name}</span>`;
+      const confirmedPerks = state.selectedLifePerks.filter(p => !isDecisionPendingForCurrentStage());
+      confirmedPerks.forEach(p => {
+        skillBar.innerHTML += `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black px-2.5 py-0.5 rounded-full shadow">${p.name}</span>`;
       });
 
       updatePendingButtonBadge();
@@ -2364,7 +2180,7 @@
       countEl.innerText = `${equippedIds.length}/10`;
 
       if (equippedIds.length === 0) {
-        container.innerHTML = `<div class="text-[9px] text-slate-300 text-center py-2">상점에서 아이템을 무한 강화하세요!</div>`;
+        container.innerHTML = `<div class="text-[9px] text-slate-400 text-center py-2">상점에서 아이템을 무한 강화하세요!</div>`;
         return;
       }
 
@@ -2375,13 +2191,13 @@
         const curLv = state.itemLevels[id];
 
         const row = document.createElement('div');
-        row.className = "flex items-center justify-between bg-slate-800/80 px-2 py-1.5 rounded-lg border border-slate-600/70 active:bg-slate-700 cursor-pointer";
+        row.className = "flex items-center justify-between bg-slate-900 px-2 py-1.5 rounded-lg border border-slate-700 active:bg-slate-800 cursor-pointer shadow";
         row.innerHTML = `
-          <div class="flex items-center gap-1 min-w-0 pr-1">
+          <div class="flex items-center gap-1.5 min-w-0 pr-1">
             <span class="text-xs shrink-0">${itemDef.icon}</span>
-            <span class="font-bold text-[10px] text-white truncate max-w-[80px]">${itemDef.name}</span>
+            <span class="font-bold text-[10px] text-amber-100 truncate max-w-[75px]">${itemDef.name}</span>
           </div>
-          <span class="text-[9px] bg-amber-400 text-amber-950 font-black px-1 rounded shrink-0">Lv.${curLv}</span>
+          <span class="text-[9px] bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded shrink-0">Lv.${curLv}</span>
         `;
         row.addEventListener('click', (e) => showItemTooltip(e, itemDef, curLv));
         container.appendChild(row);
@@ -2423,21 +2239,21 @@
         const nextCost = getItemCost(item, curLv);
 
         const card = document.createElement('div');
-        card.className = "bg-amber-50/80 border border-amber-200 rounded-2xl p-3 flex items-center justify-between";
+        card.className = "bg-slate-950 border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-md";
 
         card.innerHTML = `
-          <div class="flex items-center gap-2.5 min-w-0 pr-2">
-            <div class="text-3xl p-2 bg-white rounded-2xl shadow-sm border border-amber-200 shrink-0">${item.icon}</div>
+          <div class="flex items-center gap-3 min-w-0 pr-2">
+            <div class="text-3xl p-2 bg-slate-900 rounded-2xl shadow-inner border border-slate-800 shrink-0">${item.icon}</div>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
-                <span class="font-extrabold text-xs text-slate-800">${item.name}</span>
-                <span class="text-[9px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-full">Lv.${curLv}</span>
+                <span class="font-extrabold text-xs text-amber-200">${item.name}</span>
+                <span class="text-[9px] bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-full">Lv.${curLv}</span>
               </div>
-              <div class="text-[10px] text-amber-700 font-medium">${item.attr}</div>
-              <div class="text-[10px] text-slate-500 truncate font-semibold mt-0.5">${item.desc}</div>
+              <div class="text-[10px] text-amber-400 font-medium">${item.attr}</div>
+              <div class="text-[10px] text-slate-400 truncate font-semibold mt-0.5">${item.desc}</div>
             </div>
           </div>
-          <button class="interactive btn-buy-tier shrink-0 font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition-transform active:scale-95 cursor-pointer ${state.coins >= nextCost ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}" ${state.coins >= nextCost ? '' : 'disabled'}>
+          <button class="interactive btn-buy-tier shrink-0 font-black text-xs px-3.5 py-2.5 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer ${state.coins >= nextCost ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:brightness-110 border border-amber-300' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}" ${state.coins >= nextCost ? '' : 'disabled'}>
             강화 🪙 ${nextCost.toLocaleString()}
           </button>
         `;
