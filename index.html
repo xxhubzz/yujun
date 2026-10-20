@@ -282,17 +282,14 @@
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col max-h-[84vh] overflow-hidden border-4 border-amber-300 relative z-50">
       <div class="bg-amber-400 p-3.5 text-white flex items-center justify-between shrink-0">
         <div>
-          <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 랭킹</h2>
-          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">실시간 동기화 완료</p>
+          <h2 class="font-black text-base flex items-center gap-1.5">🏆 명예의 전당 랭킹 (내 기기 저장)</h2>
+          <p id="rank-sync-indicator" class="text-[10px] text-amber-100 font-medium">로컬 저장소 자동 연동</p>
         </div>
         <button id="btn-close-rank" class="text-white bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center font-black cursor-pointer text-sm">✕</button>
       </div>
 
       <div class="flex p-2 gap-1 bg-amber-100/70 border-b border-amber-200 shrink-0 text-xs font-bold">
-        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors" data-period="daily">오늘(일간)</button>
-        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="weekly">이번 주</button>
-        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="monthly">이번 달</button>
-        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors" data-period="all">전체</button>
+        <button class="rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors" data-period="all">내 최고 기록</button>
       </div>
 
       <div id="rank-list" class="allow-scroll flex-1 overflow-y-auto p-3 flex flex-col gap-1.5"></div>
@@ -317,8 +314,8 @@
 
       <div class="mt-3 pt-3 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1.5">
-          <span class="flex items-center gap-1">🌐 서버 실시간 랭킹 Top 5</span>
-          <span id="rank-sync-status" class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
+          <span class="flex items-center gap-1">🏆 내 명예의 전당 Top 5</span>
+          <span class="text-[9px] text-emerald-600 font-semibold">로컬 저장</span>
         </div>
         <div id="start-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1.5 pr-0.5 max-h-[145px]"></div>
       </div>
@@ -331,7 +328,7 @@
       <div id="life-modal-icon" class="text-4xl mb-1">🏫</div>
       <h3 id="life-modal-age" class="text-xs font-black text-amber-500 tracking-wider">8세 도달!</h3>
       <h2 id="life-modal-title" class="text-base font-black text-slate-800 mt-0.5">인생의 갈림길</h2>
-      <p id="life-modal-desc" class="text-[11px] text-slate-500 mt-1 mb-2">원하는 진로를 선택하거나, 돈을 더 모으고 결정할 수 있습니다.<br><span class="text-rose-500 font-bold">※ 선택을 완료할 때까지 나이와 레벨업이 일시중지됩니다.</span></p>
+      <p id="life-modal-desc" class="text-[11px] text-slate-500 mt-1 mb-2">원하는 진로를 선택하거나, 돈을 더 모으고 결정할 수 있습니다.<br><span class="text-rose-500 font-bold">※ 선택을 완료할 때까지 나이와 레벨업이 일시중지되었습니다.</span></p>
       
       <div id="life-choice-list" class="allow-scroll flex-1 overflow-y-auto space-y-2 pr-0.5 text-left pb-2"></div>
 
@@ -367,8 +364,8 @@
 
       <div class="mb-2.5 pt-2 border-t border-slate-100 flex-1 overflow-hidden flex flex-col text-left">
         <div class="text-[11px] font-black text-amber-700 flex items-center justify-between mb-1">
-          <span class="flex items-center gap-1">🌐 서버 실시간 랭킹 Top 5</span>
-          <span class="text-[9px] text-emerald-600 font-semibold">동기화 완료</span>
+          <span class="flex items-center gap-1">🏆 내 명예의 전당 Top 5</span>
+          <span class="text-[9px] text-emerald-600 font-semibold">로컬 저장</span>
         </div>
         <div id="gameover-rank-preview" class="allow-scroll flex-1 overflow-y-auto space-y-1 pr-0.5 max-h-[110px]"></div>
       </div>
@@ -384,205 +381,100 @@
   </div>
 
   <script>
-    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동
-    const LL_API_KEY = "dev_9598b693d6ad49548435888c1b971ace";
-    const LL_BOARD_ID = "yujun_rankings";
-    let llSessionId = null;
-
-    async function initLootLocker() {
-      if (llSessionId) return llSessionId;
+    // 🏆 로컬 저장소(Local Storage) 기반 명예의 전당 시스템
+    function getLocalRankings() {
       try {
-        const res = await fetch("https://api.lootlocker.io/game/v2/guest-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ game_key: LL_API_KEY, development_mode: true })
-        });
-        const data = await res.json();
-        console.log("LootLocker 세션 응답:", data);
-        if (data && data.session_id) {
-          llSessionId = data.session_id;
-          return llSessionId;
-        }
+        const data = localStorage.getItem('yujun_local_rankings');
+        return data ? JSON.parse(data) : [];
       } catch(e) {
-        console.error("LootLocker 세션 오류:", e);
-      }
-      return null;
-    }
-    initLootLocker();
-
-    async function submitScoreOnline(finalScore, finalAge, finalStage) {
-      try {
-        const sessionId = await initLootLocker();
-        if (!sessionId) return;
-
-        const res = await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/member`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-session-id": sessionId
-          },
-          body: JSON.stringify({
-            score: Number(finalScore),
-            metadata: `${state.playerName}|${finalStage} (${finalAge}세)|${new Date().toLocaleString()}`
-          })
-        });
-        const result = await res.json();
-        console.log("점수 전송 결과:", result);
-      } catch(e) {
-        console.error("점수 전송 오류:", e);
+        return [];
       }
     }
 
-    async function fetchOnlineRankings() {
+    function saveScoreLocally(score, age, stage) {
       try {
-        const sessionId = await initLootLocker();
-        if (!sessionId) return [];
-
-        const res = await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/list?count=20`, {
-          method: "GET",
-          headers: { "x-session-id": sessionId }
+        const list = getLocalRankings();
+        list.push({
+          name: state.playerName,
+          score: Number(score),
+          stage: `${stage} (${age}세)`,
+          createdAt: new Date().toLocaleString()
         });
-        const data = await res.json();
-        console.log("랭킹 조회 결과:", data);
-        if (data && data.items) {
-          return data.items.map(item => {
-            let pName = "익명";
-            let pStage = "신생아";
-            let pDate = new Date().toLocaleString();
-            
-            if (item.metadata) {
-              const parts = item.metadata.split("|");
-              if (parts.length >= 3) {
-                pName = parts[0];
-                pStage = parts[1];
-                pDate = parts[2];
-              } else {
-                pName = item.player.name || "익명";
-              }
-            } else {
-              pName = item.player.name || "익명";
-            }
-
-            return {
-              name: pName,
-              score: item.score || 0,
-              stage: pStage,
-              createdAt: pDate
-            };
-          });
-        }
-      } catch(e) {
-        console.error("랭킹 조회 오류:", e);
-      }
-      return [];
+        // 점수 높은 순으로 정렬 후 상위 50개만 유지
+        list.sort((a, b) => b.score - a.score);
+        localStorage.setItem('yujun_local_rankings', JSON.stringify(list.slice(0, 50)));
+      } catch(e) {}
     }
 
-    function filterRankingsByPeriod(list, period) {
-      const now = new Date();
-      return list.filter(item => {
-        if (period === 'all') return true;
-        const itemDate = new Date(item.createdAt || now);
-        if (isNaN(itemDate.getTime())) return true;
-
-        if (period === 'daily') {
-          return itemDate.toDateString() === now.toDateString();
-        } else if (period === 'weekly') {
-          const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
-          return diffDays >= 0 && diffDays <= 7;
-        } else if (period === 'monthly') {
-          return itemDate.getFullYear() === now.getFullYear() && itemDate.getMonth() === now.getMonth();
-        }
-        return true;
-      });
-    }
-
-    async function renderStartRankPreview() {
+    function renderStartRankPreview() {
       const preview = document.getElementById('start-rank-preview');
-      try {
-        const allList = await fetchOnlineRankings();
-        if (allList.length === 0) {
-          preview.innerHTML = `<div class="text-center py-4 text-[10px] text-slate-400">등록된 랭킹 기록이 없습니다.<br>첫 1등 주인공이 되어보세요!</div>`;
-          return;
-        }
+      const list = getLocalRankings();
 
-        preview.innerHTML = "";
-        allList.slice(0, 5).forEach((r, idx) => {
-          const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
-          const item = document.createElement('div');
-          item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
-          item.innerHTML = `
-            <div class="flex items-center gap-1.5 min-w-0 pr-1">
-              <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
-              <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
-              <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
-            </div>
-            <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
-          `;
-          preview.appendChild(item);
-        });
-      } catch (e) {
-        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">랭킹 불러오기 실패</div>`;
+      if (list.length === 0) {
+        preview.innerHTML = `<div class="text-center py-4 text-[10px] text-slate-400">저장된 기록이 없습니다.<br>첫 번째 기록을 남겨보세요!</div>`;
+        return;
       }
-    }
 
-    async function renderGameOverRankPreview() {
-      const preview = document.getElementById('gameover-rank-preview');
-      try {
-        const allList = await fetchOnlineRankings();
-        if (allList.length === 0) {
-          preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">등록된 랭킹 기록이 없습니다.</div>`;
-          return;
-        }
-
-        preview.innerHTML = "";
-        allList.slice(0, 5).forEach((r, idx) => {
-          const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
-          const item = document.createElement('div');
-          item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
-          item.innerHTML = `
-            <div class="flex items-center gap-1 min-w-0 pr-1">
-              <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
-              <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
-              <span class="text-[9px] text-amber-700 shrink-0">${r.stage}</span>
-            </div>
-            <span class="font-black text-amber-600 shrink-0">${Number(r.score).toLocaleString()} P</span>
-          `;
-          preview.appendChild(item);
-        });
-      } catch(e) {
-        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">랭킹 불러오기 실패</div>`;
-      }
-    }
-
-    async function showRankings(period = 'daily') {
-      currentRankPeriod = period;
-      const listContainer = document.getElementById('rank-list');
-      listContainer.innerHTML = `<div class="text-center py-10 text-xs text-slate-400">랭킹 불러오는 중...</div>`;
-
-      const allList = await fetchOnlineRankings();
-      const filtered = filterRankingsByPeriod(allList, period);
-
-      document.querySelectorAll('.rank-tab-btn').forEach(btn => {
-        if (btn.getAttribute('data-period') === period) {
-          btn.className = "rank-tab-btn flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition-colors";
-        } else {
-          btn.className = "rank-tab-btn flex-1 py-1.5 rounded-xl bg-white text-slate-600 hover:bg-amber-200 transition-colors";
-        }
+      preview.innerHTML = "";
+      list.slice(0, 5).forEach((r, idx) => {
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1.5 rounded-xl border border-amber-200/80 text-[10px]";
+        item.innerHTML = `
+          <div class="flex items-center gap-1.5 min-w-0 pr-1">
+            <span class="font-black text-xs shrink-0 w-7 text-center whitespace-nowrap">${medal}</span>
+            <span class="font-bold text-slate-700 truncate max-w-[80px]">${r.name}</span>
+            <span class="text-[9px] text-amber-700 font-semibold shrink-0">${r.stage}</span>
+          </div>
+          <span class="font-black text-amber-600 shrink-0 whitespace-nowrap">${Number(r.score).toLocaleString()} P</span>
+        `;
+        preview.appendChild(item);
       });
+    }
 
-      if (filtered.length === 0) {
+    function renderGameOverRankPreview() {
+      const preview = document.getElementById('gameover-rank-preview');
+      const list = getLocalRankings();
+
+      if (list.length === 0) {
+        preview.innerHTML = `<div class="text-center py-2 text-[10px] text-slate-400">저장된 기록이 없습니다.</div>`;
+        return;
+      }
+
+      preview.innerHTML = "";
+      list.slice(0, 5).forEach((r, idx) => {
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 text-[10px]";
+        item.innerHTML = `
+          <div class="flex items-center gap-1 min-w-0 pr-1">
+            <span class="font-bold shrink-0 w-6 text-center">${medal}</span>
+            <span class="font-bold text-slate-700 truncate max-w-[70px]">${r.name}</span>
+            <span class="text-[9px] text-amber-700 shrink-0">${r.stage}</span>
+          </div>
+          <span class="font-black text-amber-600 shrink-0">${Number(r.score).toLocaleString()} P</span>
+        `;
+        preview.appendChild(item);
+      });
+    }
+
+    function showRankings() {
+      const listContainer = document.getElementById('rank-list');
+      const list = getLocalRankings();
+
+      if (list.length === 0) {
         listContainer.innerHTML = `
           <div class="text-center py-12">
             <div class="text-4xl mb-2">🏆</div>
-            <div class="text-xs font-bold text-slate-700">해당 기간에 등록된 랭킹 기록이 없습니다.</div>
-            <div class="text-[10px] text-slate-400 mt-1">지금 플레이하고 1위에 도전해보세요!</div>
+            <div class="text-xs font-bold text-slate-700">저장된 플레이 기록이 없습니다.</div>
+            <div class="text-[10px] text-slate-400 mt-1">게임을 플레이하고 최고 기록을 남겨보세요!</div>
           </div>
         `;
         return;
       }
 
       listContainer.innerHTML = "";
-      filtered.slice(0, 50).forEach((r, idx) => {
+      list.slice(0, 50).forEach((r, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}위`));
         const row = document.createElement('div');
         row.className = "flex items-center justify-between bg-amber-50/90 p-2.5 rounded-2xl border border-amber-200 text-xs";
@@ -600,14 +492,6 @@
         listContainer.appendChild(row);
       });
     }
-
-    document.querySelectorAll('.rank-tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const p = btn.getAttribute('data-period');
-        showRankings(p);
-      });
-    });
 
     const Sound = {
       ctx: null,
@@ -2531,7 +2415,7 @@
       state.isPaused = true;
       player.isMoving = false;
       player.isAttacking = false;
-      showRankings(currentRankPeriod);
+      showRankings();
       rankModal.classList.remove('hidden');
     }
 
@@ -2557,8 +2441,9 @@
       const finalStageName = currentStage.name;
       const finalScore = state.score;
 
-      await submitScoreOnline(finalScore, finalAge, finalStageName);
-      await renderGameOverRankPreview();
+      // 로컬 명예의 전당에 점수 저장
+      saveScoreLocally(finalScore, finalAge, finalStageName);
+      renderGameOverRankPreview();
 
       document.getElementById('over-stage-text').innerText = `${state.playerName} 님의 유준이는 [${finalStageName} ${finalAge}세]까지 성장했습니다!`;
       document.getElementById('final-score').innerText = `${finalScore.toLocaleString()} P`;
