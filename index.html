@@ -311,7 +311,7 @@
         <input type="text" id="player-nickname-input" maxlength="8" placeholder="닉네임을 입력하세요" class="w-full px-3 py-2 border-2 border-amber-300 rounded-xl font-bold text-sm text-slate-800 focus:outline-none focus:border-amber-500" value="">
       </div>
 
-      <button id="btn-start-game" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs">
+      <button id="btn-start-game" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-2.5 rounded-2xl shadow-md active:scale-95 transition-transform text-xs cursor-pointer">
         🍼 인생 시작하기 (0세)
       </button>
 
@@ -384,7 +384,7 @@
   </div>
 
   <script>
-    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동 (API Key 적용 완료)
+    // 🌐 LootLocker 클라우드 서버 실시간 랭킹 시스템 연동
     const LL_API_KEY = "dev_9598b693d6ad49548435888c1b971ace";
     const LL_BOARD_ID = "yujun_rankings";
     let llSessionId = null;
@@ -398,11 +398,14 @@
           body: JSON.stringify({ game_key: LL_API_KEY, development_mode: true })
         });
         const data = await res.json();
+        console.log("LootLocker 세션 응답:", data);
         if (data && data.session_id) {
           llSessionId = data.session_id;
           return llSessionId;
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error("LootLocker 세션 오류:", e);
+      }
       return null;
     }
     initLootLocker();
@@ -412,7 +415,7 @@
         const sessionId = await initLootLocker();
         if (!sessionId) return;
 
-        await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/member`, {
+        const res = await fetch(`https://api.lootlocker.io/game/v1/leaderboards/${LL_BOARD_ID}/member`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -423,7 +426,11 @@
             metadata: `${state.playerName}|${finalStage} (${finalAge}세)|${new Date().toLocaleString()}`
           })
         });
-      } catch(e) {}
+        const result = await res.json();
+        console.log("점수 전송 결과:", result);
+      } catch(e) {
+        console.error("점수 전송 오류:", e);
+      }
     }
 
     async function fetchOnlineRankings() {
@@ -436,6 +443,7 @@
           headers: { "x-session-id": sessionId }
         });
         const data = await res.json();
+        console.log("랭킹 조회 결과:", data);
         if (data && data.items) {
           return data.items.map(item => {
             let pName = "익명";
@@ -463,7 +471,9 @@
             };
           });
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error("랭킹 조회 오류:", e);
+      }
       return [];
     }
 
@@ -2419,7 +2429,6 @@
     function showItemTooltip(e, itemDef, curLv) {
       const tt = document.getElementById('item-tooltip');
       document.getElementById('tt-title').innerHTML = `${itemDef.icon} ${itemDef.name} <span class="text-amber-400 text-[10px]">(현재 Lv.${curLv})</span>`;
-      document.getElementById('tt-stat', itemDef.desc);
       document.getElementById('tt-stat').innerText = `✨ ${itemDef.desc}`;
       document.getElementById('tt-type').innerText = `속성: ${itemDef.attr}`;
 
