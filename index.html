@@ -398,7 +398,7 @@
 
     function getLocalRankings() {
       try {
-        const data = localStorage.getItem('yujun_local_rankings_v9');
+        const data = localStorage.getItem('yujun_local_rankings_v11');
         return data ? JSON.parse(data) : [];
       } catch(e) {
         return [];
@@ -432,7 +432,7 @@
         const refinedList = Array.from(uniqueMap.values());
         refinedList.sort((a, b) => b.score - a.score);
 
-        localStorage.setItem('yujun_local_rankings_v9', JSON.stringify(refinedList.slice(0, 50)));
+        localStorage.setItem('yujun_local_rankings_v11', JSON.stringify(refinedList.slice(0, 50)));
       } catch(e) {}
     }
 
@@ -845,7 +845,6 @@
       return LIFE_STAGES[LIFE_STAGES.length - 1];
     }
 
-    // 진로 보류 상태 엄격 판정
     function isDecisionPendingForCurrentStage() {
       const matchingAge = STAGE_ORDER.find(age => {
         const ev = LIFE_EVENTS[age];
@@ -860,7 +859,7 @@
       return false;
     }
 
-    // 활성 무기 정보 판정 (보류 중일 때 무조건 '이전에 확정된 가장 최근의 진로 스킬' 유지)
+    // [핵심 개선] 가장 최근에 확정된 진로의 무기와 퍽을 최우선 리턴
     function getActiveWeaponInfo() {
       const currentStage = getCurrentStage();
       
@@ -1101,7 +1100,7 @@
       return nearest;
     }
 
-    // 진로 확정된 스킬 정상 발사 로직
+    // [핵심 보정] 3방향(프리토킹)과 7연발(컴싸난사) 등의 다발 연사 효과가 선택된 무기와 완벽하게 결합되도록 수정
     function tryShoot() {
       if (state.isPaused || state.isGameOver || player.attackTimer > 0) return;
       const stats = calcStats();
@@ -1119,9 +1118,20 @@
       const speed = stats.projSpeed;
       const perkName = weaponInfo.perk;
 
-      const isFreeTalking = (perkName === "프리토킹");
+      // 이전 단계에서 얻은 멀티 연사 퍽(프리토킹 3방향 또는 컴싸 7연발)이 있는지 체크
+      const confirmedPerks = state.selectedLifePerks.filter(p => {
+        const isCurrentPending = state.pendingEventAges.some(age => {
+          const ev = LIFE_EVENTS[age];
+          if (!ev) return false;
+          return p.category === ev.categoryKey;
+        });
+        return !isCurrentPending;
+      });
+
+      const hasFreeTalking = confirmedPerks.some(p => p.perk === "프리토킹");
+      const hasExamPen = confirmedPerks.some(p => p.perk === "컴싸난사");
+
       const isArmyK2 = (perkName === "육군보병");
-      const isExamPen = (perkName === "컴싸난사");
       const isBigBaby = (perkName === "육아전쟁");
       const isPowerShot = (perkName === "파워슛");
       const isMarriage = (perkName === "신혼부부");
@@ -1137,15 +1147,20 @@
         critRate: stats.critRate,
         critDmg: stats.critDmg,
         pierce: pierceBonus + extraPierce,
-        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : (isFreeTalking ? "🔤" : (isExamPen ? "🖍️" : pType))),
+        type: isMarriage ? "💌" : (isPowerShot ? "⚽" : pType),
         radius: isPowerShot ? 18 : projSize,
         life: 1.6
       });
 
-      if (isFreeTalking) {
-        projectiles.push(createProj(angle - 0.22, 2, "🔤"));
-        projectiles.push(createProj(angle, 2, "🔤"));
-        projectiles.push(createProj(angle + 0.22, 2, "🔤"));
+      // 멀티 연사 분기 (축구공이라도 3방향이나 7연발이 있으면 해당 개수만큼 발사됨)
+      if (hasExamPen || perkName === "컴싸난사") {
+        for (let k = -3; k <= 3; k++) {
+          projectiles.push(createProj(angle + k * 0.12, 1, weaponInfo.icon));
+        }
+      } else if (hasFreeTalking || perkName === "프리토킹") {
+        projectiles.push(createProj(angle - 0.22, 2, weaponInfo.icon));
+        projectiles.push(createProj(angle, 2, weaponInfo.icon));
+        projectiles.push(createProj(angle + 0.22, 2, weaponInfo.icon));
       } else if (isArmyK2) {
         for (let i = 0; i < 6; i++) {
           setTimeout(() => {
@@ -1155,21 +1170,15 @@
             }
           }, i * 40);
         }
-      } else if (isExamPen) {
-        for (let k = -3; k <= 3; k++) {
-          projectiles.push(createProj(angle + k * 0.12, 1, "🖍️"));
-        }
       } else if (isMarriage) {
         projectiles.push(createProj(angle - 0.15, 2, "💌"));
         projectiles.push(createProj(angle + 0.15, 2, "💌"));
-      } else if (isPowerShot) {
-        projectiles.push(createProj(angle, 2, "⚽"));
       } else {
         projectiles.push(createProj(angle));
       }
 
-      const soloFast = (perkName === "솔로프리덤") ? 0.75 : 1.0;
-      const yagenFast = (perkName === "야근분노" && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
+      const soloFast = confirmedPerks.some(p => p.perk === "솔로프리덤") ? 0.75 : 1.0;
+      const yagenFast = (confirmedPerks.some(p => p.perk === "야근분노") && player.hp <= stats.maxHp * 0.35) ? 0.08 : 0.20;
       player.attackTimer = yagenFast * soloFast;
     }
 
